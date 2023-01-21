@@ -1,7 +1,8 @@
 from dkg.providers import NodeHTTPProvider, BlockchainProvider
-from dkg.types import NodeEndpoint, BlockchainEndpoint, BlockchainResponse, NodeResponse
+from dkg._utils.blockchain_request import BlockchainEndpoint
+from dkg._utils.node_request import NodeEndpoint
+from dkg.dataclasses import BlockchainResponseDict, NodeResponseDict
 from dkg.exceptions import InvalidRequest
-from typing import Any
 from dataclasses import asdict
 
 
@@ -11,13 +12,13 @@ class DefaultRequestManager:
         self.blockchain_provider = blockchain_provider
 
     def blocking_request(
-        self, request: BlockchainEndpoint | NodeEndpoint, params: Any = None
-    ) -> BlockchainResponse | NodeResponse:
-        match request:
+        self, request_params: BlockchainEndpoint | NodeEndpoint
+    ) -> BlockchainResponseDict | NodeResponseDict:
+        match request_params:
             case BlockchainEndpoint():
                 pass
             case NodeEndpoint():
-                return self.node_provider.make_request(**asdict(request), data=params)
+                return self.node_provider.make_request(**asdict(request_params))
             case _:
                 raise InvalidRequest(
                     "Invalid Request. Manager can only process Blockchain/Node requests."

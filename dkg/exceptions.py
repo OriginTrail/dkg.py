@@ -28,6 +28,14 @@ class InvalidRequest(DKGException):
     pass
 
 
+class HTTPRequestMethodNotSupported(DKGException):
+    """
+    Raised if used HTTP method isn't supported
+    """
+
+    pass
+
+
 class NodeRequestError(DKGException):
     """
     Raised by Node HTTP Provider if error occured during request.

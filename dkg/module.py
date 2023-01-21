@@ -5,6 +5,7 @@ from dkg.method import Method
 from dkg.types import TReturn
 import inspect
 from io import UnsupportedOperation
+from dataclasses import replace
 
 
 class Module:
@@ -14,7 +15,9 @@ class Module:
         self, method: Method[Callable[..., TReturn]]
     ) -> Callable[..., TReturn]:
         def caller(*args: Any, **kwargs: Any) -> TReturn:
-            return self.manager.blocking_request(method.endpoint, *args, **kwargs)
+            processed_args = method.process_args(*args, **kwargs)
+            request_params = replace(method.endpoint, **processed_args)
+            return self.manager.blocking_request(request_params)
         return caller
 
     def _attach_modules(

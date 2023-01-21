@@ -1,4 +1,9 @@
-from dkg.types import BlockchainEndpoint
+from dataclasses import dataclass
+
+
+@dataclass
+class BlockchainEndpoint:
+    pass
 
 
 class BlockchainRequest:
