@@ -36,7 +36,4 @@ class Node(Module):
             hash_function_id,
         )
 
-    _local_store = Method(NodeRequest.local_store)
-    _publish = Method(NodeRequest.publish)
-    _get = Method(NodeRequest.get)
     _query = Method(NodeRequest.query)

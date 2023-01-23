@@ -1,9 +1,0 @@
-otp_testnet:
-  full_name: 'OriginTrail Parachain Testnet'
-  rpc: https://lofar-testnet.origin-trail.network/
-  hub_address: '0xBbfF7Ea6b2Addc1f38A0798329e12C08f03750A6'
-
-otp_mainnet:
-  full_name: 'OriginTrail Parachain Mainnet'
-  rpc: https://astrosat-parachain-rpc.origin-trail.network/
-  hub_address: '0x5fA7916c48Fe6D5F1738d12Ad234b78c90B4cAdA'

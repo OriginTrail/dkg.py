@@ -1,6 +1,6 @@
 from dkg.providers import NodeHTTPProvider, BlockchainProvider
-from dkg._utils.blockchain_request import BlockchainEndpoint
-from dkg._utils.node_request import NodeEndpoint
+from dkg._utils.blockchain_request import ContractInteraction
+from dkg._utils.node_request import NodeCall
 from dkg.dataclasses import BlockchainResponseDict, NodeResponseDict
 from dkg.exceptions import InvalidRequest
 from dataclasses import asdict
@@ -12,12 +12,12 @@ class DefaultRequestManager:
         self.blockchain_provider = blockchain_provider
 
     def blocking_request(
-        self, request_params: BlockchainEndpoint | NodeEndpoint
+        self, request_params: ContractInteraction | NodeCall
     ) -> BlockchainResponseDict | NodeResponseDict:
         match request_params:
-            case BlockchainEndpoint():
-                pass
-            case NodeEndpoint():
+            case ContractInteraction():
+                return self.blockchain_provider.call_function(**asdict(request_params))
+            case NodeCall():
                 return self.node_provider.make_request(**asdict(request_params))
             case _:
                 raise InvalidRequest(

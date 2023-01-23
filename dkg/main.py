@@ -7,24 +7,23 @@ from dkg.providers import BaseProvider, BlockchainProvider, NodeHTTPProvider
 
 
 class DKG(Module):
-    default_modules = {
-        "assets": (
-            Assets,
-            {
-                "ContentAsset": ContentAsset,
-            }
-        ),
-        "node": Node,
-        "graph": Graph,
-    }
-
     def __init__(
         self,
         node_provider: NodeHTTPProvider,
         blockchain_provider: BlockchainProvider,
     ):
         self.manager = DefaultRequestManager(node_provider, blockchain_provider)
-        self._attach_modules(DKG.default_modules, self.manager)
+        modules = {
+            "assets": (
+                Assets(),
+                {
+                    "content": ContentAsset(),
+                }
+            ),
+            "node": Node(self.manager),
+            "graph": Graph(),
+        }
+        self._attach_modules(modules)
 
     @property
     def provider(self) -> BaseProvider:

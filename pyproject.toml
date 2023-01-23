@@ -11,6 +11,7 @@ python = "^3.11"
 pyyaml = "^6.0"
 web3 = {version = "^6.0.0b9", allow-prereleases = true}
 pandas = "^1.5.3"
+eth-account = "^0.8.0"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -5,7 +5,7 @@ from typing import Type
 
 
 @dataclass
-class NodeEndpoint:
+class NodeCall:
     method: HTTPRequestMethod
     path: str
     params: dict[str, Type] = field(default_factory=dict)
@@ -13,8 +13,8 @@ class NodeEndpoint:
 
 
 class NodeRequest:
-    info = NodeEndpoint(method=HTTPRequestMethod.GET, path='info')
-    bid_suggestion = NodeEndpoint(
+    info = NodeCall(method=HTTPRequestMethod.GET, path='info')
+    bid_suggestion = NodeCall(
         method=HTTPRequestMethod.GET,
         path='bid-suggestion',
         params={
@@ -26,7 +26,7 @@ class NodeRequest:
             'hashFunctionId': int,
         }
     )
-    local_store = NodeEndpoint(method=HTTPRequestMethod.POST, path='local-store')
-    publish = NodeEndpoint(method=HTTPRequestMethod.POST, path='publish')
-    get = NodeEndpoint(method=HTTPRequestMethod.POST, path='get')
-    query = NodeEndpoint(method=HTTPRequestMethod.POST, path='query')
+    local_store = NodeCall(method=HTTPRequestMethod.POST, path='local-store')
+    publish = NodeCall(method=HTTPRequestMethod.POST, path='publish')
+    get = NodeCall(method=HTTPRequestMethod.POST, path='get')
+    query = NodeCall(method=HTTPRequestMethod.POST, path='query')
