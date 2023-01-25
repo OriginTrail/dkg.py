@@ -35,5 +35,3 @@ class Node(Module):
             first_assertion_id,
             hash_function_id,
         )
-
-    _query = Method(NodeRequest.query)

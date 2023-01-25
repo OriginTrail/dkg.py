@@ -39,7 +39,7 @@ class BlockchainProvider:
         contract_function: ContractFunction = getattr(contract_instance.functions, function)
 
         if not state_changing:
-            return contract_function(args.values()).call()
+            return contract_function(**args).call()
         else:
             nonce = self.w3.eth.get_transaction_count(self.w3.eth.default_account)
             gas_price = gas_price if gas_price is not None else self.w3.eth.gas_price
@@ -52,7 +52,7 @@ class BlockchainProvider:
             if gas_limit is not None:
                 options.update({'gas': gas_limit})
 
-            tx_hash = contract_function(args.values()).transact(options)
+            tx_hash = contract_function(**args).transact(options)
             tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
 
             return tx_receipt
@@ -63,7 +63,8 @@ class BlockchainProvider:
                 address=(
                     self.hub.functions.getContractAddress(
                         contract if contract != 'ERC20Token' else 'Token'
-                    ).call()
+                    ).call() if not contract.endswith('AssetStorage')
+                    else self.hub.functions.getAssetStorageAddress(contract).call()
                 ),
                 abi=self.abi[contract],
             )

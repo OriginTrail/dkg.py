@@ -3,7 +3,7 @@ from dkg.exceptions import ValidationError
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.types import TReturn
-from dataclasses import replace
+from dataclasses import asdict
 
 
 class Module:
@@ -14,8 +14,9 @@ class Module:
     ) -> Callable[..., TReturn]:
         def caller(*args: Any, **kwargs: Any) -> TReturn:
             processed_args = method.process_args(*args, **kwargs)
-            request_params = replace(method.action, **processed_args)
-            return self.manager.blocking_request(request_params)
+            request_params = asdict(method.action)
+            request_params.update(processed_args)
+            return self.manager.blocking_request(type(method.action), request_params)
         return caller
 
     def _attach_modules(self, module_definitions: dict[str, Any]) -> None:

@@ -16,6 +16,6 @@ def parse_ual(ual: UAL) -> dict[str, str | Address | int]:
 
     return {
         'blockchain': blockchain,
-        'contractAddress': contract_address,
-        'tokenId': token_id,
+        'contractAddress': Address(contract_address),
+        'tokenId': int(token_id),
     }

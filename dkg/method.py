@@ -5,6 +5,7 @@ from dkg.types import TFunc
 from typing import Generic, Type, TYPE_CHECKING, Any
 from dkg._utils.string_transformations import snake_to_camel
 import itertools
+import re
 
 if TYPE_CHECKING:
     from dkg.module import Module
@@ -33,20 +34,43 @@ class Method(Generic[TFunc]):
                     'state_changing': isinstance(self.action, ContractTransaction)
                 }
             case NodeCall():
-                if self.action.params:
-                    return {
-                        'params': self._validate_and_map(self.action.params, args, kwargs),
-                        'data': {},
-                    }
-                else:
-                    return {
-                        'params': {},
-                        'data': self._validate_and_map(self.action.data, args, kwargs),
-                    }
+                path_placeholders = re.findall(r"\{([^{}]+)?\}", self.action.path)
+
+                args_in_path = 0
+                path_args = []
+                path_kwargs = {}
+                if len(path_placeholders) > 0:
+                    for placeholder in path_placeholders:
+                        if (placeholder != '') and (placeholder in kwargs.keys()):
+                            path_kwargs[placeholder] = kwargs.pop(placeholder)
+                        else:
+                            if len(args) <= args_in_path:
+                                raise ValidationError(
+                                    "Number of given arguments can't be smaller than "
+                                    "number of path placeholders"
+                                )
+
+                            if placeholder == '':
+                                path_args.append(args[args_in_path])
+                            else:
+                                path_kwargs[placeholder] = args[args_in_path]
+
+                            args_in_path += 1
+
+                return {
+                    'path': self.action.path.format(*path_args, **path_kwargs),
+                    'params': self._validate_and_map(
+                        self.action.params, args[args_in_path:], kwargs
+                    ) if self.action.params else {},
+                    'data': self._validate_and_map(
+                        self.action.data, args[args_in_path:], kwargs
+                    ) if self.action.data else {},
+                }
+
             case _:
                 return {}
 
-    def _validate_and_map(self, required_args, *args, **kwargs) -> dict[str, Any]:
+    def _validate_and_map(self, required_args, args, kwargs) -> dict[str, Any]:
         if len(args) > len(required_args):
             raise ValidationError(
                 "Number of positional arguments can't be bigger than "

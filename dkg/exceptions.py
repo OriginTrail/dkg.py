@@ -42,3 +42,19 @@ class NodeRequestError(DKGException):
     """
 
     pass
+
+
+class OperationNotFinished(DKGException):
+    """
+    Raised when requested operation result isn't ready.
+    """
+
+    pass
+
+
+class OperationFailed(DKGException):
+    """
+    Raised when requested operation status is failed.
+    """
+
+    pass

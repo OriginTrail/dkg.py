@@ -25,14 +25,14 @@ class BlockchainRequest:
     increase_allowance = ContractTransaction(
         contract='Token',
         function='increaseAllowance',
-        args={'address': Address, 'token_amount': Wei},
+        args={'spender': Address, 'addedValue': Wei},
         #  gas_price=
         #  gas_limit=
     )
     decrease_allowance = ContractTransaction(
         contract='Token',
         function='decreaseAllowance',
-        args={'address': Address, 'token_amount': Wei},
+        args={'spender': Address, 'substractedValue': Wei},
         #  gas_price=
         #  gas_limit=
     )
@@ -41,20 +41,25 @@ class BlockchainRequest:
         contract='ContentAsset',
         function='createAsset',
         args={
-            'assertion_id': DataHexStr,
+            'assertionId': DataHexStr,
             'size': int,
-            'triples_number': int,
-            'chunks_number': int,
-            'epochs_number': int,
-            'token_amount': Wei,
-            'score_function_id': int,
-            'immutable': bool,
+            'triplesNumber': int,
+            'chunksNumber': int,
+            'epochsNumber': int,
+            'tokenAmount': Wei,
+            'scoreFunctionId': int,
+            'immutable_': bool,
         },
         #  gas_price=
         #  gas_limit=
     )
+    get_latest_assertion_id = ContractCall(
+        contract='ContentAssetStorage',
+        function='getLatestAssertionId',
+        args={'tokenId': int},
+    )
     owner_of = ContractCall(
-        contract='ContentAsset',
+        contract='ContentAssetStorage',
         function='ownerOf',
-        args={'token_id': int},
+        args={'tokenId': int},
     )

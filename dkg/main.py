@@ -32,7 +32,7 @@ class DKG(Module):
             "assets": (
                 Assets(),
                 {
-                    "content": ContentAsset(),
+                    "content": ContentAsset(self.manager),
                 }
             ),
             "node": Node(self.manager),
