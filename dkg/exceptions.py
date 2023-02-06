@@ -58,3 +58,19 @@ class OperationFailed(DKGException):
     """
 
     pass
+
+
+class InvalidAsset(DKGException):
+    """
+    Raised when root of the Merkle Tree built from N-Quads isn't the same as the assertionId.
+    """
+
+    pass
+
+
+class LeafNotInTree(DKGException):
+    """
+    Raised when proof/verification requested for the leaf that is not the part of the Merkle Tree.
+    """
+
+    pass

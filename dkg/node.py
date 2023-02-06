@@ -1,7 +1,7 @@
 from dkg.module import Module
 from dkg.method import Method
 from dkg.manager import DefaultRequestManager
-from dkg._utils.node_request import NodeRequest
+from dkg.utils.node_request import NodeRequest
 from dkg.dataclasses import NodeResponseDict
 from dkg.types import Address, DataHexStr
 

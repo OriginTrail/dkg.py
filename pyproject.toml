@@ -13,6 +13,7 @@ web3 = {version = "^6.0.0b9", allow-prereleases = true}
 pandas = "^1.5.3"
 eth-account = "^0.8.0"
 pyld = "^2.0.3"
+eth-abi = {version = "^4.0.0b2", allow-prereleases = true}
 
 
 [tool.poetry.group.dev.dependencies]

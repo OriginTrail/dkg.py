@@ -1,6 +1,6 @@
 from dkg.providers import NodeHTTPProvider, BlockchainProvider
-from dkg._utils.blockchain_request import ContractInteraction
-from dkg._utils.node_request import NodeCall
+from dkg.utils.blockchain_request import ContractInteraction
+from dkg.utils.node_request import NodeCall
 from dkg.dataclasses import BlockchainResponseDict, NodeResponseDict
 from dkg.exceptions import InvalidRequest
 from typing import Any, Type

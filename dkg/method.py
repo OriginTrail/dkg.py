@@ -1,9 +1,9 @@
-from dkg._utils.node_request import NodeCall
-from dkg._utils.blockchain_request import ContractInteraction, ContractTransaction
+from dkg.utils.node_request import NodeCall
+from dkg.utils.blockchain_request import ContractInteraction, ContractTransaction
 from dkg.exceptions import ValidationError
 from dkg.types import TFunc
 from typing import Generic, Type, TYPE_CHECKING, Any
-from dkg._utils.string_transformations import snake_to_camel
+from dkg.utils.string_transformations import snake_to_camel
 import itertools
 import re
 

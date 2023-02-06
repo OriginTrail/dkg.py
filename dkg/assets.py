@@ -2,14 +2,15 @@ from dkg.module import Module
 from dkg.method import Method
 from dkg.dataclasses import NodeResponseDict
 from dkg.types import UAL, Address, JSONLD, HexStr
-from dkg._utils.node_request import NodeRequest, GetOperationStatus
-from dkg._utils.blockchain_request import BlockchainRequest
+from dkg.utils.node_request import NodeRequest, GetOperationStatus
+from dkg.utils.blockchain_request import BlockchainRequest
 from dkg.manager import DefaultRequestManager
-from dkg._utils.ual import parse_ual
-from dkg._utils.decorators import retry
-from dkg.exceptions import OperationNotFinished, OperationFailed
+from dkg.utils.ual import parse_ual
+from dkg.utils.decorators import retry
+from dkg.exceptions import OperationNotFinished, OperationFailed, InvalidAsset
 from web3 import Web3
 from pyld import jsonld
+from dkg.utils.merkle import MerkleTree, hash_assertion_with_indexes
 
 
 class ContentAsset(Module):
@@ -57,10 +58,16 @@ class ContentAsset(Module):
         assertion = operation_result['data']['assertion']
 
         token_id = parse_ual(ual)['tokenId']
-        latest_assertion_id = self._get_latest_assertion_id(token_id)
+        latest_assertion_id = Web3.to_hex(self._get_latest_assertion_id(token_id))
 
         if validate:
-            pass
+            merkle_tree = MerkleTree(hash_assertion_with_indexes(assertion), sort_pairs=True)
+            root = "0x" + merkle_tree.root
+            if root != latest_assertion_id:
+                raise InvalidAsset(
+                    f"Latest assertionId: {latest_assertion_id}. "
+                    f"Merkle Tree Root: {root}"
+                )
 
         assertion_json_ld: list[JSONLD] = jsonld.from_rdf(
             '\n'.join(assertion),
@@ -68,7 +75,7 @@ class ContentAsset(Module):
         )
 
         return {
-            'assertionId': Web3.to_hex(latest_assertion_id),
+            'assertionId': latest_assertion_id,
             'assertion': assertion_json_ld,
             'operation': {
                 'operation_id': operation_id,
