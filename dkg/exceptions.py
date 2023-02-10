@@ -60,6 +60,14 @@ class OperationFailed(DKGException):
     pass
 
 
+class AccountMissing(DKGException):
+    """
+    Raised when trying to perform state-changing blockchain transaction without account specified.
+    """
+
+    pass
+
+
 class InvalidAsset(DKGException):
     """
     Raised when root of the Merkle Tree built from N-Quads isn't the same as the assertionId.

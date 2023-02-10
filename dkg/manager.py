@@ -8,8 +8,24 @@ from typing import Any, Type
 
 class DefaultRequestManager:
     def __init__(self, node_provider: NodeHTTPProvider, blockchain_provider: BlockchainProvider):
-        self.node_provider = node_provider
-        self.blockchain_provider = blockchain_provider
+        self._node_provider = node_provider
+        self._blockchain_provider = blockchain_provider
+
+    @property
+    def node_provider(self) -> NodeHTTPProvider:
+        return self._node_provider
+
+    @node_provider.setter
+    def node_provider(self, node_provider: NodeHTTPProvider) -> None:
+        self._node_provider = node_provider
+
+    @property
+    def blockchain_provider(self) -> BlockchainProvider:
+        return self._blockchain_provider
+
+    @blockchain_provider.setter
+    def blockchain_provider(self, blockchain_provider: BlockchainProvider) -> None:
+        self._blockchain_provider = blockchain_provider
 
     def blocking_request(
         self, request_type: Type[ContractInteraction | NodeCall], request_params: dict[str, Any]
