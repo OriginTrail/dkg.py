@@ -11,83 +11,82 @@
     "type": "constructor"
   },
   {
-    "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
         "internalType": "uint72",
         "name": "identityId",
         "type": "uint72"
       },
       {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "nodeId",
-        "type": "bytes"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint96",
-        "name": "ask",
-        "type": "uint96"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint96",
-        "name": "stake",
-        "type": "uint96"
-      }
-    ],
-    "name": "NodeAdded",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
         "internalType": "uint72",
-        "name": "identityId",
+        "name": "prevIdentityId",
         "type": "uint72"
       },
       {
-        "indexed": false,
-        "internalType": "bytes",
-        "name": "nodeId",
-        "type": "bytes"
+        "internalType": "uint72",
+        "name": "nextIdentityId",
+        "type": "uint72"
       }
     ],
-    "name": "NodeRemoved",
-    "type": "event"
+    "name": "createNodeObject",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
   },
   {
     "inputs": [],
-    "name": "getShardingTable",
+    "name": "decrementNodesCount",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint72",
+        "name": "identityId",
+        "type": "uint72"
+      }
+    ],
+    "name": "deleteNodeObject",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint72",
+        "name": "firstIdentityId",
+        "type": "uint72"
+      },
+      {
+        "internalType": "uint16",
+        "name": "nodesNumber",
+        "type": "uint16"
+      }
+    ],
+    "name": "getMultipleNodes",
     "outputs": [
       {
         "components": [
-          {
-            "internalType": "bytes",
-            "name": "nodeId",
-            "type": "bytes"
-          },
           {
             "internalType": "uint72",
             "name": "identityId",
             "type": "uint72"
           },
           {
-            "internalType": "uint96",
-            "name": "ask",
-            "type": "uint96"
+            "internalType": "uint72",
+            "name": "prevIdentityId",
+            "type": "uint72"
           },
           {
-            "internalType": "uint96",
-            "name": "stake",
-            "type": "uint96"
+            "internalType": "uint72",
+            "name": "nextIdentityId",
+            "type": "uint72"
           }
         ],
-        "internalType": "struct ShardingTableStructs.NodeInfo[]",
+        "internalType": "struct ShardingTableStructs.Node[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -99,43 +98,46 @@
     "inputs": [
       {
         "internalType": "uint72",
-        "name": "startingIdentityId",
-        "type": "uint72"
-      },
-      {
-        "internalType": "uint72",
-        "name": "nodesNumber",
+        "name": "identityId",
         "type": "uint72"
       }
     ],
-    "name": "getShardingTable",
+    "name": "getNode",
     "outputs": [
       {
         "components": [
-          {
-            "internalType": "bytes",
-            "name": "nodeId",
-            "type": "bytes"
-          },
           {
             "internalType": "uint72",
             "name": "identityId",
             "type": "uint72"
           },
           {
-            "internalType": "uint96",
-            "name": "ask",
-            "type": "uint96"
+            "internalType": "uint72",
+            "name": "prevIdentityId",
+            "type": "uint72"
           },
           {
-            "internalType": "uint96",
-            "name": "stake",
-            "type": "uint96"
+            "internalType": "uint72",
+            "name": "nextIdentityId",
+            "type": "uint72"
           }
         ],
-        "internalType": "struct ShardingTableStructs.NodeInfo[]",
+        "internalType": "struct ShardingTableStructs.Node",
         "name": "",
-        "type": "tuple[]"
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "head",
+    "outputs": [
+      {
+        "internalType": "uint72",
+        "name": "",
+        "type": "uint72"
       }
     ],
     "stateMutability": "view",
@@ -156,7 +158,25 @@
   },
   {
     "inputs": [],
-    "name": "initialize",
+    "name": "incrementNodesCount",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint72",
+        "name": "leftNodeIdentityId",
+        "type": "uint72"
+      },
+      {
+        "internalType": "uint72",
+        "name": "rightNodeIdentityId",
+        "type": "uint72"
+      }
+    ],
+    "name": "link",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -175,13 +195,32 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "profileStorage",
+    "inputs": [
+      {
+        "internalType": "uint72",
+        "name": "identityId",
+        "type": "uint72"
+      }
+    ],
+    "name": "nodeExists",
     "outputs": [
       {
-        "internalType": "contract ProfileStorage",
+        "internalType": "bool",
         "name": "",
-        "type": "address"
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "nodesCount",
+    "outputs": [
+      {
+        "internalType": "uint72",
+        "name": "",
+        "type": "uint72"
       }
     ],
     "stateMutability": "view",
@@ -195,7 +234,43 @@
         "type": "uint72"
       }
     ],
-    "name": "pushBack",
+    "name": "setHead",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint72",
+        "name": "identityId",
+        "type": "uint72"
+      },
+      {
+        "internalType": "uint72",
+        "name": "newNextIdentityId",
+        "type": "uint72"
+      }
+    ],
+    "name": "setNextIdentityId",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint72",
+        "name": "identityId",
+        "type": "uint72"
+      },
+      {
+        "internalType": "uint72",
+        "name": "newPrevIdentityId",
+        "type": "uint72"
+      }
+    ],
+    "name": "setPrevIdentityId",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -208,45 +283,19 @@
         "type": "uint72"
       }
     ],
-    "name": "pushFront",
+    "name": "setTail",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
-    "inputs": [
+    "inputs": [],
+    "name": "tail",
+    "outputs": [
       {
         "internalType": "uint72",
-        "name": "identityId",
+        "name": "",
         "type": "uint72"
-      }
-    ],
-    "name": "removeNode",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "shardingTableStorage",
-    "outputs": [
-      {
-        "internalType": "contract ShardingTableStorage",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "stakingStorage",
-    "outputs": [
-      {
-        "internalType": "contract StakingStorage",
-        "name": "",
-        "type": "address"
       }
     ],
     "stateMutability": "view",

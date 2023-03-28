@@ -13,12 +13,146 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "caller",
-        "type": "address"
+        "internalType": "bytes32",
+        "name": "agreementId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint16",
+        "name": "epoch",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint256",
+        "name": "stateIndex",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "commitWindowOpen",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "commitWindowClose",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "timeNow",
+        "type": "uint256"
       }
     ],
-    "name": "OnlyHubContractsFunction",
+    "name": "CommitWindowClosed",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "assetStorage",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "NoPendingUpdate",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "agreementId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint16",
+        "name": "epoch",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint256",
+        "name": "stateIndex",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint72",
+        "name": "identityId",
+        "type": "uint72"
+      },
+      {
+        "internalType": "bytes",
+        "name": "nodeId",
+        "type": "bytes"
+      }
+    ],
+    "name": "NodeAlreadySubmittedCommit",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "agreementId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint16",
+        "name": "epoch",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint256",
+        "name": "stateIndex",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint72",
+        "name": "identityId",
+        "type": "uint72"
+      },
+      {
+        "internalType": "bytes",
+        "name": "nodeId",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint8",
+        "name": "rank",
+        "type": "uint8"
+      }
+    ],
+    "name": "NodeNotAwarded",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint72",
+        "name": "identityId",
+        "type": "uint72"
+      },
+      {
+        "internalType": "bytes",
+        "name": "nodeId",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint96",
+        "name": "ask",
+        "type": "uint96"
+      },
+      {
+        "internalType": "uint96",
+        "name": "stake",
+        "type": "uint96"
+      }
+    ],
+    "name": "NodeNotInShardingTable",
     "type": "error"
   },
   {
@@ -33,51 +167,40 @@
     "type": "error"
   },
   {
-    "inputs": [],
-    "name": "ScoreError",
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "agreementId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "ServiceAgreementDoesntExist",
     "type": "error"
   },
   {
     "inputs": [
       {
-        "internalType": "uint8",
-        "name": "scoreFunctionId",
-        "type": "uint8"
-      }
-    ],
-    "name": "ScoreFunctionDoesntExist",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "amount",
-        "type": "uint256"
-      }
-    ],
-    "name": "TooLowAllowance",
-    "type": "error"
-  },
-  {
-    "inputs": [
+        "internalType": "bytes32",
+        "name": "agreementId",
+        "type": "bytes32"
+      },
       {
         "internalType": "uint256",
-        "name": "amount",
+        "name": "startTime",
         "type": "uint256"
+      },
+      {
+        "internalType": "uint16",
+        "name": "epochsNumber",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint128",
+        "name": "epochLength",
+        "type": "uint128"
       }
     ],
-    "name": "TooLowBalance",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "ZeroEpochsNumber",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "ZeroTokenAmount",
+    "name": "ServiceAgreementHasBeenExpired",
     "type": "error"
   },
   {
@@ -109,30 +232,30 @@
       },
       {
         "indexed": false,
+        "internalType": "uint16",
+        "name": "epoch",
+        "type": "uint16"
+      },
+      {
+        "indexed": false,
         "internalType": "uint256",
-        "name": "startTime",
+        "name": "stateIndex",
         "type": "uint256"
       },
       {
-        "indexed": false,
-        "internalType": "uint16",
-        "name": "epochsNumber",
-        "type": "uint16"
+        "indexed": true,
+        "internalType": "uint72",
+        "name": "identityId",
+        "type": "uint72"
       },
       {
         "indexed": false,
-        "internalType": "uint128",
-        "name": "epochLength",
-        "type": "uint128"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint96",
-        "name": "tokenAmount",
-        "type": "uint96"
+        "internalType": "uint40",
+        "name": "score",
+        "type": "uint40"
       }
     ],
-    "name": "ServiceAgreementV1Created",
+    "name": "CommitSubmitted",
     "type": "event"
   },
   {
@@ -140,260 +263,58 @@
     "inputs": [
       {
         "indexed": true,
-        "internalType": "bytes32",
-        "name": "agreementId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint16",
-        "name": "epochsNumber",
-        "type": "uint16"
-      }
-    ],
-    "name": "ServiceAgreementV1Extended",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "agreementId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint96",
-        "name": "tokenAmount",
-        "type": "uint96"
-      }
-    ],
-    "name": "ServiceAgreementV1RewardRaised",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "agreementId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "ServiceAgreementV1Terminated",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "agreementId",
-        "type": "bytes32"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint96",
-        "name": "updateTokenAmount",
-        "type": "uint96"
-      }
-    ],
-    "name": "ServiceAgreementV1UpdateRewardRaised",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "assetOwner",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "agreementId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint96",
-        "name": "tokenAmount",
-        "type": "uint96"
-      }
-    ],
-    "name": "addTokens",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "assetOwner",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "agreementId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint96",
-        "name": "tokenAmount",
-        "type": "uint96"
-      }
-    ],
-    "name": "addUpdateTokens",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "commitManagerV1",
-    "outputs": [
-      {
-        "internalType": "contract CommitManagerV1",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "commitManagerV1U1",
-    "outputs": [
-      {
-        "internalType": "contract CommitManagerV1U1",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "assetCreator",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "assetContract",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "bytes",
-            "name": "keyword",
-            "type": "bytes"
-          },
-          {
-            "internalType": "uint8",
-            "name": "hashFunctionId",
-            "type": "uint8"
-          },
-          {
-            "internalType": "uint16",
-            "name": "epochsNumber",
-            "type": "uint16"
-          },
-          {
-            "internalType": "uint96",
-            "name": "tokenAmount",
-            "type": "uint96"
-          },
-          {
-            "internalType": "uint8",
-            "name": "scoreFunctionId",
-            "type": "uint8"
-          }
-        ],
-        "internalType": "struct ServiceAgreementStructsV1.ServiceAgreementInputArgs",
-        "name": "args",
-        "type": "tuple"
-      }
-    ],
-    "name": "createServiceAgreement",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "assetOwner",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "agreementId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint16",
-        "name": "epochsNumber",
-        "type": "uint16"
-      },
-      {
-        "internalType": "uint96",
-        "name": "tokenAmount",
-        "type": "uint96"
-      }
-    ],
-    "name": "extendStoringPeriod",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "sender",
-        "type": "address"
-      },
-      {
         "internalType": "address",
         "name": "assetContract",
         "type": "address"
       },
       {
+        "indexed": true,
         "internalType": "uint256",
         "name": "tokenId",
         "type": "uint256"
       },
       {
+        "indexed": false,
+        "internalType": "bytes",
+        "name": "keyword",
+        "type": "bytes"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint8",
+        "name": "hashFunctionId",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
         "internalType": "uint16",
         "name": "epoch",
         "type": "uint16"
-      }
-    ],
-    "name": "getChallenge",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
       },
       {
+        "indexed": false,
         "internalType": "uint256",
-        "name": "",
+        "name": "stateIndex",
         "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "bytes32",
+        "name": "state",
+        "type": "bytes32"
+      }
+    ],
+    "name": "StateFinalized",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "contentAssetStorage",
+    "outputs": [
+      {
+        "internalType": "contract ContentAssetStorage",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -410,6 +331,11 @@
         "internalType": "uint16",
         "name": "epoch",
         "type": "uint16"
+      },
+      {
+        "internalType": "uint256",
+        "name": "stateIndex",
+        "type": "uint256"
       }
     ],
     "name": "getTopCommitSubmissions",
@@ -473,6 +399,19 @@
   },
   {
     "inputs": [],
+    "name": "identityStorage",
+    "outputs": [
+      {
+        "internalType": "contract IdentityStorage",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "initialize",
     "outputs": [],
     "stateMutability": "nonpayable",
@@ -513,9 +452,14 @@
         "internalType": "uint16",
         "name": "epoch",
         "type": "uint16"
+      },
+      {
+        "internalType": "uint256",
+        "name": "stateIndex",
+        "type": "uint256"
       }
     ],
-    "name": "isProofWindowOpen",
+    "name": "isUpdateCommitWindowOpen",
     "outputs": [
       {
         "internalType": "bool",
@@ -554,10 +498,10 @@
   },
   {
     "inputs": [],
-    "name": "proofManagerV1",
+    "name": "profileStorage",
     "outputs": [
       {
-        "internalType": "contract ProofManagerV1",
+        "internalType": "contract ProfileStorage",
         "name": "",
         "type": "address"
       }
@@ -566,13 +510,19 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "proofManagerV1U1",
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "reqs",
     "outputs": [
       {
-        "internalType": "contract ProofManagerV1U1",
+        "internalType": "bool",
         "name": "",
-        "type": "address"
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
@@ -592,61 +542,68 @@
     "type": "function"
   },
   {
-    "inputs": [
+    "inputs": [],
+    "name": "serviceAgreementStorageProxy",
+    "outputs": [
       {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "assetContract",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "tokenId",
-            "type": "uint256"
-          },
-          {
-            "internalType": "bytes",
-            "name": "keyword",
-            "type": "bytes"
-          },
-          {
-            "internalType": "uint8",
-            "name": "hashFunctionId",
-            "type": "uint8"
-          },
-          {
-            "internalType": "uint16",
-            "name": "epoch",
-            "type": "uint16"
-          },
-          {
-            "internalType": "bytes32[]",
-            "name": "proof",
-            "type": "bytes32[]"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "chunkHash",
-            "type": "bytes32"
-          }
-        ],
-        "internalType": "struct ServiceAgreementStructsV1.ProofInputArgs",
-        "name": "args",
-        "type": "tuple"
+        "internalType": "contract ServiceAgreementStorageProxy",
+        "name": "",
+        "type": "address"
       }
     ],
-    "name": "sendProof",
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "index",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "req",
+        "type": "bool"
+      }
+    ],
+    "name": "setReq",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "serviceAgreementStorageProxy",
+    "name": "shardingTableStorage",
     "outputs": [
       {
-        "internalType": "contract ServiceAgreementStorageProxy",
+        "internalType": "contract ShardingTableStorage",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "stakingContract",
+    "outputs": [
+      {
+        "internalType": "contract Staking",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "stakingStorage",
+    "outputs": [
+      {
+        "internalType": "contract StakingStorage",
         "name": "",
         "type": "address"
       }
@@ -697,27 +654,49 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "assetOwner",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "agreementId",
-        "type": "bytes32"
+        "components": [
+          {
+            "internalType": "address",
+            "name": "assetContract",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bytes",
+            "name": "keyword",
+            "type": "bytes"
+          },
+          {
+            "internalType": "uint8",
+            "name": "hashFunctionId",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint16",
+            "name": "epoch",
+            "type": "uint16"
+          }
+        ],
+        "internalType": "struct ServiceAgreementStructsV1.CommitInputArgs",
+        "name": "args",
+        "type": "tuple"
       }
     ],
-    "name": "terminateAgreement",
+    "name": "submitUpdateCommit",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "tokenContract",
+    "name": "unfinalizedStateStorage",
     "outputs": [
       {
-        "internalType": "contract IERC20",
+        "internalType": "contract UnfinalizedStateStorage",
         "name": "",
         "type": "address"
       }

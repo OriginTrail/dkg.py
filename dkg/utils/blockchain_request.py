@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from typing import Type
-from dkg.types import Address, Wei, DataHexStr
+from dkg.types import Address, Wei
 
 
 @dataclass
@@ -22,6 +22,17 @@ class ContractCall(ContractInteraction):
 
 
 class BlockchainRequest:
+    get_contract_address = ContractCall(
+        contract='Hub',
+        function='getContractAddress',
+        args={'contractName': str},
+    )
+    get_asset_storage_address = ContractCall(
+        contract='Hub',
+        function='getAssetStorageAddress',
+        args={'assetStorageName': str},
+    )
+
     increase_allowance = ContractTransaction(
         contract='Token',
         function='increaseAllowance',
@@ -32,7 +43,7 @@ class BlockchainRequest:
     decrease_allowance = ContractTransaction(
         contract='Token',
         function='decreaseAllowance',
-        args={'spender': Address, 'substractedValue': Wei},
+        args={'spender': Address, 'subtractedValue': Wei},
         #  gas_price=
         #  gas_limit=
     )
@@ -40,16 +51,7 @@ class BlockchainRequest:
     create_asset = ContractTransaction(
         contract='ContentAsset',
         function='createAsset',
-        args={
-            'assertionId': DataHexStr,
-            'size': int,
-            'triplesNumber': int,
-            'chunksNumber': int,
-            'epochsNumber': int,
-            'tokenAmount': Wei,
-            'scoreFunctionId': int,
-            'immutable_': bool,
-        },
+        args={'args': dict[str, bytes | int | Wei | bool]},
         #  gas_price=
         #  gas_limit=
     )

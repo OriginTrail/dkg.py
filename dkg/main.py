@@ -39,7 +39,7 @@ class DKG(Module):
                 }
             ),
             "node": Node(self.manager),
-            "graph": Graph(),
+            "graph": Graph(self.manager),
         }
         self._attach_modules(modules)
 

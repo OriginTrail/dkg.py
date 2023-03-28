@@ -1,8 +1,9 @@
 from dataclasses import dataclass, field
 from dkg.dataclasses import HTTPRequestMethod
-from dkg.types import Address, DataHexStr, UAL
-from typing import Type
+from dkg.types import Address, DataHexStr, UAL, NQuads
+from typing import Type, Any
 from enum import Enum
+from dkg.exceptions import OperationFailed, OperationNotFinished
 
 
 @dataclass
@@ -10,7 +11,7 @@ class NodeCall:
     method: HTTPRequestMethod
     path: str
     params: dict[str, Type] = field(default_factory=dict)
-    data: dict[str, Type] = field(default_factory=dict)
+    data: dict[str, Type] | Type = field(default_factory=dict)
 
 
 class NodeRequest:
@@ -32,14 +33,60 @@ class NodeRequest:
         path='{operation}/{operation_id}',
     )
 
-    local_store = NodeCall(method=HTTPRequestMethod.POST, path='local-store')
-    publish = NodeCall(method=HTTPRequestMethod.POST, path='publish')
+    local_store = NodeCall(
+        method=HTTPRequestMethod.POST,
+        path='local-store',
+        data=list[dict[str, str | Address | NQuads]],
+    )
+    publish = NodeCall(
+        method=HTTPRequestMethod.POST,
+        path='publish',
+        data={
+            'assertionId': str,
+            'assertion': NQuads,
+            'blockchain': str,
+            'contract': Address,
+            'tokenId': int,
+            'hashFunctionId': int,
+        },
+    )
     get = NodeCall(
         method=HTTPRequestMethod.POST,
         path='get',
         data={'id': UAL, 'hashFunctionId': int},
     )
-    query = NodeCall(method=HTTPRequestMethod.POST, path='query')
+    query = NodeCall(
+        method=HTTPRequestMethod.POST,
+        path='query',
+        data={'query': str, 'type': str, 'repository': str}
+    )
+
+
+class LocalStoreOperationStatus(Enum):
+    LOCAL_STORE_INIT_START = 'LOCAL_STORE_INIT_START'
+    LOCAL_STORE_INIT_END = 'LOCAL_STORE_INIT_END'
+    LOCAL_STORE_START = 'LOCAL_STORE_START'
+    LOCAL_STORE_END = 'LOCAL_STORE_END'
+
+
+class PublishOperationStatus(Enum):
+    VALIDATING_PUBLISH_ASSERTION_REMOTE_START = 'VALIDATING_PUBLISH_ASSERTION_REMOTE_START'
+    VALIDATING_PUBLISH_ASSERTION_REMOTE_END = 'VALIDATING_PUBLISH_ASSERTION_REMOTE_END'
+    INSERTING_ASSERTION = 'INSERTING_ASSERTION'
+    PUBLISHING_ASSERTION = 'PUBLISHING_ASSERTION'
+    PUBLISH_START = 'PUBLISH_START'
+    PUBLISH_INIT_START = 'PUBLISH_INIT_START'
+    PUBLISH_INIT_END = 'PUBLISH_INIT_END'
+    PUBLISH_LOCAL_STORE_START = 'PUBLISH_LOCAL_STORE_START'
+    PUBLISH_LOCAL_STORE_END = 'PUBLISH_LOCAL_STORE_END'
+    PUBLISH_REPLICATE_START = 'PUBLISH_REPLICATE_START'
+    PUBLISH_REPLICATE_END = 'PUBLISH_REPLICATE_END'
+    PUBLISH_END = 'PUBLISH_END'
+
+
+class StoreTypes(Enum):
+    TRIPLE = 'TRIPLE'
+    PENDING = 'PENDING'
 
 
 class GetOperationStatus(Enum):
@@ -55,5 +102,50 @@ class GetOperationStatus(Enum):
     GET_FETCH_FROM_NODES_START = 'GET_FETCH_FROM_NODES_START'
     GET_FETCH_FROM_NODES_END = 'GET_FETCH_FROM_NODES_END'
     GET_END = 'GET_END'
+
+
+class QueryOperationStatus(Enum):
+    QUERY_INIT_START = 'QUERY_INIT_START'
+    QUERY_INIT_END = 'QUERY_INIT_END'
+    QUERY_START = 'QUERY_START'
+    QUERY_END = 'QUERY_END'
+
+
+class OperationStatus(Enum):
+    PENDING = 'PENDING'
     FAILED = 'FAILED'
     COMPLETED = 'COMPLETED'
+    FIND_NODES_START = 'FIND_NODES_START'
+    FIND_NODES_END = 'FIND_NODES_END'
+    FIND_NODES_LOCAL_START = 'FIND_NODES_LOCAL_START'
+    FIND_NODES_LOCAL_END = 'FIND_NODES_LOCAL_END'
+    FIND_NODES_OPEN_CONNECTION_START = 'FIND_NODES_OPEN_CONNECTION_START'
+    FIND_NODES_OPEN_CONNECTION_END = 'FIND_NODES_OPEN_CONNECTION_END'
+    FIND_NODES_CREATE_STREAM_START = 'FIND_NODES_CREATE_STREAM_START'
+    FIND_NODES_CREATE_STREAM_END = 'FIND_NODES_CREATE_STREAM_END'
+    FIND_NODES_SEND_MESSAGE_START = 'FIND_NODES_SEND_MESSAGE_START'
+    FIND_NODES_SEND_MESSAGE_END = 'FIND_NODES_SEND_MESSAGE_END'
+    DIAL_PROTOCOL_START = 'DIAL_PROTOCOL_START'
+    DIAL_PROTOCOL_END = 'DIAL_PROTOCOL_END'
+    LOCAL_STORE = LocalStoreOperationStatus
+    PUBLISH = PublishOperationStatus
+    GET = GetOperationStatus
+    QUERY = QueryOperationStatus
+
+
+def validate_operation_status(operation_result: dict[str, Any]) -> None:
+    try:
+        status = OperationStatus(operation_result['status'])
+    except ValueError:
+        raise OperationNotFinished("Operation isn't finished")
+
+    match status:
+        case OperationStatus.COMPLETED:
+            return
+        case OperationStatus.FAILED:
+            raise OperationFailed(
+                f"Operation failed! {operation_result['data']['errorType']}: "
+                f"{operation_result['data']['errorMessage']}."
+            )
+        case _:
+            raise OperationNotFinished("Operation isn't finished")

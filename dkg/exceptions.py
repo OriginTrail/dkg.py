@@ -11,6 +11,14 @@ class DKGException(Exception):
     """
 
 
+class NetworkNotSupported(DKGException):
+    """
+    Raised when blockchain provider is initialized for unsupported network.
+    """
+
+    pass
+
+
 class ValidationError(DKGException):
     """
     Raised when something does not pass a validation check.
@@ -63,6 +71,30 @@ class OperationFailed(DKGException):
 class AccountMissing(DKGException):
     """
     Raised when trying to perform state-changing blockchain transaction without account specified.
+    """
+
+    pass
+
+
+class InvalidDataset(DKGException):
+    """
+    Raised when dataset URDNA2015 normalization doesn't result in any quads.
+    """
+
+    pass
+
+
+class DatasetInputFormatNotSupported(DKGException):
+    """
+    Raised when trying to normalize RDF dataset with not supported input format.
+    """
+
+    pass
+
+
+class DatasetOutputFormatNotSupported(DKGException):
+    """
+    Raised when trying to convert RDF dataset to not supported output format.
     """
 
     pass

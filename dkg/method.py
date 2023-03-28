@@ -21,7 +21,7 @@ class Method(Generic[TFunc]):
         if obj is None:
             raise TypeError(
                 'Direct calls to methods are not supported. '
-                'Methods must be called from an module instance, '
+                'Methods must be called from a module instance, '
                 'usually attached to a dkg instance.'
             )
         return obj.retrieve_caller_fn(self)
@@ -70,7 +70,18 @@ class Method(Generic[TFunc]):
             case _:
                 return {}
 
-    def _validate_and_map(self, required_args, args, kwargs) -> dict[str, Any]:
+    def _validate_and_map(
+        self, required_args: dict[str, Type] | Type, args: list[Any], kwargs: dict[str, Any],
+    ) -> dict[str, Any]:
+        if not isinstance(required_args, dict):
+            if (len(args) + len(kwargs)) != 1:
+                raise ValidationError("Exactly one argument must be provided.")
+
+            if len(args) == 1:
+                return args[0]
+            else:
+                return list(kwargs.values())[0]
+
         if len(args) > len(required_args):
             raise ValidationError(
                 "Number of positional arguments can't be bigger than "
