@@ -5,13 +5,16 @@ from web3 import Web3
 import copy
 from eth_abi.packed import encode_packed
 from dkg.exceptions import LeafNotInTree
+from hexbytes import HexBytes
 
 
-def solidity_keccak256(hash: HexStr) -> HexStr:
-    return bytes(Web3.solidity_keccak(
+def solidity_keccak256(data: HexStr) -> HexStr:
+    bytes_hash: HexBytes = Web3.solidity_keccak(
         ["bytes"],
-        ['0x' + hash],
-    )).hex()
+        [data],
+    )
+
+    return bytes_hash.hex()
 
 
 def hash_assertion_with_indexes(
@@ -28,9 +31,10 @@ def hash_assertion_with_indexes(
             [
                 encode_packed(
                     ["bytes32", "uint256"],
-                    [Web3.solidity_keccak(["string"], [leaf]), i]
-                ).hex() for i, leaf in enumerate(leaves)
-            ]
+                    [Web3.solidity_keccak(["string"], [leaf]), i],
+                )
+                for i, leaf in enumerate(leaves)
+            ],
         )
     )
 
@@ -61,11 +65,11 @@ class MerkleTree:
             for h1, h2 in zip(level[::2], level[1::2] + [None]):
                 if h2:
                     next_level.append(
-                        self.hash_function("".join(
-                            [h1, h2]
+                        self.hash_function(
+                            h1 + h2[2:]
                             if not self.sort_pairs
-                            else sorted([h1, h2])
-                        ))
+                            else "0x" + "".join(sorted([h1[2:], h2[2:]]))
+                        )
                     )
                 else:
                     next_level.append(h1)
@@ -92,9 +96,9 @@ class MerkleTree:
                 level.append(level[-1])
 
             if (index % 2) == 1:
-                proof.append(level[index-1])
+                proof.append(level[index - 1])
             else:
-                proof.append(level[index+1])
+                proof.append(level[index + 1])
 
             index //= 2
 
@@ -138,8 +142,13 @@ class MerkleTree:
     def _set_hash_function(
         self, hash_function: str | Callable[[str], HexStr]
     ) -> Callable[[str], HexStr]:
-        if isinstance(hash_function, str) and hash_function in hashlib.algorithms_available:
-            return lambda data: getattr(hashlib, hash_function)(data.encode()).hexdigest()
+        if (
+            isinstance(hash_function, str)
+            and hash_function in hashlib.algorithms_available
+        ):
+            return lambda data: getattr(hashlib, hash_function)(
+                data.encode()
+            ).hexdigest()
         elif isinstance(hash_function, Callable):
             return hash_function
         else:

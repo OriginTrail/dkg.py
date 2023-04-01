@@ -26,13 +26,13 @@ class ContentAsset(Module):
 
     _get_bid_suggestion = Method(NodeRequest.bid_suggestion)
     _local_store = Method(NodeRequest.local_store)
+    _publish = Method(NodeRequest.publish)
 
     _get_contract_address = Method(BlockchainRequest.get_contract_address)
     _get_asset_storage_address = Method(BlockchainRequest.get_asset_storage_address)
     _increase_allowance = Method(BlockchainRequest.increase_allowance)
     _decrease_allowance = Method(BlockchainRequest.decrease_allowance)
     _create = Method(BlockchainRequest.create_asset)
-    _publish = Method(NodeRequest.publish)
 
     def create(
         self,
@@ -41,7 +41,7 @@ class ContentAsset(Module):
         token_amount: int | None = None,
         immutable: bool = False,
         content_type: Literal['JSON-LD', 'N-Quads'] = 'JSON-LD',
-    ):
+    ) -> dict[str, HexStr | dict[str, str]]:
         public_graph = {'@graph': []}
         assertions: list[dict[str, str | Address | JSONLD]] = []
 
@@ -52,13 +52,13 @@ class ContentAsset(Module):
             public_graph['@graph'].append(content['private'])
 
             private_assertion = normalize_dataset(content['private'], content_type)
-            private_assertion_id = '0x' + MerkleTree(
+            private_assertion_id = MerkleTree(
                 hash_assertion_with_indexes(private_assertion),
                 sort_pairs=True,
             ).root
 
         public_assertion = normalize_dataset(public_graph, content_type)
-        public_assertion_id = '0x' + MerkleTree(
+        public_assertion_id = MerkleTree(
             hash_assertion_with_indexes(public_assertion),
             sort_pairs=True,
         ).root
@@ -174,8 +174,7 @@ class ContentAsset(Module):
         latest_assertion_id = Web3.to_hex(self._get_latest_assertion_id(token_id))
 
         if validate:
-            merkle_tree = MerkleTree(hash_assertion_with_indexes(assertion), sort_pairs=True)
-            root = '0x' + merkle_tree.root
+            root = MerkleTree(hash_assertion_with_indexes(assertion), sort_pairs=True).root
             if root != latest_assertion_id:
                 raise InvalidAsset(
                     f'Latest assertionId: {latest_assertion_id}. '
@@ -216,4 +215,6 @@ class ContentAsset(Module):
 
 
 class Assets(Module):
+    content = ContentAsset
+
     ContentAsset: ContentAsset

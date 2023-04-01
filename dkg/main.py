@@ -7,11 +7,12 @@ from dkg.providers import BlockchainProvider, NodeHTTPProvider
 from functools import wraps
 from dkg.types import UAL, Address, ChecksumAddress
 from dkg.utils.ual import format_ual, parse_ual
-from dkg.utils.merkle import MerkleTree
 
 
 class DKG(Module):
-    MerkleTree = MerkleTree
+    assets: Assets
+    node: Node
+    graph: Graph
 
     @staticmethod
     @wraps(format_ual)
