@@ -1,5 +1,5 @@
 from dkg.providers import NodeHTTPProvider, BlockchainProvider
-from dkg.utils.blockchain_request import ContractInteraction
+from dkg.utils.blockchain_request import ContractInteraction, JSONRPCRequest
 from dkg.utils.node_request import NodeCall
 from dkg.dataclasses import BlockchainResponseDict, NodeResponseDict
 from dkg.exceptions import InvalidRequest
@@ -28,9 +28,13 @@ class DefaultRequestManager:
         self._blockchain_provider = blockchain_provider
 
     def blocking_request(
-        self, request_type: Type[ContractInteraction | NodeCall], request_params: dict[str, Any]
+        self,
+        request_type: Type[JSONRPCRequest | ContractInteraction | NodeCall],
+        request_params: dict[str, Any],
     ) -> BlockchainResponseDict | NodeResponseDict:
-        if issubclass(request_type, ContractInteraction):
+        if issubclass(request_type, JSONRPCRequest):
+            return self.blockchain_provider.make_json_rpc_request(**request_params)
+        elif issubclass(request_type, ContractInteraction):
             return self.blockchain_provider.call_function(**request_params)
         elif issubclass(request_type, NodeCall):
             return self.node_provider.make_request(**request_params)

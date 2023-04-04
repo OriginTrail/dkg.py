@@ -1,6 +1,12 @@
 from dataclasses import dataclass, field
 from typing import Type
-from dkg.types import Address, Wei
+from dkg.types import Address, Wei, HexStr
+
+
+@dataclass
+class JSONRPCRequest:
+    endpoint: str
+    args: dict[str, Type] = field(default_factory=dict)
 
 
 @dataclass
@@ -22,6 +28,9 @@ class ContractCall(ContractInteraction):
 
 
 class BlockchainRequest:
+    chain_id = JSONRPCRequest('chain_id')
+    get_block = JSONRPCRequest('get_block', args={'block_identifier': str | int})
+
     get_contract_address = ContractCall(
         contract='Hub',
         function='getContractAddress',
@@ -55,6 +64,25 @@ class BlockchainRequest:
         #  gas_price=
         #  gas_limit=
     )
+    update_asset_state = ContractTransaction(
+        contract='ContentAsset',
+        function='updateAssetState',
+        args={
+            "tokenId": int,
+            "assertionId": bytes | HexStr,
+            "size": int,
+            "triplesNumber": int,
+            "chunksNumber": int,
+            "updateTokenAmount": int,
+        },
+        #  gas_price=
+        #  gas_limit=
+    )
+    get_assertion_id_by_index = ContractCall(
+        contract='ContentAssetStorage',
+        function='getAssertionIdByIndex',
+        args={'tokenId': int, 'index': int},
+    )
     get_latest_assertion_id = ContractCall(
         contract='ContentAssetStorage',
         function='getLatestAssertionId',
@@ -64,4 +92,10 @@ class BlockchainRequest:
         contract='ContentAssetStorage',
         function='ownerOf',
         args={'tokenId': int},
+    )
+
+    get_service_agreement_data = ContractCall(
+        contract='ServiceAgreementStorageProxy',
+        function='getAgreementData',
+        args={'agreementId': HexStr},
     )

@@ -7,9 +7,11 @@ from eth_account.signers.local import LocalAccount
 from web3.contract import Contract
 from web3.contract.contract import ContractFunction
 from web3.middleware import construct_sign_and_send_raw_middleware
-from web3.types import TxReceipt
+from web3.types import TxReceipt, ABI, ABIFunction
 from web3.logs import DISCARD
 from typing import Any
+from collections import namedtuple
+from typing import Type
 
 
 class BlockchainProvider:
@@ -22,13 +24,21 @@ class BlockchainProvider:
     }
     GAS_BUFFER = 1.2  # 20% gas buffer for estimateGas()
 
-    def __init__(self, rpc_uri: URI, hub_address: Address, private_key: DataHexStr | None = None):
+    def __init__(
+        self,
+        rpc_uri: URI,
+        hub_address: Address,
+        private_key: DataHexStr | None = None
+    ):
         self.w3 = Web3(Web3.HTTPProvider(rpc_uri))
 
-        if self.chain_id not in self.SUPPORTED_NETWORKS.keys():
-            raise NetworkNotSupported(f'Network with chain ID {self.chain_id} isn\'t supported!')
+        if (chain_id := self.w3.eth.chain_id) not in self.SUPPORTED_NETWORKS.keys():
+            raise NetworkNotSupported(
+                f'Network with chain ID {chain_id} isn\'t supported!'
+            )
 
         self.abi = self._load_abi()
+        self.output_named_tuples = self._generate_output_named_tuples()
         self.contracts: dict[str, Contract] = {
             'Hub': self.w3.eth.contract(
                 address=hub_address,
@@ -40,20 +50,19 @@ class BlockchainProvider:
         if private_key is not None:
             self.set_account(private_key)
 
-    @property
-    def chain_id(self):
-        return self.w3.eth.chain_id
+    def make_json_rpc_request(self, endpoint: str, args: dict[str, Any] = {}) -> Any:
+        web3_method = getattr(self.w3.eth, endpoint)
 
-    @property
-    def chain_name(self):
-        chain_name = self.SUPPORTED_NETWORKS[self.w3.eth.chain_id]
-        return 'otp' if chain_name.startswith('otp') else chain_name
+        if callable(web3_method):
+            return web3_method(**args)
+        else:
+            return web3_method
 
     def call_function(
         self,
         contract: str,
         function: str,
-        args: dict[str, Any],
+        args: dict[str, Any] = {},
         state_changing: bool = False,
         gas_price: Wei | None = None,
         gas_limit: Wei | None = None,
@@ -62,7 +71,10 @@ class BlockchainProvider:
         contract_function: ContractFunction = getattr(contract_instance.functions, function)
 
         if not state_changing:
-            return contract_function(**args).call()
+            result = contract_function(**args).call()
+            if function in (output_named_tuples := self.output_named_tuples[contract]):
+                result = output_named_tuples[function](*result)
+            return result
         else:
             if not hasattr(self, 'account'):
                 raise AccountMissing(
@@ -115,7 +127,28 @@ class BlockchainProvider:
                 abi=self.abi[contract],
             )
 
-    def _load_abi(self):
+    def _generate_output_named_tuples(self) -> dict[str, dict[str, Type[tuple]]]:
+        def generate_output_namedtuple(function_abi: ABIFunction) -> Type[tuple] | None:
+            output_names = [output['name'] for output in function_abi['outputs']]
+            if all(name != '' for name in output_names):
+                return namedtuple(f"{function_abi['name']}Result", output_names)
+            return None
+
+        output_named_tuples = {}
+        for contract_name, contract_abi in self.abi.items():
+            output_named_tuples[contract_name] = {}
+            for item in contract_abi:
+                if (item["type"] != "function") or not item["outputs"]:
+                    continue
+                elif item["name"] in output_named_tuples[contract_name]:
+                    continue
+                named_tuple = generate_output_namedtuple(item)
+                if named_tuple is not None:
+                    output_named_tuples[contract_name][item["name"]] = named_tuple
+
+        return output_named_tuples
+
+    def _load_abi(self) -> ABI:
         abi = {}
 
         for contract_metadata in self.CONTRACTS_METADATA_DIR.glob('*.json'):

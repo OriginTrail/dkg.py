@@ -50,6 +50,18 @@ class NodeRequest:
             'hashFunctionId': int,
         },
     )
+    update = NodeCall(
+        method=HTTPRequestMethod.POST,
+        path='update',
+        data={
+            'assertionId': str,
+            'assertion': NQuads,
+            'blockchain': str,
+            'contract': Address,
+            'tokenId': int,
+            'hashFunctionId': int,
+        },
+    )
     get = NodeCall(
         method=HTTPRequestMethod.POST,
         path='get',
@@ -82,6 +94,17 @@ class PublishOperationStatus(Enum):
     PUBLISH_REPLICATE_START = 'PUBLISH_REPLICATE_START'
     PUBLISH_REPLICATE_END = 'PUBLISH_REPLICATE_END'
     PUBLISH_END = 'PUBLISH_END'
+
+
+class UpdateOperationStatus(Enum):
+    UPDATE_START = 'UPDATE_START'
+    UPDATE_INIT_START = 'UPDATE_INIT_START'
+    UPDATE_INIT_END = 'UPDATE_INIT_END'
+    UPDATE_REPLICATE_START = 'UPDATE_REPLICATE_START'
+    UPDATE_REPLICATE_END = 'UPDATE_REPLICATE_END'
+    VALIDATING_UPDATE_ASSERTION_REMOTE_START = 'VALIDATING_UPDATE_ASSERTION_REMOTE_START'
+    VALIDATING_UPDATE_ASSERTION_REMOTE_END = 'VALIDATING_UPDATE_ASSERTION_REMOTE_END'
+    UPDATE_END = 'UPDATE_END'
 
 
 class StoreTypes(Enum):
@@ -129,6 +152,7 @@ class OperationStatus(Enum):
     DIAL_PROTOCOL_END = 'DIAL_PROTOCOL_END'
     LOCAL_STORE = LocalStoreOperationStatus
     PUBLISH = PublishOperationStatus
+    UPDATE = UpdateOperationStatus
     GET = GetOperationStatus
     QUERY = QueryOperationStatus
 

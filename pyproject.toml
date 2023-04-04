@@ -15,6 +15,7 @@ eth-account = "^0.8.0"
 pyld = {git = "ssh://git@github.com/u-hubar/pyld.git"}
 rdflib = "^6.3.2"
 hexbytes = "^0.3.0"
+eth-abi = "^4.0.0"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -1,5 +1,6 @@
 from dkg.types import Address, UAL, ChecksumAddress
 from dkg.exceptions import ValidationError
+from web3 import Web3
 
 
 def format_ual(blockchain: str, contract_address: Address | ChecksumAddress, token_id: int) -> UAL:
@@ -16,6 +17,6 @@ def parse_ual(ual: UAL) -> dict[str, str | Address | int]:
 
     return {
         'blockchain': blockchain,
-        'contractAddress': Address(contract_address),
-        'tokenId': int(token_id),
+        'contract_address': Web3.to_checksum_address(contract_address),
+        'token_id': int(token_id),
     }

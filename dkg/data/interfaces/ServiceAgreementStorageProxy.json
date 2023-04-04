@@ -402,27 +402,27 @@
     "outputs": [
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "startTime",
         "type": "uint256"
       },
       {
         "internalType": "uint16",
-        "name": "",
+        "name": "epochsNumber",
         "type": "uint16"
       },
       {
         "internalType": "uint128",
-        "name": "",
+        "name": "epochLength",
         "type": "uint128"
       },
       {
         "internalType": "uint96[2]",
-        "name": "",
+        "name": "tokensInfo",
         "type": "uint96[2]"
       },
       {
         "internalType": "uint8[2]",
-        "name": "",
+        "name": "scoreFunctionIdAndProofWindowOffsetPerc",
         "type": "uint8[2]"
       }
     ],

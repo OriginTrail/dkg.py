@@ -1,5 +1,5 @@
 from dkg.utils.node_request import NodeCall
-from dkg.utils.blockchain_request import ContractInteraction, ContractTransaction
+from dkg.utils.blockchain_request import ContractInteraction, ContractTransaction, JSONRPCRequest
 from dkg.exceptions import ValidationError
 from dkg.types import TFunc
 from typing import Generic, Type, TYPE_CHECKING, Any
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class Method(Generic[TFunc]):
-    def __init__(self, action: ContractInteraction | NodeCall):
+    def __init__(self, action: JSONRPCRequest | ContractInteraction | NodeCall):
         self.action = action
 
     def __get__(
@@ -28,6 +28,8 @@ class Method(Generic[TFunc]):
 
     def process_args(self, *args: Any, **kwargs: Any):
         match self.action:
+            case JSONRPCRequest():
+                return {'args': self._validate_and_map(self.action.args, args, kwargs)}
             case ContractInteraction():
                 return {
                     'args': self._validate_and_map(self.action.args, args, kwargs),
