@@ -46,23 +46,22 @@ class BlockchainRequest:
         contract='Token',
         function='increaseAllowance',
         args={'spender': Address, 'addedValue': Wei},
-        #  gas_price=
-        #  gas_limit=
     )
     decrease_allowance = ContractTransaction(
         contract='Token',
         function='decreaseAllowance',
         args={'spender': Address, 'subtractedValue': Wei},
-        #  gas_price=
-        #  gas_limit=
     )
 
     create_asset = ContractTransaction(
         contract='ContentAsset',
         function='createAsset',
         args={'args': dict[str, bytes | int | Wei | bool]},
-        #  gas_price=
-        #  gas_limit=
+    )
+    burn_asset = ContractTransaction(
+        contract="ContentAsset",
+        function="burnAsset",
+        args={"tokenId": int},
     )
     update_asset_state = ContractTransaction(
         contract='ContentAsset',
@@ -75,8 +74,32 @@ class BlockchainRequest:
             "chunksNumber": int,
             "updateTokenAmount": int,
         },
-        #  gas_price=
-        #  gas_limit=
+    )
+    cancel_asset_state_update = ContractTransaction(
+        contract="ContentAsset",
+        function="cancelAssetStateUpdate",
+        args={"tokenId": int},
+    )
+    extend_asset_storing_period = ContractTransaction(
+        contract="ContentAsset",
+        function="extendAssetStoringPeriod",
+        args={"tokenId": int, "epochsNumber": int, "tokenAmount": int},
+    )
+    increase_asset_token_amount = ContractTransaction(
+        contract="ContentAsset",
+        function="increaseAssetTokenAmount",
+        args={"tokenId": int, "tokenAmount": int},
+    )
+    increase_asset_update_token_amount = ContractTransaction(
+        contract="ContentAsset",
+        function="increaseAssetUpdateTokenAmount",
+        args={"tokenId": int, "tokenAmount": int},
+    )
+
+    transfer_asset = ContractTransaction(
+        contract="ContentAssetStorage",
+        function="transferFrom",
+        args={"from": Address, "to": Address, "tokenId": int}
     )
     get_assertion_id_by_index = ContractCall(
         contract='ContentAssetStorage',
@@ -94,8 +117,20 @@ class BlockchainRequest:
         args={'tokenId': int},
     )
 
+    get_unfinalized_state = ContractCall(
+        contract="UnfinalizedStateStorage",
+        funciton="getUnfinalizedState",
+        args={"tokenId": int},
+    )
+
     get_service_agreement_data = ContractCall(
         contract='ServiceAgreementStorageProxy',
         function='getAgreementData',
         args={'agreementId': HexStr},
+    )
+
+    get_assertion_size = ContractCall(
+        contract="AssertionStorage",
+        function="getAssertionSize",
+        args={"assertionId": HexStr},
     )

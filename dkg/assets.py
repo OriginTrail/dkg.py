@@ -8,7 +8,7 @@ from dkg.manager import DefaultRequestManager
 from dkg.utils.ual import parse_ual, format_ual
 from dkg.utils.decorators import retry
 from dkg.utils.rdf import normalize_dataset
-from dkg.exceptions import OperationNotFinished, InvalidAsset
+from dkg.exceptions import OperationNotFinished, InvalidAsset, InvalidTokenAmount
 from web3 import Web3
 from web3.exceptions import ContractLogicError
 from pyld import jsonld
@@ -130,6 +130,27 @@ class ContentAsset(Module):
             },
         }
 
+    _transfer = Method(BlockchainRequest.transfer_asset)
+
+    def transfer(
+        self,
+        ual: UAL,
+        new_owner: Address,
+    ) -> dict[str, UAL | Address | dict[str, str]]:
+        token_id = parse_ual(ual)["token_id"]
+
+        self._transfer(
+            self.manager.blockchain_provider.account,
+            new_owner,
+            token_id,
+        )
+
+        return {
+            "UAL": ual,
+            "owner": new_owner,
+            "operation": {"status": "COMPLETED"},
+        }
+
     _update = Method(NodeRequest.update)
 
     _get_block = Method(BlockchainRequest.get_block)
@@ -226,6 +247,30 @@ class ContentAsset(Module):
             },
         }
 
+    _cancel_update = Method(BlockchainRequest.cancel_asset_state_update)
+
+    def cancel_update(self, ual: UAL) -> dict[str, UAL | dict[str, str]]:
+        token_id = parse_ual(ual)["token_id"]
+
+        self._cancel_update(token_id)
+
+        return {
+            "UAL": ual,
+            "operation": {"status": "COMPLETED"},
+        }
+
+    _burn_asset = Method(BlockchainRequest.burn_asset)
+
+    def burn(self, ual: UAL) -> dict[str, UAL | dict[str, str]]:
+        token_id = parse_ual(ual)["token_id"]
+
+        self._burn_asset(token_id)
+
+        return {
+            "UAL": ual,
+            "operation": {"status": "COMPLETED"}
+        }
+
     _get_latest_assertion_id = Method(BlockchainRequest.get_latest_assertion_id)
 
     _get = Method(NodeRequest.get)
@@ -272,9 +317,149 @@ class ContentAsset(Module):
             },
         }
 
+    _extend_storing_period = Method(BlockchainRequest.extend_asset_storing_period)
+
+    def extend_storing_period(
+        self,
+        ual: UAL,
+        additional_epochs: int,
+        token_amount: int | None = None,
+    ) -> dict[str, UAL | dict[str, str]]:
+        parsed_ual = parse_ual(ual)
+        content_asset_storage_address, token_id = parsed_ual['contract_address'], parsed_ual['token_id']
+
+        if token_amount is None:
+            chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[self._chain_id()]
+
+            latest_finalized_state = self._get_latest_assertion_id(token_id)
+            latest_finalized_state_size = self._get_assertion_size(latest_finalized_state)
+
+            token_amount = int(
+                self._get_bid_suggestion(
+                    chain_name,
+                    additional_epochs,
+                    latest_finalized_state_size,
+                    content_asset_storage_address,
+                    latest_finalized_state,
+                    self.HASH_FUNCTION_ID,
+                )['bidSuggestion']
+            )
+
+        self._extend_storing_period(token_id, additional_epochs, token_amount)
+
+        return {
+            "UAL": ual,
+            "operation": {"status": "COMPLETED"},
+        }
+
+    _get_assertion_size = Method(BlockchainRequest.get_assertion_size)
+    _add_tokens = Method(BlockchainRequest.increase_asset_token_amount)
+
+    def add_tokens(
+        self,
+        ual: UAL,
+        token_amount: int | None = None,
+    ) -> dict[str, UAL | dict[str, str]]:
+        parsed_ual = parse_ual(ual)
+        content_asset_storage_address, token_id = parsed_ual['contract_address'], parsed_ual['token_id']
+
+        if token_amount is None:
+            chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[self._chain_id()]
+
+            agreement_id = self.get_agreement_id(content_asset_storage_address, token_id)
+            # TODO: Dynamic types for namedtuples?
+            agreement_data: Type[AgreementData] = self._get_service_agreement_data(agreement_id)
+
+            timestamp_now = self._get_block("latest")["timestamp"]
+            current_epoch = math.floor(
+                (timestamp_now - agreement_data.startTime) / agreement_data.epochLength
+            )
+            epochs_left = agreement_data.epochsNumber - current_epoch
+
+            latest_finalized_state = self._get_latest_assertion_id(token_id)
+            latest_finalized_state_size = self._get_assertion_size(latest_finalized_state)
+
+            token_amount = int(
+                self._get_bid_suggestion(
+                    chain_name,
+                    epochs_left,
+                    latest_finalized_state_size,
+                    content_asset_storage_address,
+                    latest_finalized_state,
+                    self.HASH_FUNCTION_ID,
+                )['bidSuggestion']
+            ) - sum(agreement_data.tokensInfo)
+
+            if token_amount <= 0:
+                raise InvalidTokenAmount(
+                    "Token amount is bigger than default suggested amount, "
+                    "please specify exact token_amount if you still want to add "
+                    "more tokens!"
+                )
+
+        self._add_tokens(token_id, token_amount)
+
+        return {
+            "UAL": ual,
+            "operation": {"status": "COMPLETED"},
+        }
+
+    _add_update_tokens = Method(BlockchainRequest.increase_asset_update_token_amount)
+
+    def add_update_tokens(
+        self,
+        ual: UAL,
+        token_amount: int | None = None,
+    ) -> dict[str, UAL | dict[str, str]]:
+        parsed_ual = parse_ual(ual)
+        content_asset_storage_address, token_id = parsed_ual['contract_address'], parsed_ual['token_id']
+
+        if token_amount is None:
+            chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[self._chain_id()]
+
+            agreement_id = self.get_agreement_id(content_asset_storage_address, token_id)
+            # TODO: Dynamic types for namedtuples?
+            agreement_data: Type[AgreementData] = self._get_service_agreement_data(agreement_id)
+
+            timestamp_now = self._get_block("latest")["timestamp"]
+            current_epoch = math.floor(
+                (timestamp_now - agreement_data.startTime) / agreement_data.epochLength
+            )
+            epochs_left = agreement_data.epochsNumber - current_epoch
+
+            unfinalized_state = self._get_latest_assertion_id(token_id)
+            unfinalized_state_size = self._get_assertion_size(unfinalized_state)
+
+            token_amount = int(
+                self._get_bid_suggestion(
+                    chain_name,
+                    epochs_left,
+                    unfinalized_state_size,
+                    content_asset_storage_address,
+                    unfinalized_state,
+                    self.HASH_FUNCTION_ID,
+                )['bidSuggestion']
+            ) - sum(agreement_data.tokensInfo)
+
+            if token_amount <= 0:
+                raise InvalidTokenAmount(
+                    "Token amount is bigger than default suggested amount, "
+                    "please specify exact token_amount if you still want to add "
+                    "more update tokens!"
+                )
+
+        self._add_update_tokens(token_id, token_amount)
+
+        return {
+            "UAL": ual,
+            "operation": {"status": "COMPLETED"},
+        }
+
     _owner = Method(BlockchainRequest.owner_of)
 
-    def owner(self, token_id: int) -> Address:
+    def owner(self, ual: UAL) -> Address:
+        token_id = parse_ual(ual)["token_id"]
+
         return self._owner(token_id)
 
     def _process_content(

@@ -108,6 +108,15 @@ class InvalidAsset(DKGException):
     pass
 
 
+class InvalidTokenAmount(DKGException):
+    """
+    Raised when token amount for operation isn't specified and suggested amount is less
+    or equal to what is already present in the contract.
+    """
+
+    pass
+
+
 class LeafNotInTree(DKGException):
     """
     Raised when proof/verification requested for the leaf that is not the part of the Merkle Tree.
