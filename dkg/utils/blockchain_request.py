@@ -119,7 +119,7 @@ class BlockchainRequest:
 
     get_unfinalized_state = ContractCall(
         contract="UnfinalizedStateStorage",
-        funciton="getUnfinalizedState",
+        function="getUnfinalizedState",
         args={"tokenId": int},
     )
 
