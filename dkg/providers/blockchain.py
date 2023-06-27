@@ -28,9 +28,10 @@ class BlockchainProvider:
         self,
         rpc_uri: URI,
         hub_address: Address,
-        private_key: DataHexStr | None = None
+        private_key: DataHexStr | None = None,
+        verify: bool = True,
     ):
-        self.w3 = Web3(Web3.HTTPProvider(rpc_uri))
+        self.w3 = Web3(Web3.HTTPProvider(rpc_uri, request_kwargs={"verify": verify}))
 
         if (chain_id := self.w3.eth.chain_id) not in self.SUPPORTED_NETWORKS.keys():
             raise NetworkNotSupported(
