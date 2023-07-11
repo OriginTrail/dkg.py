@@ -1,11 +1,11 @@
-from typing import TypedDict, NamedTuple
+from typing import NamedTuple, TypedDict
 
 
 class ABIParameter(TypedDict, total=False):
     name: str
     type: str
     indexed: bool | None  # Only used in event inputs
-    components: list['ABIParameter'] | None  # Used for tuple types
+    components: list["ABIParameter"] | None  # Used for tuple types
 
 
 class ABICommon(TypedDict, total=False):

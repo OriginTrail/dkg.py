@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Type
-from dkg.types import Address, Wei, HexStr
+
+from dkg.types import Address, HexStr, Wei
 
 
 @dataclass
@@ -28,35 +29,35 @@ class ContractCall(ContractInteraction):
 
 
 class BlockchainRequest:
-    chain_id = JSONRPCRequest('chain_id')
-    get_block = JSONRPCRequest('get_block', args={'block_identifier': str | int})
+    chain_id = JSONRPCRequest("chain_id")
+    get_block = JSONRPCRequest("get_block", args={"block_identifier": str | int})
 
     get_contract_address = ContractCall(
-        contract='Hub',
-        function='getContractAddress',
-        args={'contractName': str},
+        contract="Hub",
+        function="getContractAddress",
+        args={"contractName": str},
     )
     get_asset_storage_address = ContractCall(
-        contract='Hub',
-        function='getAssetStorageAddress',
-        args={'assetStorageName': str},
+        contract="Hub",
+        function="getAssetStorageAddress",
+        args={"assetStorageName": str},
     )
 
     increase_allowance = ContractTransaction(
-        contract='Token',
-        function='increaseAllowance',
-        args={'spender': Address, 'addedValue': Wei},
+        contract="Token",
+        function="increaseAllowance",
+        args={"spender": Address, "addedValue": Wei},
     )
     decrease_allowance = ContractTransaction(
-        contract='Token',
-        function='decreaseAllowance',
-        args={'spender': Address, 'subtractedValue': Wei},
+        contract="Token",
+        function="decreaseAllowance",
+        args={"spender": Address, "subtractedValue": Wei},
     )
 
     create_asset = ContractTransaction(
-        contract='ContentAsset',
-        function='createAsset',
-        args={'args': dict[str, bytes | int | Wei | bool]},
+        contract="ContentAsset",
+        function="createAsset",
+        args={"args": dict[str, bytes | int | Wei | bool]},
     )
     burn_asset = ContractTransaction(
         contract="ContentAsset",
@@ -64,8 +65,8 @@ class BlockchainRequest:
         args={"tokenId": int},
     )
     update_asset_state = ContractTransaction(
-        contract='ContentAsset',
-        function='updateAssetState',
+        contract="ContentAsset",
+        function="updateAssetState",
         args={
             "tokenId": int,
             "assertionId": bytes | HexStr,
@@ -99,22 +100,22 @@ class BlockchainRequest:
     transfer_asset = ContractTransaction(
         contract="ContentAssetStorage",
         function="transferFrom",
-        args={"from": Address, "to": Address, "tokenId": int}
+        args={"from": Address, "to": Address, "tokenId": int},
     )
     get_assertion_id_by_index = ContractCall(
-        contract='ContentAssetStorage',
-        function='getAssertionIdByIndex',
-        args={'tokenId': int, 'index': int},
+        contract="ContentAssetStorage",
+        function="getAssertionIdByIndex",
+        args={"tokenId": int, "index": int},
     )
     get_latest_assertion_id = ContractCall(
-        contract='ContentAssetStorage',
-        function='getLatestAssertionId',
-        args={'tokenId': int},
+        contract="ContentAssetStorage",
+        function="getLatestAssertionId",
+        args={"tokenId": int},
     )
     owner_of = ContractCall(
-        contract='ContentAssetStorage',
-        function='ownerOf',
-        args={'tokenId': int},
+        contract="ContentAssetStorage",
+        function="ownerOf",
+        args={"tokenId": int},
     )
 
     get_unfinalized_state = ContractCall(
@@ -124,9 +125,9 @@ class BlockchainRequest:
     )
 
     get_service_agreement_data = ContractCall(
-        contract='ServiceAgreementStorageProxy',
-        function='getAgreementData',
-        args={'agreementId': HexStr},
+        contract="ServiceAgreementStorageProxy",
+        function="getAgreementData",
+        args={"agreementId": HexStr},
     )
 
     get_assertion_size = ContractCall(

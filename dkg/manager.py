@@ -1,13 +1,16 @@
-from dkg.providers import NodeHTTPProvider, BlockchainProvider
-from dkg.utils.blockchain_request import ContractInteraction, JSONRPCRequest
-from dkg.utils.node_request import NodeCall
+from typing import Any, Type
+
 from dkg.dataclasses import BlockchainResponseDict, NodeResponseDict
 from dkg.exceptions import InvalidRequest
-from typing import Any, Type
+from dkg.providers import BlockchainProvider, NodeHTTPProvider
+from dkg.utils.blockchain_request import ContractInteraction, JSONRPCRequest
+from dkg.utils.node_request import NodeCall
 
 
 class DefaultRequestManager:
-    def __init__(self, node_provider: NodeHTTPProvider, blockchain_provider: BlockchainProvider):
+    def __init__(
+        self, node_provider: NodeHTTPProvider, blockchain_provider: BlockchainProvider
+    ):
         self._node_provider = node_provider
         self._blockchain_provider = blockchain_provider
 

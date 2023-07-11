@@ -1,9 +1,9 @@
-from dkg.module import Module
-from dkg.method import Method
-from dkg.manager import DefaultRequestManager
-from dkg.utils.node_request import NodeRequest
 from dkg.dataclasses import NodeResponseDict
+from dkg.manager import DefaultRequestManager
+from dkg.method import Method
+from dkg.module import Module
 from dkg.types import Address, DataHexStr
+from dkg.utils.node_request import NodeRequest
 
 
 class Node(Module):

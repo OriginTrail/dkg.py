@@ -1,7 +1,8 @@
 import time
 from functools import wraps
-from dkg.exceptions import NodeRequestError
 from typing import Any, Callable
+
+from dkg.exceptions import NodeRequestError
 
 
 def retry(
@@ -20,7 +21,9 @@ def retry(
                     _delay *= backoff
 
             raise NodeRequestError(
-                f'Failed executing {func.__name__} after {max_retries} retries.'
+                f"Failed executing {func.__name__} after {max_retries} retries."
             )
+
         return wrapper
+
     return decorator

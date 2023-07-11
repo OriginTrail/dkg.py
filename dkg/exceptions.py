@@ -70,7 +70,8 @@ class OperationFailed(DKGException):
 
 class AccountMissing(DKGException):
     """
-    Raised when trying to perform state-changing blockchain transaction without account specified.
+    Raised when trying to perform state-changing blockchain transaction without account
+    specified.
     """
 
     pass
@@ -102,7 +103,8 @@ class DatasetOutputFormatNotSupported(DKGException):
 
 class InvalidAsset(DKGException):
     """
-    Raised when root of the Merkle Tree built from N-Quads isn't the same as the assertionId.
+    Raised when root of the Merkle Tree built from N-Quads isn't the same as the
+    assertionId.
     """
 
     pass
@@ -119,7 +121,8 @@ class InvalidTokenAmount(DKGException):
 
 class LeafNotInTree(DKGException):
     """
-    Raised when proof/verification requested for the leaf that is not the part of the Merkle Tree.
+    Raised when proof/verification requested for the leaf that is not the part of the
+    Merkle Tree.
     """
 
     pass

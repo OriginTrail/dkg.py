@@ -1,28 +1,34 @@
-from dkg.module import Module
-from dkg.method import Method
-from dkg.dataclasses import NodeResponseDict
-from dkg.types import UAL, Address, JSONLD, HexStr, NQuads, AgreementData
-from dkg.utils.node_request import NodeRequest, validate_operation_status, StoreTypes
-from dkg.utils.blockchain_request import BlockchainRequest
-from dkg.manager import DefaultRequestManager
-from dkg.utils.ual import parse_ual, format_ual
-from dkg.utils.decorators import retry
-from dkg.utils.rdf import normalize_dataset
-from dkg.exceptions import OperationNotFinished, InvalidAsset, InvalidTokenAmount
+import math
+from typing import Literal, Type
+
+from pyld import jsonld
 from web3 import Web3
 from web3.exceptions import ContractLogicError
-from pyld import jsonld
+
+from dkg.dataclasses import NodeResponseDict
+from dkg.exceptions import (InvalidAsset, InvalidTokenAmount,
+                            OperationNotFinished)
+from dkg.manager import DefaultRequestManager
+from dkg.method import Method
+from dkg.module import Module
+from dkg.types import JSONLD, UAL, Address, AgreementData, HexStr, NQuads
+from dkg.utils.blockchain_request import BlockchainRequest
+from dkg.utils.decorators import retry
 from dkg.utils.merkle import MerkleTree, hash_assertion_with_indexes
-from dkg.utils.metadata import generate_assertion_metadata, generate_keyword, generate_agreement_id
-from typing import Literal
-import math
-from typing import Type
+from dkg.utils.metadata import (generate_agreement_id,
+                                generate_assertion_metadata, generate_keyword)
+from dkg.utils.node_request import (NodeRequest, StoreTypes,
+                                    validate_operation_status)
+from dkg.utils.rdf import normalize_dataset
+from dkg.utils.ual import format_ual, parse_ual
 
 
 class ContentAsset(Module):
     HASH_FUNCTION_ID = 1
     SCORE_FUNCTION_ID = 1
-    PRIVATE_ASSERTION_PREDICATE = 'https://ontology.origintrail.io/dkg/1.0#privateAssertionID'
+    PRIVATE_ASSERTION_PREDICATE = (
+        "https://ontology.origintrail.io/dkg/1.0#privateAssertionID"
+    )
 
     def __init__(self, manager: DefaultRequestManager):
         self.manager = manager
@@ -41,16 +47,20 @@ class ContentAsset(Module):
 
     def create(
         self,
-        content: dict[Literal['public', 'private'], JSONLD],
+        content: dict[Literal["public", "private"], JSONLD],
         epochs_number: int,
         token_amount: int | None = None,
         immutable: bool = False,
-        content_type: Literal['JSON-LD', 'N-Quads'] = 'JSON-LD',
+        content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
     ) -> dict[str, HexStr | dict[str, str]]:
         assertions = self._process_content(content, content_type)
 
-        chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[self._chain_id()]
-        content_asset_storage_address = self._get_asset_storage_address('ContentAssetStorage')
+        chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[
+            self._chain_id()
+        ]
+        content_asset_storage_address = self._get_asset_storage_address(
+            "ContentAssetStorage"
+        )
 
         if token_amount is None:
             token_amount = int(
@@ -61,55 +71,63 @@ class ContentAsset(Module):
                     content_asset_storage_address,
                     assertions["public"]["id"],
                     self.HASH_FUNCTION_ID,
-                )['bidSuggestion']
+                )["bidSuggestion"]
             )
 
-        service_agreement_v1_address = str(self._get_contract_address('ServiceAgreementV1'))
+        service_agreement_v1_address = str(
+            self._get_contract_address("ServiceAgreementV1")
+        )
         self._increase_allowance(service_agreement_v1_address, token_amount)
 
         try:
-            receipt = self._create({
-                'assertionId': Web3.to_bytes(hexstr=assertions["public"]["id"]),
-                'size': assertions["public"]["size"],
-                'triplesNumber': assertions["public"]["triples_number"],
-                'chunksNumber': assertions["public"]["chunks_number"],
-                'tokenAmount': token_amount,
-                'epochsNumber': epochs_number,
-                'scoreFunctionId': self.SCORE_FUNCTION_ID,
-                'immutable_': immutable,
-            })
+            receipt = self._create(
+                {
+                    "assertionId": Web3.to_bytes(hexstr=assertions["public"]["id"]),
+                    "size": assertions["public"]["size"],
+                    "triplesNumber": assertions["public"]["triples_number"],
+                    "chunksNumber": assertions["public"]["chunks_number"],
+                    "tokenAmount": token_amount,
+                    "epochsNumber": epochs_number,
+                    "scoreFunctionId": self.SCORE_FUNCTION_ID,
+                    "immutable_": immutable,
+                }
+            )
         except ContractLogicError as err:
             self._decrease_allowance(service_agreement_v1_address, token_amount)
             raise err
 
         events = self.manager.blockchain_provider.decode_logs_event(
             receipt,
-            'ContentAsset',
-            'AssetMinted',
+            "ContentAsset",
+            "AssetMinted",
         )
-        token_id = events[0].args['tokenId']
+        token_id = events[0].args["tokenId"]
 
-        assertions_list = [{
-            'blockchain': chain_name,
-            'contract': content_asset_storage_address,
-            'tokenId': token_id,
-            'assertionId': assertions["public"]["id"],
-            'assertion': assertions["public"]["content"],
-            'storeType': StoreTypes.TRIPLE.value,
-        }]
+        assertions_list = [
+            {
+                "blockchain": chain_name,
+                "contract": content_asset_storage_address,
+                "tokenId": token_id,
+                "assertionId": assertions["public"]["id"],
+                "assertion": assertions["public"]["content"],
+                "storeType": StoreTypes.TRIPLE.value,
+            }
+        ]
 
-        if content.get('private', None):
-            assertions_list.append({
-                'blockchain': chain_name,
-                'contract': content_asset_storage_address,
-                'tokenId': token_id,
-                'assertionId': assertions["private"]["id"],
-                'assertion': assertions["private"]["content"],
-                'storeType': StoreTypes.TRIPLE.value,
-            })
+        if content.get("private", None):
+            assertions_list.append(
+                {
+                    "blockchain": chain_name,
+                    "contract": content_asset_storage_address,
+                    "tokenId": token_id,
+                    "assertionId": assertions["private"]["id"],
+                    "assertion": assertions["private"]["content"],
+                    "storeType": StoreTypes.TRIPLE.value,
+                }
+            )
 
-        operation_id = self._local_store(assertions_list)['operationId']
-        self.get_operation_result(operation_id, 'local-store')
+        operation_id = self._local_store(assertions_list)["operationId"]
+        self.get_operation_result(operation_id, "local-store")
 
         operation_id = self._publish(
             assertions["public"]["id"],
@@ -118,15 +136,15 @@ class ContentAsset(Module):
             content_asset_storage_address,
             token_id,
             self.HASH_FUNCTION_ID,
-        )['operationId']
-        operation_result = self.get_operation_result(operation_id, 'publish')
+        )["operationId"]
+        operation_result = self.get_operation_result(operation_id, "publish")
 
         return {
-            'UAL': format_ual(chain_name, content_asset_storage_address, token_id),
-            'publicAssertionId': assertions["public"]["id"],
-            'operation': {
-                'operationId': operation_id,
-                'status': operation_result['status'],
+            "UAL": format_ual(chain_name, content_asset_storage_address, token_id),
+            "publicAssertionId": assertions["public"]["id"],
+            "operation": {
+                "operationId": operation_id,
+                "status": operation_result["status"],
             },
         }
 
@@ -161,21 +179,30 @@ class ContentAsset(Module):
     def update(
         self,
         ual: UAL,
-        content: dict[Literal['public', 'private'], JSONLD],
+        content: dict[Literal["public", "private"], JSONLD],
         token_amount: int | None = None,
-        content_type: Literal['JSON-LD', 'N-Quads'] = 'JSON-LD',
+        content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
     ) -> dict[str, HexStr | dict[str, str]]:
         parsed_ual = parse_ual(ual)
-        content_asset_storage_address, token_id = parsed_ual['contract_address'], parsed_ual['token_id']
+        content_asset_storage_address, token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
 
         assertions = self._process_content(content, content_type)
 
-        chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[self._chain_id()]
+        chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[
+            self._chain_id()
+        ]
 
         if token_amount is None:
-            agreement_id = self.get_agreement_id(content_asset_storage_address, token_id)
+            agreement_id = self.get_agreement_id(
+                content_asset_storage_address, token_id
+            )
             # TODO: Dynamic types for namedtuples?
-            agreement_data: Type[AgreementData] = self._get_service_agreement_data(agreement_id)
+            agreement_data: Type[AgreementData] = self._get_service_agreement_data(
+                agreement_id
+            )
 
             timestamp_now = self._get_block("latest")["timestamp"]
             current_epoch = math.floor(
@@ -191,7 +218,7 @@ class ContentAsset(Module):
                     content_asset_storage_address,
                     assertions["public"]["id"],
                     self.HASH_FUNCTION_ID,
-                )['bidSuggestion']
+                )["bidSuggestion"]
             )
 
             token_amount -= agreement_data.tokensInfo[0]
@@ -206,27 +233,31 @@ class ContentAsset(Module):
             update_token_amount=token_amount,
         )
 
-        assertions_list = [{
-            'blockchain': chain_name,
-            'contract': content_asset_storage_address,
-            'tokenId': token_id,
-            'assertionId': assertions["public"]["id"],
-            'assertion': assertions["public"]["content"],
-            'storeType': StoreTypes.PENDING.value,
-        }]
+        assertions_list = [
+            {
+                "blockchain": chain_name,
+                "contract": content_asset_storage_address,
+                "tokenId": token_id,
+                "assertionId": assertions["public"]["id"],
+                "assertion": assertions["public"]["content"],
+                "storeType": StoreTypes.PENDING.value,
+            }
+        ]
 
-        if content.get('private', None):
-            assertions_list.append({
-                'blockchain': chain_name,
-                'contract': content_asset_storage_address,
-                'tokenId': token_id,
-                'assertionId': assertions["private"]["id"],
-                'assertion': assertions["private"]["content"],
-                'storeType': StoreTypes.PENDING.value,
-            })
+        if content.get("private", None):
+            assertions_list.append(
+                {
+                    "blockchain": chain_name,
+                    "contract": content_asset_storage_address,
+                    "tokenId": token_id,
+                    "assertionId": assertions["private"]["id"],
+                    "assertion": assertions["private"]["content"],
+                    "storeType": StoreTypes.PENDING.value,
+                }
+            )
 
-        operation_id = self._local_store(assertions_list)['operationId']
-        self.get_operation_result(operation_id, 'local-store')
+        operation_id = self._local_store(assertions_list)["operationId"]
+        self.get_operation_result(operation_id, "local-store")
 
         operation_id = self._update(
             assertions["public"]["id"],
@@ -235,15 +266,15 @@ class ContentAsset(Module):
             content_asset_storage_address,
             token_id,
             self.HASH_FUNCTION_ID,
-        )['operationId']
-        operation_result = self.get_operation_result(operation_id, 'update')
+        )["operationId"]
+        operation_result = self.get_operation_result(operation_id, "update")
 
         return {
-            'UAL': format_ual(chain_name, content_asset_storage_address, token_id),
-            'publicAssertionId': assertions["public"]["id"],
-            'operation': {
-                'operationId': operation_id,
-                'status': operation_result['status'],
+            "UAL": format_ual(chain_name, content_asset_storage_address, token_id),
+            "publicAssertionId": assertions["public"]["id"],
+            "operation": {
+                "operationId": operation_id,
+                "status": operation_result["status"],
             },
         }
 
@@ -266,10 +297,7 @@ class ContentAsset(Module):
 
         self._burn_asset(token_id)
 
-        return {
-            "UAL": ual,
-            "operation": {"status": "COMPLETED"}
-        }
+        return {"UAL": ual, "operation": {"status": "COMPLETED"}}
 
     _get_latest_assertion_id = Method(BlockchainRequest.get_latest_assertion_id)
 
@@ -278,42 +306,44 @@ class ContentAsset(Module):
     def get(
         self, ual: UAL, validate: bool = False
     ) -> dict[str, HexStr | list[JSONLD] | dict[str, str]]:
-        operation_id: NodeResponseDict = self._get(ual, hashFunctionId=1)['operationId']
+        operation_id: NodeResponseDict = self._get(ual, hashFunctionId=1)["operationId"]
 
         @retry(catch=OperationNotFinished, max_retries=5, base_delay=1, backoff=2)
         def get_operation_result() -> NodeResponseDict:
             operation_result = self._get_operation_result(
-                operation='get',
+                operation="get",
                 operation_id=operation_id,
             )
 
             validate_operation_status(operation_result)
 
         operation_result = get_operation_result()
-        assertion = operation_result['data']['assertion']
+        assertion = operation_result["data"]["assertion"]
 
-        token_id = parse_ual(ual)['token_id']
+        token_id = parse_ual(ual)["token_id"]
         latest_assertion_id = Web3.to_hex(self._get_latest_assertion_id(token_id))
 
         if validate:
-            root = MerkleTree(hash_assertion_with_indexes(assertion), sort_pairs=True).root
+            root = MerkleTree(
+                hash_assertion_with_indexes(assertion), sort_pairs=True
+            ).root
             if root != latest_assertion_id:
                 raise InvalidAsset(
-                    f'Latest assertionId: {latest_assertion_id}. '
-                    f'Merkle Tree Root: {root}'
+                    f"Latest assertionId: {latest_assertion_id}. "
+                    f"Merkle Tree Root: {root}"
                 )
 
         assertion_json_ld: list[JSONLD] = jsonld.from_rdf(
-            '\n'.join(assertion),
-            {'algorithm': 'URDNA2015', 'format': 'application/n-quads'}
+            "\n".join(assertion),
+            {"algorithm": "URDNA2015", "format": "application/n-quads"},
         )
 
         return {
-            'assertionId': latest_assertion_id,
-            'assertion': assertion_json_ld,
-            'operation': {
-                'operation_id': operation_id,
-                'status': operation_result['status'],
+            "assertionId": latest_assertion_id,
+            "assertion": assertion_json_ld,
+            "operation": {
+                "operation_id": operation_id,
+                "status": operation_result["status"],
             },
         }
 
@@ -326,13 +356,20 @@ class ContentAsset(Module):
         token_amount: int | None = None,
     ) -> dict[str, UAL | dict[str, str]]:
         parsed_ual = parse_ual(ual)
-        content_asset_storage_address, token_id = parsed_ual['contract_address'], parsed_ual['token_id']
+        content_asset_storage_address, token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
 
         if token_amount is None:
-            chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[self._chain_id()]
+            chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[
+                self._chain_id()
+            ]
 
             latest_finalized_state = self._get_latest_assertion_id(token_id)
-            latest_finalized_state_size = self._get_assertion_size(latest_finalized_state)
+            latest_finalized_state_size = self._get_assertion_size(
+                latest_finalized_state
+            )
 
             token_amount = int(
                 self._get_bid_suggestion(
@@ -342,7 +379,7 @@ class ContentAsset(Module):
                     content_asset_storage_address,
                     latest_finalized_state,
                     self.HASH_FUNCTION_ID,
-                )['bidSuggestion']
+                )["bidSuggestion"]
             )
 
         self._extend_storing_period(token_id, additional_epochs, token_amount)
@@ -361,14 +398,23 @@ class ContentAsset(Module):
         token_amount: int | None = None,
     ) -> dict[str, UAL | dict[str, str]]:
         parsed_ual = parse_ual(ual)
-        content_asset_storage_address, token_id = parsed_ual['contract_address'], parsed_ual['token_id']
+        content_asset_storage_address, token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
 
         if token_amount is None:
-            chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[self._chain_id()]
+            chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[
+                self._chain_id()
+            ]
 
-            agreement_id = self.get_agreement_id(content_asset_storage_address, token_id)
+            agreement_id = self.get_agreement_id(
+                content_asset_storage_address, token_id
+            )
             # TODO: Dynamic types for namedtuples?
-            agreement_data: Type[AgreementData] = self._get_service_agreement_data(agreement_id)
+            agreement_data: Type[AgreementData] = self._get_service_agreement_data(
+                agreement_id
+            )
 
             timestamp_now = self._get_block("latest")["timestamp"]
             current_epoch = math.floor(
@@ -377,7 +423,9 @@ class ContentAsset(Module):
             epochs_left = agreement_data.epochsNumber - current_epoch
 
             latest_finalized_state = self._get_latest_assertion_id(token_id)
-            latest_finalized_state_size = self._get_assertion_size(latest_finalized_state)
+            latest_finalized_state_size = self._get_assertion_size(
+                latest_finalized_state
+            )
 
             token_amount = int(
                 self._get_bid_suggestion(
@@ -387,7 +435,7 @@ class ContentAsset(Module):
                     content_asset_storage_address,
                     latest_finalized_state,
                     self.HASH_FUNCTION_ID,
-                )['bidSuggestion']
+                )["bidSuggestion"]
             ) - sum(agreement_data.tokensInfo)
 
             if token_amount <= 0:
@@ -412,14 +460,23 @@ class ContentAsset(Module):
         token_amount: int | None = None,
     ) -> dict[str, UAL | dict[str, str]]:
         parsed_ual = parse_ual(ual)
-        content_asset_storage_address, token_id = parsed_ual['contract_address'], parsed_ual['token_id']
+        content_asset_storage_address, token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
 
         if token_amount is None:
-            chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[self._chain_id()]
+            chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[
+                self._chain_id()
+            ]
 
-            agreement_id = self.get_agreement_id(content_asset_storage_address, token_id)
+            agreement_id = self.get_agreement_id(
+                content_asset_storage_address, token_id
+            )
             # TODO: Dynamic types for namedtuples?
-            agreement_data: Type[AgreementData] = self._get_service_agreement_data(agreement_id)
+            agreement_data: Type[AgreementData] = self._get_service_agreement_data(
+                agreement_id
+            )
 
             timestamp_now = self._get_block("latest")["timestamp"]
             current_epoch = math.floor(
@@ -438,7 +495,7 @@ class ContentAsset(Module):
                     content_asset_storage_address,
                     unfinalized_state,
                     self.HASH_FUNCTION_ID,
-                )['bidSuggestion']
+                )["bidSuggestion"]
             ) - sum(agreement_data.tokensInfo)
 
             if token_amount <= 0:
@@ -464,22 +521,22 @@ class ContentAsset(Module):
 
     def _process_content(
         self,
-        content: dict[Literal['public', 'private'], JSONLD],
-        type: Literal['JSON-LD', 'N-Quads'] = 'JSON-LD',
+        content: dict[Literal["public", "private"], JSONLD],
+        type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
     ) -> dict[str, dict[str, HexStr | NQuads | int]]:
-        public_graph = {'@graph': []}
+        public_graph = {"@graph": []}
 
-        if content.get('public', None):
-            public_graph['@graph'].append(content['public'])
+        if content.get("public", None):
+            public_graph["@graph"].append(content["public"])
 
-        if content.get('private', None):
-            private_assertion = normalize_dataset(content['private'], type)
+        if content.get("private", None):
+            private_assertion = normalize_dataset(content["private"], type)
             private_assertion_id = MerkleTree(
                 hash_assertion_with_indexes(private_assertion),
                 sort_pairs=True,
             ).root
 
-            public_graph['@graph'].append(
+            public_graph["@graph"].append(
                 {self.PRIVATE_ASSERTION_PREDICATE: private_assertion_id}
             )
 
@@ -499,7 +556,9 @@ class ContentAsset(Module):
             "private": {
                 "id": private_assertion_id,
                 "content": private_assertion,
-            } if content.get("private", None) else {},
+            }
+            if content.get("private", None)
+            else {},
         }
 
     _get_assertion_id_by_index = Method(BlockchainRequest.get_assertion_id_by_index)
@@ -512,7 +571,9 @@ class ContentAsset(Module):
     _get_operation_result = Method(NodeRequest.get_operation_result)
 
     @retry(catch=OperationNotFinished, max_retries=5, base_delay=1, backoff=2)
-    def get_operation_result(self, operation_id: str, operation: str) -> NodeResponseDict:
+    def get_operation_result(
+        self, operation_id: str, operation: str
+    ) -> NodeResponseDict:
         operation_result = self._get_operation_result(
             operation_id=operation_id,
             operation=operation,

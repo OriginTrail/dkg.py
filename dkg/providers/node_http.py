@@ -1,9 +1,10 @@
-from dkg.types import URI
-from dkg.exceptions import NodeRequestError, HTTPRequestMethodNotSupported
-from dkg.dataclasses import NodeResponseDict, HTTPRequestMethod
-import requests
-from requests import Response
 from typing import Any
+
+import requests
+from dkg.dataclasses import HTTPRequestMethod, NodeResponseDict
+from dkg.exceptions import HTTPRequestMethodNotSupported, NodeRequestError
+from dkg.types import URI
+from requests import Response
 
 
 class NodeHTTPProvider:
@@ -25,7 +26,9 @@ class NodeHTTPProvider:
             case HTTPRequestMethod.POST:
                 return request_func(path, data)
             case HTTPRequestMethod():
-                raise HTTPRequestMethodNotSupported(f"{method.name} method isn't supported")
+                raise HTTPRequestMethodNotSupported(
+                    f"{method.name} method isn't supported"
+                )
 
     def get(self, path: str, params: dict[str, Any] = {}) -> NodeResponseDict:
         try:

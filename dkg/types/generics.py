@@ -1,4 +1,4 @@
-from typing import TypeVar, Callable, Any
+from typing import Any, Callable, TypeVar
 
 TFunc = TypeVar("TFunc", bound=Callable[..., Any])
-TReturn = TypeVar('TReturn')
+TReturn = TypeVar("TReturn")

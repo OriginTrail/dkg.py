@@ -1,10 +1,11 @@
+from functools import wraps
+
+from dkg.assets import Assets, ContentAsset
+from dkg.graph import Graph
+from dkg.manager import DefaultRequestManager
 from dkg.module import Module
 from dkg.node import Node
-from dkg.graph import Graph
-from dkg.assets import Assets, ContentAsset
-from dkg.manager import DefaultRequestManager
 from dkg.providers import BlockchainProvider, NodeHTTPProvider
-from functools import wraps
 from dkg.types import UAL, Address, ChecksumAddress
 from dkg.utils.ual import format_ual, parse_ual
 
@@ -37,7 +38,7 @@ class DKG(Module):
                 Assets(),
                 {
                     "content": ContentAsset(self.manager),
-                }
+                },
             ),
             "node": Node(self.manager),
             "graph": Graph(self.manager),

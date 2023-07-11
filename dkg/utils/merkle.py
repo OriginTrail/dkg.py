@@ -1,11 +1,12 @@
-from typing import Callable
-from dkg.types import HexStr
-import hashlib
-from web3 import Web3
 import copy
-from eth_abi.packed import encode_packed
+import hashlib
+from typing import Callable
+
 from dkg.exceptions import LeafNotInTree
+from dkg.types import HexStr
+from eth_abi.packed import encode_packed
 from hexbytes import HexBytes
+from web3 import Web3
 
 
 def solidity_keccak256(data: HexStr) -> HexStr:
