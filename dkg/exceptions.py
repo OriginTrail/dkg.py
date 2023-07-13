@@ -19,6 +19,22 @@ class NetworkNotSupported(DKGException):
     pass
 
 
+class InvalidStateOption(DKGException):
+    """
+    Raised when invalid state option given to the get operation.
+    """
+
+    pass
+
+
+class MissingKnowledgeAssetState(DKGException):
+    """
+    Raised when search for the Knowledge Asset state on the network has failed.
+    """
+
+    pass
+
+
 class ValidationError(DKGException):
     """
     Raised when something does not pass a validation check.
@@ -101,7 +117,7 @@ class DatasetOutputFormatNotSupported(DKGException):
     pass
 
 
-class InvalidAsset(DKGException):
+class InvalidKnowledgeAsset(DKGException):
     """
     Raised when root of the Merkle Tree built from N-Quads isn't the same as the
     assertionId.

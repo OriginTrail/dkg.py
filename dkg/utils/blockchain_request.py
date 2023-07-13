@@ -102,6 +102,11 @@ class BlockchainRequest:
         function="transferFrom",
         args={"from": Address, "to": Address, "tokenId": int},
     )
+    get_assertion_ids = ContractCall(
+        contract="ContentAssetStorage",
+        function="getAssertionIds",
+        args={"tokenId": int},
+    )
     get_assertion_id_by_index = ContractCall(
         contract="ContentAssetStorage",
         function="getAssertionIdByIndex",

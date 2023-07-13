@@ -1,12 +1,18 @@
 import math
+import re
 from typing import Literal, Type
 
 from pyld import jsonld
 from web3 import Web3
+from web3.constants import HASH_ZERO
 from web3.exceptions import ContractLogicError
 
-from dkg.dataclasses import NodeResponseDict
-from dkg.exceptions import (InvalidAsset, InvalidTokenAmount,
+from dkg.constants import PRIVATE_ASSERTION_PREDICATE
+from dkg.dataclasses import (KnowledgeAssetContentVisibility,
+                             KnowledgeAssetEnumStates, NodeResponseDict)
+from dkg.exceptions import (DatasetOutputFormatNotSupported,
+                            InvalidKnowledgeAsset, InvalidStateOption,
+                            InvalidTokenAmount, MissingKnowledgeAssetState,
                             OperationNotFinished)
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
@@ -24,11 +30,9 @@ from dkg.utils.ual import format_ual, parse_ual
 
 
 class ContentAsset(Module):
-    HASH_FUNCTION_ID = 1
-    SCORE_FUNCTION_ID = 1
-    PRIVATE_ASSERTION_PREDICATE = (
-        "https://ontology.origintrail.io/dkg/1.0#privateAssertionID"
-    )
+    DEFAULT_HASH_FUNCTION_ID = 1
+    DEFAULT_SCORE_FUNCTION_ID = 1
+    DEFAULT_REPOSITORY = "privateCurrent"
 
     def __init__(self, manager: DefaultRequestManager):
         self.manager = manager
@@ -70,7 +74,7 @@ class ContentAsset(Module):
                     assertions["public"]["size"],
                     content_asset_storage_address,
                     assertions["public"]["id"],
-                    self.HASH_FUNCTION_ID,
+                    self.DEFAULT_HASH_FUNCTION_ID,
                 )["bidSuggestion"]
             )
 
@@ -88,7 +92,7 @@ class ContentAsset(Module):
                     "chunksNumber": assertions["public"]["chunks_number"],
                     "tokenAmount": token_amount,
                     "epochsNumber": epochs_number,
-                    "scoreFunctionId": self.SCORE_FUNCTION_ID,
+                    "scoreFunctionId": self.DEFAULT_SCORE_FUNCTION_ID,
                     "immutable_": immutable,
                 }
             )
@@ -135,7 +139,7 @@ class ContentAsset(Module):
             chain_name,
             content_asset_storage_address,
             token_id,
-            self.HASH_FUNCTION_ID,
+            self.DEFAULT_HASH_FUNCTION_ID,
         )["operationId"]
         operation_result = self.get_operation_result(operation_id, "publish")
 
@@ -217,7 +221,7 @@ class ContentAsset(Module):
                     assertions["public"]["size"],
                     content_asset_storage_address,
                     assertions["public"]["id"],
-                    self.HASH_FUNCTION_ID,
+                    self.DEFAULT_HASH_FUNCTION_ID,
                 )["bidSuggestion"]
             )
 
@@ -265,7 +269,7 @@ class ContentAsset(Module):
             chain_name,
             content_asset_storage_address,
             token_id,
-            self.HASH_FUNCTION_ID,
+            self.DEFAULT_HASH_FUNCTION_ID,
         )["operationId"]
         operation_result = self.get_operation_result(operation_id, "update")
 
@@ -299,53 +303,226 @@ class ContentAsset(Module):
 
         return {"UAL": ual, "operation": {"status": "COMPLETED"}}
 
+    _get_assertion_ids = Method(BlockchainRequest.get_assertion_ids)
     _get_latest_assertion_id = Method(BlockchainRequest.get_latest_assertion_id)
+    _get_unfinalized_state = Method(BlockchainRequest.get_unfinalized_state)
 
     _get = Method(NodeRequest.get)
+    _query = Method(NodeRequest.query)
 
     def get(
-        self, ual: UAL, validate: bool = False
+        self,
+        ual: UAL,
+        state: str | HexStr | int = KnowledgeAssetEnumStates.LATEST.value,
+        content_visibility: str = KnowledgeAssetContentVisibility.ALL.value,
+        output_format: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
+        validate: bool = True,
     ) -> dict[str, HexStr | list[JSONLD] | dict[str, str]]:
-        operation_id: NodeResponseDict = self._get(ual, hashFunctionId=1)["operationId"]
-
-        @retry(catch=OperationNotFinished, max_retries=5, base_delay=1, backoff=2)
-        def get_operation_result() -> NodeResponseDict:
-            operation_result = self._get_operation_result(
-                operation="get",
-                operation_id=operation_id,
-            )
-
-            validate_operation_status(operation_result)
-
-        operation_result = get_operation_result()
-        assertion = operation_result["data"]["assertion"]
+        state = (
+            state.upper()
+            if (isinstance(state, str) and not re.match(r"^0x[a-fA-F0-9]{64}$", state))
+            else state
+        )
+        content_visibility = content_visibility.upper()
+        output_format = output_format.upper()
 
         token_id = parse_ual(ual)["token_id"]
-        latest_assertion_id = Web3.to_hex(self._get_latest_assertion_id(token_id))
+
+        def handle_latest_state(token_id: int) -> HexStr:
+            unfinalized_state = Web3.to_hex(self._get_unfinalized_state(token_id))
+
+            if unfinalized_state and unfinalized_state != HASH_ZERO:
+                return unfinalized_state
+            else:
+                return handle_latest_finalized_state(token_id)
+
+        def handle_latest_finalized_state(token_id: int) -> HexStr:
+            return Web3.to_hex(self._get_latest_assertion_id(token_id))
+
+        match state:
+            case KnowledgeAssetEnumStates.LATEST.value:
+                public_assertion_id = handle_latest_state(token_id)
+
+            case KnowledgeAssetEnumStates.LATEST_FINALIZED.value:
+                public_assertion_id = handle_latest_finalized_state(token_id)
+
+            case _ if isinstance(state, int):
+                assertion_ids = [
+                    Web3.to_hex(assertion_id)
+                    for assertion_id in self._get_assertion_ids(token_id)
+                ]
+                if 0 <= state < len(assertion_ids):
+                    public_assertion_id = assertion_ids[state]
+                else:
+                    raise InvalidStateOption(f"State index {state} is out of range.")
+
+            case _ if isinstance(state, str) and re.match(
+                r"^0x[a-fA-F0-9]{64}$", state
+            ):
+                assertion_ids = [
+                    Web3.to_hex(assertion_id)
+                    for assertion_id in self._get_assertion_ids(token_id)
+                ]
+
+                if state in assertion_ids:
+                    public_assertion_id = state
+                else:
+                    raise InvalidStateOption(
+                        f"Given state hash: {state} is not a part of the KA."
+                    )
+
+            case _:
+                raise InvalidStateOption(f"Invalid state option: {state}.")
+
+        get_public_operation_id: NodeResponseDict = self._get(
+            ual, public_assertion_id, hashFunctionId=1
+        )["operationId"]
+
+        get_public_operation_result = self.get_operation_result(
+            get_public_operation_id, "get"
+        )
+        public_assertion = get_public_operation_result["data"].get("assertion", None)
+
+        if public_assertion is None:
+            raise MissingKnowledgeAssetState("Unable to find state on the network!")
 
         if validate:
             root = MerkleTree(
-                hash_assertion_with_indexes(assertion), sort_pairs=True
+                hash_assertion_with_indexes(public_assertion), sort_pairs=True
             ).root
-            if root != latest_assertion_id:
-                raise InvalidAsset(
-                    f"Latest assertionId: {latest_assertion_id}. "
-                    f"Merkle Tree Root: {root}"
+            if root != public_assertion_id:
+                raise InvalidKnowledgeAsset(
+                    f"State: {public_assertion_id}. " f"Merkle Tree Root: {root}"
                 )
 
-        assertion_json_ld: list[JSONLD] = jsonld.from_rdf(
-            "\n".join(assertion),
-            {"algorithm": "URDNA2015", "format": "application/n-quads"},
-        )
+        result = {"operation": {}}
+        if content_visibility != KnowledgeAssetContentVisibility.PRIVATE.value:
+            formatted_public_assertion = public_assertion
 
-        return {
-            "assertionId": latest_assertion_id,
-            "assertion": assertion_json_ld,
-            "operation": {
-                "operation_id": operation_id,
-                "status": operation_result["status"],
-            },
-        }
+            match output_format:
+                case "NQUADS" | "N-QUADS":
+                    formatted_public_assertion: list[JSONLD] = jsonld.from_rdf(
+                        "\n".join(public_assertion),
+                        {"algorithm": "URDNA2015", "format": "application/n-quads"},
+                    )
+                case "JSONLD" | "JSON-LD":
+                    formatted_public_assertion = "\n".join(public_assertion)
+
+                case _:
+                    raise DatasetOutputFormatNotSupported(
+                        f"{output_format} isn't supported!"
+                    )
+
+            if content_visibility == KnowledgeAssetContentVisibility.PUBLIC.value:
+                result = {
+                    **result,
+                    "asertion": formatted_public_assertion,
+                    "assertionId": public_assertion_id,
+                }
+            else:
+                result["public"] = {
+                    "assertion": formatted_public_assertion,
+                    "assertionId": public_assertion_id,
+                }
+
+            result["operation"]["publicGet"] = {
+                "operationId": get_public_operation_id,
+                "status": get_public_operation_result["status"],
+            }
+
+        if content_visibility != KnowledgeAssetContentVisibility.PUBLIC.value:
+            private_assertion_link_triples = list(
+                filter(
+                    lambda element: PRIVATE_ASSERTION_PREDICATE in element,
+                    public_assertion,
+                )
+            )
+
+            if private_assertion_link_triples:
+                private_assertion_id = re.search(
+                    r'"(.*?)"', private_assertion_link_triples[0]
+                ).group(1)
+
+                private_assertion = get_public_operation_result["data"].get(
+                    "privateAssertion", None
+                )
+
+                query_private_operation_id: NodeResponseDict | None = None
+                if private_assertion is None:
+                    query = f"""
+                    CONSTRUCT {{ ?s ?p ?o }}
+                    WHERE {{
+                        {{
+                            GRAPH <assertion:{private_assertion_id}>
+                            {{
+                                ?s ?p ?o .
+                            }}
+                        }}
+                    }}
+                    """
+
+                    query_private_operation_id = self._query(
+                        query,
+                        "CONSTRUCT",
+                        self.DEFAULT_REPOSITORY,
+                    )["operationId"]
+
+                    query_private_operation_result = self.get_operation_result(
+                        query_private_operation_id, "query"
+                    )
+
+                    private_assertion = normalize_dataset(
+                        query_private_operation_result["data"],
+                        "N-Quads",
+                    )
+
+                    if validate:
+                        root = MerkleTree(
+                            hash_assertion_with_indexes(private_assertion),
+                            sort_pairs=True,
+                        ).root
+                        if root != private_assertion_id:
+                            raise InvalidKnowledgeAsset(
+                                f"State: {private_assertion_id}. "
+                                f"Merkle Tree Root: {root}"
+                            )
+
+                    match output_format:
+                        case "NQUADS" | "N-QUADS":
+                            formatted_private_assertion: list[JSONLD] = jsonld.from_rdf(
+                                "\n".join(private_assertion),
+                                {
+                                    "algorithm": "URDNA2015",
+                                    "format": "application/n-quads",
+                                },
+                            )
+                        case "JSONLD" | "JSON-LD":
+                            formatted_private_assertion = "\n".join(private_assertion)
+
+                        case _:
+                            raise DatasetOutputFormatNotSupported(
+                                f"{output_format} isn't supported!"
+                            )
+
+                    if content_visibility == KnowledgeAssetContentVisibility.PRIVATE:
+                        result = {
+                            **result,
+                            "assertion": formatted_private_assertion,
+                            "assertionId": private_assertion_id,
+                        }
+                    else:
+                        result["private"] = {
+                            "assertion": formatted_private_assertion,
+                            "assertionId": private_assertion_id,
+                        }
+
+                    if query_private_operation_id is not None:
+                        result["operation"]["queryPrivate"] = {
+                            "operationId": query_private_operation_id,
+                            "status": query_private_operation_result["status"],
+                        }
+
+        return result
 
     _extend_storing_period = Method(BlockchainRequest.extend_asset_storing_period)
 
@@ -378,7 +555,7 @@ class ContentAsset(Module):
                     latest_finalized_state_size,
                     content_asset_storage_address,
                     latest_finalized_state,
-                    self.HASH_FUNCTION_ID,
+                    self.DEFAULT_HASH_FUNCTION_ID,
                 )["bidSuggestion"]
             )
 
@@ -434,7 +611,7 @@ class ContentAsset(Module):
                     latest_finalized_state_size,
                     content_asset_storage_address,
                     latest_finalized_state,
-                    self.HASH_FUNCTION_ID,
+                    self.DEFAULT_HASH_FUNCTION_ID,
                 )["bidSuggestion"]
             ) - sum(agreement_data.tokensInfo)
 
@@ -494,7 +671,7 @@ class ContentAsset(Module):
                     unfinalized_state_size,
                     content_asset_storage_address,
                     unfinalized_state,
-                    self.HASH_FUNCTION_ID,
+                    self.DEFAULT_HASH_FUNCTION_ID,
                 )["bidSuggestion"]
             ) - sum(agreement_data.tokensInfo)
 
@@ -537,7 +714,7 @@ class ContentAsset(Module):
             ).root
 
             public_graph["@graph"].append(
-                {self.PRIVATE_ASSERTION_PREDICATE: private_assertion_id}
+                {PRIVATE_ASSERTION_PREDICATE: private_assertion_id}
             )
 
         public_assertion = normalize_dataset(public_graph, type)
@@ -582,7 +759,3 @@ class ContentAsset(Module):
         validate_operation_status(operation_result)
 
         return operation_result
-
-
-class Assets(Module):
-    content: ContentAsset
