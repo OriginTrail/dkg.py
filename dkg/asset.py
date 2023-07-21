@@ -57,8 +57,9 @@ class ContentAsset(Module):
         immutable: bool = False,
         content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
     ) -> dict[str, HexStr | dict[str, str]]:
+        print('Processing content')
         assertions = self._process_content(content, content_type)
-
+        print('Content processed')
         chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[
             self._chain_id()
         ]
@@ -691,7 +692,7 @@ class ContentAsset(Module):
 
     _owner = Method(BlockchainRequest.owner_of)
 
-    def owner(self, ual: UAL) -> Address:
+    def getOwner(self, ual: UAL) -> Address:
         token_id = parse_ual(ual)["token_id"]
 
         return self._owner(token_id)

@@ -1,6 +1,6 @@
 from functools import wraps
 
-from dkg.assets import ContentAsset
+from dkg.asset import ContentAsset
 from dkg.graph import Graph
 from dkg.manager import DefaultRequestManager
 from dkg.module import Module
@@ -11,7 +11,7 @@ from dkg.utils.ual import format_ual, parse_ual
 
 
 class DKG(Module):
-    assets: ContentAsset
+    asset: ContentAsset
     node: Node
     graph: Graph
 
@@ -34,7 +34,7 @@ class DKG(Module):
     ):
         self.manager = DefaultRequestManager(node_provider, blockchain_provider)
         modules = {
-            "assets": ContentAsset(self.manager),
+            "asset": ContentAsset(self.manager),
             "node": Node(self.manager),
             "graph": Graph(self.manager),
         }
