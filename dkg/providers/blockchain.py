@@ -12,31 +12,26 @@ from web3.contract.contract import ContractFunction
 from web3.logs import DISCARD
 from web3.middleware import construct_sign_and_send_raw_middleware
 from web3.types import ABI, ABIFunction, TxReceipt
-
+from dkg.constants import BLOCKCHAINS
 
 class BlockchainProvider:
     CONTRACTS_METADATA_DIR = Path(__file__).parents[1] / "data/interfaces"
-    SUPPORTED_NETWORKS = {
-        2043: "otp_mainnet",
-        2160: "otp_devnet",
-        20430: "otp_testnet",
-        31337: "hardhat",
-    }
+
     GAS_BUFFER = 1.2  # 20% gas buffer for estimateGas()
 
     def __init__(
         self,
         rpc_uri: URI,
-        hub_address: Address,
         private_key: DataHexStr | None = None,
         verify: bool = True,
     ):
         self.w3 = Web3(Web3.HTTPProvider(rpc_uri, request_kwargs={"verify": verify}))
 
-        if (chain_id := self.w3.eth.chain_id) not in self.SUPPORTED_NETWORKS.keys():
+        if (chain_id := self.w3.eth.chain_id) not in BLOCKCHAINS.keys():
             raise NetworkNotSupported(
                 f"Network with chain ID {chain_id} isn't supported!"
             )
+        hub_address: Address = BLOCKCHAINS[chain_id]["hubAddress"]
 
         self.abi = self._load_abi()
         self.output_named_tuples = self._generate_output_named_tuples()
