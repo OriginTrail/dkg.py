@@ -26,6 +26,43 @@ We define **decentralized knowledge graph (DKG)** as a global shared knowledge g
 * Enables permissionless PUBLISH and QUERY (public network)
 * Decentralized identity & Verifiable Credentials based access control (references private data)
 
+
+
+
+
+
+
+## Install & run
+
+### Required versions
+
+* python `3.11.4`
+* poetry `1.5.1`
+
+### Setup environment
+
+Create virtual environment (you can choose any existing folder this command will create configurations and virtual env for python):
+```bash
+python3 -m venv /path/to/folder
+```
+
+Inside of previously generated folder you will find activate script in bin folder and run it:
+```bash
+source /path/to/folder/bin/activate
+```
+
+Install dependencies:
+```bash
+poetry install
+```
+
+### Run
+
+Run demo example file: 
+```bash
+python3 demo.py
+```
+
 ## The OriginTrail DKG Architecture
 
 The OriginTrail Decentralized Network implements the DKG according to the OriginTrail protocol.
@@ -42,7 +79,6 @@ More information is available on the OriginTrail [website](https://origintrail.i
 
 
 ![](https://i.imgur.com/yTNtZE1.png)
-
 
 
 ## DKG Client library
@@ -66,19 +102,3 @@ More information can be found on the [official DKGv6 documentation](https://docs
 Get in touch with the OriginTrail tech community through [Discord](https://discordapp.com/invite/FCgYk2S).
 
 [`#traceon`]()
-
-Required versions
-python 3.11.4
-poetry 1.5.1
-
-How to start:
-Create virtual env
-
-run: python3 -m venv /path/to/folder (you can choose any existing folder this command will create configurations and virtual env for python)
-
-run: source /path/to/folder/bin/activate (inside of previously generated folder you will find activate script in bin folder)
-
-run: poetry install
-
-to start the demo file 
-run: python3 demo.py
