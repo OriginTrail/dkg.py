@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "dkg.py"
+name = "dkg"
 version = "0.0.1-beta"
 description = "Python library for interaction with the OriginTrail Decentralized Knowledge Graph"
 authors = ["Trace Labs Group"]
@@ -20,6 +20,9 @@ eth-abi = "^4.0.0"
 
 [tool.poetry.group.dev.dependencies]
 flake8 = "^6.0.0"
+
+[tools.setuptools]
+packages = ["dkg"]
 
 [build-system]
 requires = ["poetry-core"]
