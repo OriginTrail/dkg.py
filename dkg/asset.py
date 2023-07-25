@@ -715,16 +715,7 @@ class ContentAsset(Module):
         ).root
         public_assertion_metadata = generate_assertion_metadata(public_assertion)
 
-        if content.get("private", None):
-            return {
-                "public": {
-                    "id": public_assertion_id,
-                    "content": public_assertion,
-                    **public_assertion_metadata,
-            }
-            }
-        else:
-            return {
+        return {
             "public": {
                 "id": public_assertion_id,
                 "content": public_assertion,
@@ -734,8 +725,9 @@ class ContentAsset(Module):
                 "id": private_assertion_id,
                 "content": private_assertion,
             }
-            }
-        
+            if content.get("private", None)
+            else {},
+        }
 
     _get_assertion_id_by_index = Method(BlockchainRequest.get_assertion_id_by_index)
 
