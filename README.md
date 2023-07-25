@@ -72,5 +72,13 @@ python 3.11.4
 poetry 1.5.1
 
 How to start:
-poetry install
-python3 demo.py
+Create virtual env
+
+run: python3 -m venv /path/to/folder (you can choose any existing folder this command will create configurations and virtual env for python)
+
+run: source /path/to/folder/bin/activate (inside of previously generated folder you will find activate script in bin folder)
+
+run: poetry install
+
+to start the demo file 
+run: python3 demo.py

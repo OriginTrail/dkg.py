@@ -1,9 +1,9 @@
 [tool.poetry]
-name = "dkg"
-version = "0.1.0"
-description = ""
-authors = ["Uladzislau Hubar <hubar.uladzislau@gmail.com>"]
-license = "MIT"
+name = "dkg.py"
+version = "0.0.1-beta"
+description = "Python library for interaction with the OriginTrail Decentralized Knowledge Graph"
+authors = ["Trace Labs Group"]
+license = "Apache-2.0"
 readme = "README.md"
 
 [tool.poetry.dependencies]

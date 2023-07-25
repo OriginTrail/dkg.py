@@ -7,7 +7,7 @@ from web3 import Web3
 from web3.constants import HASH_ZERO
 from web3.exceptions import ContractLogicError
 
-from dkg.constants import PRIVATE_ASSERTION_PREDICATE
+from dkg.constants import (PRIVATE_ASSERTION_PREDICATE, BLOCKCHAINS)
 from dkg.dataclasses import (KnowledgeAssetContentVisibility,
                              KnowledgeAssetEnumStates, NodeResponseDict)
 from dkg.exceptions import (DatasetOutputFormatNotSupported,
@@ -57,11 +57,10 @@ class ContentAsset(Module):
         immutable: bool = False,
         content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
     ) -> dict[str, HexStr | dict[str, str]]:
+
         assertions = self._process_content(content, content_type)
 
-        chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[
-            self._chain_id()
-        ]
+        chain_name = BLOCKCHAINS[self._chain_id()]["name"]
         content_asset_storage_address = self._get_asset_storage_address(
             "ContentAssetStorage"
         )
@@ -195,9 +194,7 @@ class ContentAsset(Module):
 
         assertions = self._process_content(content, content_type)
 
-        chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[
-            self._chain_id()
-        ]
+        chain_name = BLOCKCHAINS[self._chain_id()]["name"]
 
         if token_amount is None:
             agreement_id = self.get_agreement_id(
@@ -539,9 +536,7 @@ class ContentAsset(Module):
         )
 
         if token_amount is None:
-            chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[
-                self._chain_id()
-            ]
+            chain_name = BLOCKCHAINS[self._chain_id()]["name"]
 
             latest_finalized_state = self._get_latest_assertion_id(token_id)
             latest_finalized_state_size = self._get_assertion_size(
@@ -581,9 +576,7 @@ class ContentAsset(Module):
         )
 
         if token_amount is None:
-            chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[
-                self._chain_id()
-            ]
+            chain_name = BLOCKCHAINS[self._chain_id()]["name"]
 
             agreement_id = self.get_agreement_id(
                 content_asset_storage_address, token_id
@@ -643,9 +636,7 @@ class ContentAsset(Module):
         )
 
         if token_amount is None:
-            chain_name = self.manager.blockchain_provider.SUPPORTED_NETWORKS[
-                self._chain_id()
-            ]
+            chain_name = BLOCKCHAINS[self._chain_id()]["name"]
 
             agreement_id = self.get_agreement_id(
                 content_asset_storage_address, token_id
@@ -691,7 +682,7 @@ class ContentAsset(Module):
 
     _owner = Method(BlockchainRequest.owner_of)
 
-    def owner(self, ual: UAL) -> Address:
+    def getOwner(self, ual: UAL) -> Address:
         token_id = parse_ual(ual)["token_id"]
 
         return self._owner(token_id)
