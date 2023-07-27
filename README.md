@@ -188,7 +188,7 @@ Knowledge Assets are verifiable containers of structured knowledge that live on 
             </td>
             <td align="center">
                 <a href="https://dkg.origintrail.io/explore?ual=did:dkg:otp/0x5cac41237127f94c2d21dae0b14bfefa99880630/308028">
-                  <img src="images/knowledge-assets-graph3.svg" width="300" alt="Knowledge Assets Graph 3">
+                  <img src="images/knowledge-assets-graph4.svg" width="300" alt="Knowledge Assets Graph 3">
                 </a>
                 <br><b>Metaverse</b>
             </td>
