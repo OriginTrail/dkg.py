@@ -97,21 +97,25 @@ ___
 
 There are many available definitions of a knowledge graph, therefore we will present a simplified one focused on usability, rather than completeness. The purpose of this introduction is not to be a comprehensive guide for knowledge graphs, however it aims to get you started with the basics.
 
-A **knowledge graph (KG)** is a network of entities — physical & digital objects, events or concepts — illustrating the relationship between them (aka a semantic network). KGs are used by major companies such as [Amazon](http://lunadong.com/talks/PG.pdf), [Google](https://en.wikipedia.org/wiki/Google_Knowledge_Graph), [Uber](https://www.youtube.com/watch?v=r3yMSl5NB_Q), [IBM](https://www.ibm.com/cloud/learn/knowledge-graph) etc for various applications: search, data integration, knowledge reasoning, recommendation engines, analytics, machine learning and AI etc.
+A **Knowledge Graph (KG)** is a complex structure that maps the connections and relationships among various entities - be they physical, digital, event-based, or conceptual. Commonly represented as semantic networks, these graphs are leveraged by major corporations such as [Amazon](http://lunadong.com/talks/PG.pdf), [Google](https://en.wikipedia.org/wiki/Google_Knowledge_Graph), [Uber](https://www.youtube.com/watch?v=r3yMSl5NB_Q), and [IBM](https://www.ibm.com/cloud/learn/knowledge-graph) for a wide array of applications, including search, data integration, knowledge reasoning, recommendation engines, analytics, and diverse facets of machine learning and artificial intelligence.
 
-Key characteristics of knowledge graphs:
-* focus on data connections as "first class citizens" (linked data)
-* designed to ingest data from multiple sources, usually in different formats
-* flexible data model, easily extendable
+Key characteristics of knowledge graphs include:
 
-Common knowledge graphs however are deployed within the domain of one organization and are designed to capture knowledge from various sources both from within and outside of the organization.
+- Prioritization of data connections, treating them as "first-class citizens" within the realm of linked data.
+- Designed to accommodate data from diverse sources, supporting a variety of formats.
+- Their data models are flexible and easily extendable, ready to adapt to the evolving nature of data and its relationships.
 
-We define **decentralized knowledge graph (DKG)** as a global shared knowledge graph that is designed to benefit organizations and individuals by providing a common infrastructure for data exchange. The DKG:
+While knowledge graphs are typically deployed within the boundaries of a single organization to capture knowledge from various internal and external sources, we conceptualize them more broadly. We define the **Decentralized Knowledge Graph (DKG)** as a globally-shared, common infrastructure for data exchange, benefiting both organizations and individuals.
 
-* Enables Dapps with search, integration, analytics, AI and ML capabilities for any data source: blockchains, IPFS, enterprise systems, web services, personal devices
-* Removes central authorities (decentralized infrastructure)
-* Enables permissionless PUBLISH and QUERY (public network)
-* Decentralized identity & Verifiable Credentials based access control (references private data)
+Unique attributes of the DKG are:
+
+- Empowerment of decentralized applications (Dapps) with search, integration, analytics, AI, and ML capabilities across a wide range of data sources, including blockchains, IPFS, enterprise systems, web services, and personal devices.
+- Elimination of the need for a central authority by leveraging decentralized infrastructure.
+- Facilitation of permissionless PUBLISH and QUERY operations within the public network.
+- Utilization of decentralized identity and Verifiable Credentials for access control, enabling references to private data.
+
+This expansive approach enhances accessibility and flexibility, positioning the DKG as a powerful tool in the evolving digital landscape.
+
 
 </details>
 
@@ -150,6 +154,23 @@ More information is available on the OriginTrail [website](https://origintrail.i
 <div align="center">
     <img src="images/ka.png" alt="Knowledge Asset" width="200">
 </div>
+
+**Knowledge Asset is the new, AI‑ready resource for the Internet**
+
+Knowledge Assets are verifiable containers of structured knowledge that live on the OriginTrail DKG and provide:
+- **Discoverability - UAL is the new URL**. Consider Uniform Asset Locators (UALs) a kind of URL that identify a piece of knowledge and make it easy to find and connect with other Knowledge Assets.
+- **Ownership - NFTs enable ownership**. Each Knowledge Asset is created with an NFT token that enables trusted ownership and verifiability of your knowledge.
+- **Verifiability - On-chain information trail**. The blockchain tech increases trust, security, transparency, and the traceability of information.
+
+<br/>
+
+**Discover Knowledge Assets with DKG Explorer:**
+<div align="center">
+    <a href="https://dkg.origintrail.io/explore?ual=did:dkg:otp/0x5cac41237127f94c2d21dae0b14bfefa99880630/309285">
+      <img src="images/knowledge-assets-graph.svg" alt="Knowledge Assets Graph" width="300">
+    </a>
+</div>
+
 </details>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -200,7 +221,7 @@ This roadmap outlines the goals for the first major release of the `dkg.py`. Eac
 <details>
 <summary>
 
-### ~~1️⃣ Pre-development Phase~~
+### 1️⃣ Pre-development Phase
 
 </summary>
 
