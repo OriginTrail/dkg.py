@@ -166,10 +166,36 @@ Knowledge Assets are verifiable containers of structured knowledge that live on 
 
 **Discover Knowledge Assets with DKG Explorer:**
 <div align="center">
-    <a href="https://dkg.origintrail.io/explore?ual=did:dkg:otp/0x5cac41237127f94c2d21dae0b14bfefa99880630/309285">
-      <img src="images/knowledge-assets-graph.svg" alt="Knowledge Assets Graph" width="300">
-    </a>
+    <table>
+        <tr>
+            <td align="center">
+                <a href="https://dkg.origintrail.io/explore?ual=did:dkg:otp/0x5cac41237127f94c2d21dae0b14bfefa99880630/309100">
+                  <img src="images/knowledge-assets-graph1.svg" width="300" alt="Knowledge Assets Graph 1">
+                </a>
+                <br><b>Supply Chains</b>
+            </td>
+            <td align="center">
+                <a href="https://dkg.origintrail.io/explore?ual=did:dkg:otp/0x5cac41237127f94c2d21dae0b14bfefa99880630/309285">
+                  <img src="images/knowledge-assets-graph2.svg" width="300" alt="Knowledge Assets Graph 2">
+                </a>
+                <br><b>Construction</b>
+            </td>
+            <td align="center">
+                <a href="https://dkg.origintrail.io/explore?ual=did:dkg:otp/0x5cac41237127f94c2d21dae0b14bfefa99880630/309222">
+                  <img src="images/knowledge-assets-graph3.svg" width="300" alt="Knowledge Assets Graph 3">
+                </a>
+                <br><b>Life sciences and healthcare</b>
+            </td>
+            <td align="center">
+                <a href="https://dkg.origintrail.io/explore?ual=did:dkg:otp/0x5cac41237127f94c2d21dae0b14bfefa99880630/308028">
+                  <img src="images/knowledge-assets-graph3.svg" width="300" alt="Knowledge Assets Graph 3">
+                </a>
+                <br><b>Metaverse</b>
+            </td>
+        </tr>
+    </table>
 </div>
+
 
 </details>
 
