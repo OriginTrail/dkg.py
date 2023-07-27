@@ -234,7 +234,7 @@ poetry install
 
 Now you can run a demo example file: 
 ```bash
-python3 demo.py
+python3 examples/demo.py
 ```
 
 <br/>
