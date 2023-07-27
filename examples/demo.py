@@ -2,33 +2,33 @@ import math
 import random
 from dkg import DKG
 from dkg.providers import BlockchainProvider, NodeHTTPProvider
-from dkg.dataclasses import (KnowledgeAssetEnumStates)
 
-node_provider = NodeHTTPProvider(
-    'http://localhost:8900'
-    )
+node_provider = NodeHTTPProvider("http://localhost:8900")
 blockchain_provider = BlockchainProvider(
-    'http://localhost:8545', 
-    '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
-    )
+    "http://localhost:8545",
+    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+)
 
 dkg = DKG(node_provider, blockchain_provider)
 
+
 def divider():
-    print('==================================================')
-    print('==================================================')
-    print('==================================================')
+    print("==================================================")
+    print("==================================================")
+    print("==================================================")
+
 
 divider()
 
-infoResult: any = dkg.node.info
+info_result = dkg.node.info
 
-print('======================== NODE INFO RECEIVED')
-print(infoResult)
+print("======================== NODE INFO RECEIVED")
+print(info_result)
 
 divider()
 
-createAssetResult: any = dkg.asset.create({
+create_asset_result = dkg.asset.create(
+    {
         "public": {
             "@context": ["http://schema.org"],
             "@id": "uuid:1",
@@ -43,22 +43,26 @@ createAssetResult: any = dkg.asset.create({
                 {"@id": "uuid:belgrade", "title": "Belgrade", "postCode": "11000"},
             ],
         },
-    }, 2)
-print('======================== ASSET CREATED')
-print(createAssetResult)
+    },
+    2,
+)
+print("======================== ASSET CREATED")
+print(create_asset_result)
 divider()
 
-ownerResult: any = dkg.asset.getOwner(createAssetResult['UAL'])
-print('======================== GET ASSET OWNER')
-print(ownerResult)
+owner_result = dkg.asset.get_owner(create_asset_result["UAL"])
+print("======================== GET ASSET OWNER")
+print(owner_result)
 divider()
 
-getAssetResult: any = dkg.asset.get(createAssetResult['UAL'])
-print('======================== ASSET RESOLVED')
-print(ownerResult)
+get_asset_result = dkg.asset.get(create_asset_result["UAL"])
+print("======================== ASSET RESOLVED")
+print(get_asset_result)
 divider()
 
-updateAssetResult: any = dkg.asset.update(createAssetResult['UAL'], {
+update_asset_result = dkg.asset.update(
+    create_asset_result["UAL"],
+    {
         "private": {
             "@context": ["https://schema.org"],
             "@graph": [
@@ -70,42 +74,53 @@ updateAssetResult: any = dkg.asset.update(createAssetResult['UAL'], {
                 },
             ],
         },
-    })
-print('======================== ASSET UPDATED')
-print(updateAssetResult)
+    },
+)
+print("======================== ASSET UPDATED")
+print(update_asset_result)
 divider()
 
-getLatestFinalizedAssetResult: any = dkg.asset.get(createAssetResult['UAL'], "latest_finalized", "all")
-print('======================== ASSET LATEST FINALIZED RESOLVED')
-print(getLatestFinalizedAssetResult)
+get_latest_finalized_asset_result = dkg.asset.get(
+    create_asset_result["UAL"], "latest_finalized", "all"
+)
+print("======================== ASSET LATEST FINALIZED RESOLVED")
+print(get_latest_finalized_asset_result)
 divider()
 
-getLatestFinalizedAssetResult: any = dkg.asset.get(createAssetResult['UAL'], "latest_finalized", "all")
-print('======================== ASSET LATEST FINALIZED RESOLVED')
-print(getLatestFinalizedAssetResult)
+get_latest_finalized_asset_result = dkg.asset.get(
+    create_asset_result["UAL"], "latest_finalized", "all"
+)
+print("======================== ASSET LATEST FINALIZED RESOLVED")
+print(get_latest_finalized_asset_result)
 divider()
 
-getFirstStateByIndex: any = dkg.asset.get(createAssetResult['UAL'], 0, "all")
-print('======================== ASSET FIRST STATE (GET BY STATE INDEX) RESOLVED')
-print(getFirstStateByIndex)
+get_first_state_by_index = dkg.asset.get(create_asset_result["UAL"], 0, "all")
+print("======================== ASSET FIRST STATE (GET BY STATE INDEX) RESOLVED")
+print(get_first_state_by_index)
 divider()
 
-getSecondStateByIndex: any = dkg.asset.get(createAssetResult['UAL'], 1, "all")
-print('======================== ASSET SECOND STATE (GET BY STATE INDEX) RESOLVED')
-print(getSecondStateByIndex)
+get_second_state_by_index = dkg.asset.get(create_asset_result["UAL"], 1, "all")
+print("======================== ASSET SECOND STATE (GET BY STATE INDEX) RESOLVED")
+print(get_second_state_by_index)
 divider()
 
-getFirstStateByHash: any = dkg.asset.get(createAssetResult['UAL'], createAssetResult['publicAssertionId'], "all")
-print('======================== ASSET FIRST STATE (GET BY STATE HASH) RESOLVED')
-print(getFirstStateByHash)
+get_first_state_by_hash = dkg.asset.get(
+    create_asset_result["UAL"], create_asset_result["publicAssertionId"], "all"
+)
+print("======================== ASSET FIRST STATE (GET BY STATE HASH) RESOLVED")
+print(get_first_state_by_hash)
 divider()
 
-getSecondStateByHash: any = dkg.asset.get(createAssetResult['UAL'], updateAssetResult['publicAssertionId'], "all")
-print('======================== ASSET SECOND STATE (GET BY STATE HASH) RESOLVED')
-print(getSecondStateByHash)
+get_second_state_by_hash = dkg.asset.get(
+    create_asset_result["UAL"], update_asset_result["publicAssertionId"], "all"
+)
+print("======================== ASSET SECOND STATE (GET BY STATE HASH) RESOLVED")
+print(get_second_state_by_hash)
 divider()
 
-queryResult = dkg.graph.query('construct { ?s ?p ?o } where { ?s ?p ?o . <uuid:1> ?p ?o }', 'privateCurrent')
-print('======================== QUERY LOCAL CURRENT RESULT')
-print(queryResult)
+query_result = dkg.graph.query(
+    "construct { ?s ?p ?o } where { ?s ?p ?o . <uuid:1> ?p ?o }", "privateCurrent"
+)
+print("======================== QUERY LOCAL CURRENT RESULT")
+print(query_result)
 divider()
