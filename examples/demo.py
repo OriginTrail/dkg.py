@@ -82,11 +82,11 @@ print("======================== ASSET UPDATED")
 print(update_asset_result)
 divider()
 
-get_latest__asset_result = dkg.asset.get(
+get_latest_asset_result = dkg.asset.get(
     create_asset_result["UAL"], "latest", "all"
 )
 print("======================== ASSET LATEST RESOLVED")
-print(get_latest__asset_result)
+print(get_latest_asset_result)
 divider()
 
 get_latest_finalized_asset_result = dkg.asset.get(
