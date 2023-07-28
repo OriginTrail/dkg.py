@@ -1,5 +1,7 @@
 import math
 import random
+import time
+
 from dkg import DKG
 from dkg.providers import BlockchainProvider, NodeHTTPProvider
 
@@ -80,11 +82,11 @@ print("======================== ASSET UPDATED")
 print(update_asset_result)
 divider()
 
-get_latest_finalized_asset_result = dkg.asset.get(
-    create_asset_result["UAL"], "latest_finalized", "all"
+get_latest_asset_result = dkg.asset.get(
+    create_asset_result["UAL"], "latest", "all"
 )
-print("======================== ASSET LATEST FINALIZED RESOLVED")
-print(get_latest_finalized_asset_result)
+print("======================== ASSET LATEST RESOLVED")
+print(get_latest_asset_result)
 divider()
 
 get_latest_finalized_asset_result = dkg.asset.get(
@@ -98,6 +100,9 @@ get_first_state_by_index = dkg.asset.get(create_asset_result["UAL"], 0, "all")
 print("======================== ASSET FIRST STATE (GET BY STATE INDEX) RESOLVED")
 print(get_first_state_by_index)
 divider()
+
+# TODO: Remove when wait_for_finalization is implemented
+time.sleep(30)
 
 get_second_state_by_index = dkg.asset.get(create_asset_result["UAL"], 1, "all")
 print("======================== ASSET SECOND STATE (GET BY STATE INDEX) RESOLVED")
