@@ -176,7 +176,7 @@ Knowledge Assets are verifiable containers of structured knowledge that live on 
 
 <br/>
 
-**Discover Knowledge Assets with DKG Explorer:**
+**Discover Knowledge Assets with the DKG Explorer:**
 <div align="center">
     <table>
         <tr>
