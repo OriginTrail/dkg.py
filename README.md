@@ -1,18 +1,5 @@
 <a name="readme-top"></a>
 
-> **Disclaimer: Beta Version**
->
-> Welcome to the beta version of our client! This software is currently in the beta testing phase, which means it is not the final release version. As a beta version, it may still contain bugs, undergo frequent updates, and have limited features.
-Important Points to Note:
-
-> **Use at Your Own Risk:** While we have made efforts to ensure the stability and reliability of the beta version, there is a possibility of encountering unexpected issues. Please use this software at your own risk.
-
-> **Limited Support:** As this is a beta release, our support resources may be focused on addressing critical bugs and gathering feedback from users. Therefore, support for beta versions may be limited compared to our stable releases.
-
-> **Feedback Appreciated:** Your feedback is invaluable to us. If you encounter any issues, have suggestions, or want to share your experiences with the beta version, please let us know. Your feedback will help us improve the software for the final release.
-
-> **Not for Production Use:** The beta version is intended for testing and evaluation purposes only. It is not recommended for use in a production environment where stability and reliability are crucial.
-
 ___
 
 <br />
@@ -38,7 +25,22 @@ ___
 
 </br>
 
-<details>
+> **Disclaimer: Beta Version**
+>
+> Welcome to the beta version of our client! This software is currently in the beta testing phase, which means it is not the final release version. As a beta version, it may still contain bugs, undergo frequent updates, and have limited features.
+Important Points to Note:
+
+> **Use at Your Own Risk:** While we have made efforts to ensure the stability and reliability of the beta version, there is a possibility of encountering unexpected issues. Please use this software at your own risk.
+
+> **Limited Support:** As this is a beta release, our support resources may be focused on addressing critical bugs and gathering feedback from users. Therefore, support for beta versions may be limited compared to our stable releases.
+
+> **Feedback Appreciated:** Your feedback is invaluable to us. If you encounter any issues, have suggestions, or want to share your experiences with the beta version, please let us know. Your feedback will help us improve the software for the final release.
+
+> **Not for Production Use:** The beta version is intended for testing and evaluation purposes only. It is not recommended for use in a production environment where stability and reliability are crucial.
+
+</br>
+
+<details open>
   <summary>
     <b>Table of Contents</b>
   </summary>
@@ -133,7 +135,7 @@ The OriginTrail tech stack is tailored to enable the discoverability, verifiabil
 OriginTrail achieves this by incorporating two distinct types of technology into two network layers - Blockchains (trust networks) and Knowledge Graphs (semantic data networks).
 
 <div align="center">
-    <img src="images/dkg-architecture1.png" alt="DKG Architecture" width="600">
+    <img src="images/dkg-architecture1.png" alt="DKG Architecture" width="400">
 </div>
 
 **The DKG layer (Layer 2) consists of multiple sub-layers:**
@@ -254,7 +256,7 @@ python3 examples/demo.py
 
 This roadmap outlines the goals for the first major release of the `dkg.py`. Each section represents a stage in the development process and the features we plan to implement.
 
-<details>
+<details open>
 <summary>
 
 ### 1️⃣ Pre-development Phase
@@ -277,7 +279,7 @@ This roadmap outlines the goals for the first major release of the `dkg.py`. Eac
   - [ ] Setup Continuous Integration (CI) and Continuous Deployment (CD) pipeline
 </details>
 
-<details>
+<details open>
 <summary>
 
 ### 2️⃣ Development Phase
@@ -300,7 +302,7 @@ This roadmap outlines the goals for the first major release of the `dkg.py`. Eac
 | Experimental | 🟥 Not Started | ❌ |
 </details>
 
-<details>
+<details open>
 <summary>
 
 ### 3️⃣ Documentation Phase
@@ -311,7 +313,7 @@ This roadmap outlines the goals for the first major release of the `dkg.py`. Eac
 - [ ] Review and finalize documentation
 </details>
 
-<details>
+<details open>
 <summary>
 
 ### 4️⃣ Pre-release Phase
@@ -329,7 +331,7 @@ This roadmap outlines the goals for the first major release of the `dkg.py`. Eac
   - [ ] Ensure the library meets quality standards
 </details>
 
-<details>
+<details open>
 <summary>
 
 ### 5️⃣ Release
@@ -339,7 +341,7 @@ This roadmap outlines the goals for the first major release of the `dkg.py`. Eac
 - [ ] Release the v1.0.0 of the `dkg.py` library
 </details>
 
-<details>
+<details open>
 <summary>
 
 ### 6️⃣ Post-release
