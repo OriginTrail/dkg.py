@@ -682,7 +682,7 @@ class ContentAsset(Module):
 
     _owner = Method(BlockchainRequest.owner_of)
 
-    def getOwner(self, ual: UAL) -> Address:
+    def get_owner(self, ual: UAL) -> Address:
         token_id = parse_ual(ual)["token_id"]
 
         return self._owner(token_id)
