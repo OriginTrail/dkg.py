@@ -360,7 +360,7 @@ This roadmap outlines the goals for the first major release of the `dkg.py`. Eac
 
 ## 📄 License
 
-Distributed under the MIT License. See `LICENSE` file for more information.
+Distributed under the Apache-2.0 License. See `LICENSE` file for more information.
 
 <br/>
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
