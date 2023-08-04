@@ -12,10 +12,10 @@ pyyaml = "^6.0"
 web3 = "^6.0.0"
 pandas = "^1.5.3"
 eth-account = "^0.8.0"
-pyld = {git = "https://github.com/u-hubar/pyld.git"}
 rdflib = "^6.3.2"
 hexbytes = "^0.3.0"
 eth-abi = "^4.0.0"
+ot-pyld = "^2.1.1"
 
 
 [tool.poetry.group.dev.dependencies]

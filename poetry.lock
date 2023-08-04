@@ -1193,6 +1193,28 @@ files = [
 ]
 
 [[package]]
+name = "ot-pyld"
+version = "2.1.1"
+description = "Python implementation of the JSON-LD API"
+optional = false
+python-versions = "*"
+files = [
+    {file = "OT-PyLD-2.1.1.tar.gz", hash = "sha256:2fa40126a09a238bcbf96e903a36744675dfd2ad6e1579928ce9f2225faeeb26"},
+    {file = "OT_PyLD-2.1.1-py3-none-any.whl", hash = "sha256:106ce2a7d0026fa22ef2777b88a44dc1d1c9f87116aefe743289b566947cc67f"},
+]
+
+[package.dependencies]
+cachetools = "*"
+frozendict = "*"
+lxml = "*"
+
+[package.extras]
+aiohttp = ["aiohttp"]
+cachetools = ["cachetools"]
+frozendict = ["frozendict"]
+requests = ["requests"]
+
+[[package]]
 name = "pandas"
 version = "1.5.3"
 description = "Powerful data structures for data analysis, time series, and statistics"
@@ -1336,32 +1358,6 @@ files = [
     {file = "pyflakes-3.0.1-py2.py3-none-any.whl", hash = "sha256:ec55bf7fe21fff7f1ad2f7da62363d749e2a470500eab1b555334b67aa1ef8cf"},
     {file = "pyflakes-3.0.1.tar.gz", hash = "sha256:ec8b276a6b60bd80defed25add7e439881c19e64850afd9b346283d4165fd0fd"},
 ]
-
-[[package]]
-name = "PyLD"
-version = "2.1.0"
-description = "Python implementation of the JSON-LD API"
-optional = false
-python-versions = "*"
-files = []
-develop = false
-
-[package.dependencies]
-cachetools = "*"
-frozendict = "*"
-lxml = "*"
-
-[package.extras]
-aiohttp = ["aiohttp"]
-cachetools = ["cachetools"]
-frozendict = ["frozendict"]
-requests = ["requests"]
-
-[package.source]
-type = "git"
-url = "https://github.com/u-hubar/pyld.git"
-reference = "HEAD"
-resolved_reference = "f5711b40d40d2fe43e0e68cb17005cf198757771"
 
 [[package]]
 name = "pyparsing"
@@ -2017,4 +2013,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "66f759480514c7df3f016988fde19c59624b9114118b3ac0d429d96c355314ee"
+content-hash = "49a632db49e4295fd62d7ba009ac9dbc24fb63724c13a92b8202c70fb81c6b56"
