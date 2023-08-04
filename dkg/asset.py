@@ -24,13 +24,20 @@ from web3 import Web3
 from web3.constants import HASH_ZERO
 from web3.exceptions import ContractLogicError
 
-from dkg.constants import (PRIVATE_ASSERTION_PREDICATE, BLOCKCHAINS)
-from dkg.dataclasses import (KnowledgeAssetContentVisibility,
-                             KnowledgeAssetEnumStates, NodeResponseDict)
-from dkg.exceptions import (DatasetOutputFormatNotSupported,
-                            InvalidKnowledgeAsset, InvalidStateOption,
-                            InvalidTokenAmount, MissingKnowledgeAssetState,
-                            OperationNotFinished)
+from dkg.constants import PRIVATE_ASSERTION_PREDICATE, BLOCKCHAINS
+from dkg.dataclasses import (
+    KnowledgeAssetContentVisibility,
+    KnowledgeAssetEnumStates,
+    NodeResponseDict,
+)
+from dkg.exceptions import (
+    DatasetOutputFormatNotSupported,
+    InvalidKnowledgeAsset,
+    InvalidStateOption,
+    InvalidTokenAmount,
+    MissingKnowledgeAssetState,
+    OperationNotFinished,
+)
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.module import Module
@@ -38,10 +45,12 @@ from dkg.types import JSONLD, UAL, Address, AgreementData, HexStr, NQuads
 from dkg.utils.blockchain_request import BlockchainRequest
 from dkg.utils.decorators import retry
 from dkg.utils.merkle import MerkleTree, hash_assertion_with_indexes
-from dkg.utils.metadata import (generate_agreement_id,
-                                generate_assertion_metadata, generate_keyword)
-from dkg.utils.node_request import (NodeRequest, StoreTypes,
-                                    validate_operation_status)
+from dkg.utils.metadata import (
+    generate_agreement_id,
+    generate_assertion_metadata,
+    generate_keyword,
+)
+from dkg.utils.node_request import NodeRequest, StoreTypes, validate_operation_status
 from dkg.utils.rdf import normalize_dataset
 from dkg.utils.ual import format_ual, parse_ual
 
@@ -49,7 +58,8 @@ from dkg.utils.ual import format_ual, parse_ual
 class ContentAsset(Module):
     DEFAULT_HASH_FUNCTION_ID = 1
     DEFAULT_SCORE_FUNCTION_ID = 1
-    DEFAULT_REPOSITORY = "privateCurrent"
+    PRIVATE_HISTORICAL_REPOSITORY = "privateHistory"
+    PRIVATE_CURRENT_REPOSITORY = "privateCurrent"
 
     def __init__(self, manager: DefaultRequestManager):
         self.manager = manager
@@ -74,7 +84,6 @@ class ContentAsset(Module):
         immutable: bool = False,
         content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
     ) -> dict[str, HexStr | dict[str, str]]:
-
         assertions = self._process_content(content, content_type)
 
         chain_name = BLOCKCHAINS[self._chain_id()]["name"]
@@ -342,31 +351,38 @@ class ContentAsset(Module):
 
         token_id = parse_ual(ual)["token_id"]
 
-        def handle_latest_state(token_id: int) -> HexStr:
+        def handle_latest_state(token_id: int) -> tuple[HexStr, bool]:
             unfinalized_state = Web3.to_hex(self._get_unfinalized_state(token_id))
 
             if unfinalized_state and unfinalized_state != HASH_ZERO:
-                return unfinalized_state
+                return unfinalized_state, False
             else:
                 return handle_latest_finalized_state(token_id)
 
-        def handle_latest_finalized_state(token_id: int) -> HexStr:
-            return Web3.to_hex(self._get_latest_assertion_id(token_id))
+        def handle_latest_finalized_state(token_id: int) -> tuple[HexStr, bool]:
+            return Web3.to_hex(self._get_latest_assertion_id(token_id)), True
+
+        is_state_finalized = False
 
         match state:
             case KnowledgeAssetEnumStates.LATEST.value:
-                public_assertion_id = handle_latest_state(token_id)
+                public_assertion_id, is_state_finalized = handle_latest_state(token_id)
 
             case KnowledgeAssetEnumStates.LATEST_FINALIZED.value:
-                public_assertion_id = handle_latest_finalized_state(token_id)
+                public_assertion_id, is_state_finalized = handle_latest_finalized_state(
+                    token_id
+                )
 
             case _ if isinstance(state, int):
                 assertion_ids = [
                     Web3.to_hex(assertion_id)
                     for assertion_id in self._get_assertion_ids(token_id)
                 ]
-                if 0 <= state < len(assertion_ids):
+                if 0 <= state < (states_number := len(assertion_ids)):
                     public_assertion_id = assertion_ids[state]
+
+                    if state == states_number - 1:
+                        is_state_finalized = True
                 else:
                     raise InvalidStateOption(f"State index {state} is out of range.")
 
@@ -380,6 +396,9 @@ class ContentAsset(Module):
 
                 if state in assertion_ids:
                     public_assertion_id = state
+
+                    if state == assertion_ids[-1]:
+                        is_state_finalized = True
                 else:
                     raise InvalidStateOption(
                         f"Given state hash: {state} is not a part of the KA."
@@ -478,12 +497,16 @@ class ContentAsset(Module):
                     query_private_operation_id = self._query(
                         query,
                         "CONSTRUCT",
-                        self.DEFAULT_REPOSITORY,
+                        self.PRIVATE_CURRENT_REPOSITORY
+                        if is_state_finalized
+                        else self.PRIVATE_HISTORICAL_REPOSITORY,
                     )["operationId"]
 
                     query_private_operation_result = self.get_operation_result(
                         query_private_operation_id, "query"
                     )
+
+                    print(query_private_operation_result)
 
                     private_assertion = normalize_dataset(
                         query_private_operation_result["data"],
