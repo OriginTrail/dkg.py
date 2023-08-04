@@ -497,8 +497,6 @@ class ContentAsset(Module):
                         query_private_operation_id, "query"
                     )
 
-                    print(query_private_operation_result)
-
                     private_assertion = normalize_dataset(
                         query_private_operation_result["data"],
                         "N-Quads",
