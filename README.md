@@ -5,7 +5,7 @@ ___
 <br />
 <div align="center">
   <a href="https://github.com/OriginTrail/dkg.py">
-    <img src="images/banner.svg" alt="Python SDK Banner">
+    <img src="images/banner.jpg" alt="Python SDK Banner">
   </a>
 
   <h3 align="center"><b>dkg.py</b></h3>
