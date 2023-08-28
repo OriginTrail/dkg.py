@@ -189,6 +189,9 @@ ___
 * python `>=3.11`
 * poetry `>=1.5.1`
 
+
+In order to use in the local environment, make sure to [run the local DKG network](https://github.com/OriginTrail/ot-node?tab=readme-ov-file#local-network-setup).
+
 ___
 <br/>
 
@@ -210,7 +213,7 @@ Install dependencies:
 poetry install
 ```
 
-Now you can run a demo example file: 
+Now you can run a demo example file (you need to have the local DKG network running):
 ```bash
 python3 examples/demo.py
 ```
