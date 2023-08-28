@@ -32,4 +32,4 @@ Feel free to ask for help or discuss solutions with us. We appreciate your contr
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under its MIT License.
+By contributing, you agree that your contributions will be licensed under its Apache-2.0 License.
