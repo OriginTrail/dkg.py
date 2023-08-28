@@ -88,7 +88,7 @@ ___
 <details open>
 <summary>
 
-### <b>What is a Decentralized Knowledge Graph?</b>
+### **What is the Decentralized Knowledge Graph?**
 </summary>
 
 <br/>
@@ -103,7 +103,7 @@ OriginTrail Decentralized Knowledge Graph (DKG), hosted on the OriginTrail Decen
 <details open>
 <summary>
 
-### <b>The OriginTrail DKG Architecture</b>
+### **The OriginTrail DKG Architecture**
 </summary>
 
 <br/>
@@ -122,7 +122,7 @@ Further, the architecture differentiates between **the public, replicated knowle
 <details open>
 <summary>
 
-### <b>What is a Knowledge Asset?</b>
+### **What is a Knowledge Asset?**
 </summary>
 
 <br/>
