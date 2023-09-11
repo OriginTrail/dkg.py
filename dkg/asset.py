@@ -25,23 +25,32 @@ from web3.constants import HASH_ZERO
 from web3.exceptions import ContractLogicError
 
 from dkg.constants import BLOCKCHAINS, PRIVATE_ASSERTION_PREDICATE
-from dkg.dataclasses import (KnowledgeAssetContentVisibility,
-                             KnowledgeAssetEnumStates, NodeResponseDict)
-from dkg.exceptions import (DatasetOutputFormatNotSupported,
-                            InvalidKnowledgeAsset, InvalidStateOption,
-                            InvalidTokenAmount, MissingKnowledgeAssetState,
-                            OperationNotFinished)
+from dkg.dataclasses import (
+    KnowledgeAssetContentVisibility,
+    KnowledgeAssetEnumStates,
+    NodeResponseDict,
+)
+from dkg.exceptions import (
+    DatasetOutputFormatNotSupported,
+    InvalidKnowledgeAsset,
+    InvalidStateOption,
+    InvalidTokenAmount,
+    MissingKnowledgeAssetState,
+    OperationNotFinished,
+)
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.module import Module
-from dkg.types import JSONLD, UAL, Address, AgreementData, HexStr, NQuads
+from dkg.types import JSONLD, UAL, Address, AgreementData, HexStr, NQuads, Wei
 from dkg.utils.blockchain_request import BlockchainRequest
 from dkg.utils.decorators import retry
 from dkg.utils.merkle import MerkleTree, hash_assertion_with_indexes
-from dkg.utils.metadata import (generate_agreement_id,
-                                generate_assertion_metadata, generate_keyword)
-from dkg.utils.node_request import (NodeRequest, StoreTypes,
-                                    validate_operation_status)
+from dkg.utils.metadata import (
+    generate_agreement_id,
+    generate_assertion_metadata,
+    generate_keyword,
+)
+from dkg.utils.node_request import NodeRequest, StoreTypes, validate_operation_status
 from dkg.utils.rdf import normalize_dataset
 from dkg.utils.ual import format_ual, parse_ual
 
@@ -61,17 +70,40 @@ class ContentAsset(Module):
     _get_asset_storage_address = Method(BlockchainRequest.get_asset_storage_address)
     _increase_allowance = Method(BlockchainRequest.increase_allowance)
     _decrease_allowance = Method(BlockchainRequest.decrease_allowance)
+    _get_current_allowance = Method(BlockchainRequest.allowance)
     _create = Method(BlockchainRequest.create_asset)
 
     _get_bid_suggestion = Method(NodeRequest.bid_suggestion)
     _local_store = Method(NodeRequest.local_store)
     _publish = Method(NodeRequest.publish)
 
+    def get_current_allowance(self, spender: str) -> int:
+        return int(self._get_current_allowance(spender=spender))
+
+    def increase_allowance(self, spender: str, token_amount: Wei) -> int:
+        current_allowance = int(self._get_current_allowance(spender=spender))
+        missing_allowance = 0
+        if current_allowance < token_amount:
+            missing_allowance = token_amount - current_allowance
+            self._increase_allowance(spender, token_amount)
+
+        return missing_allowance
+
+    def decrease_allowance(self, spender: str, token_amount: Wei) -> int:
+        current_allowance = int(self._get_current_allowance(spender=spender))
+
+        excess_allowance = 0
+        if current_allowance > token_amount:
+            excess_allowance = current_allowance - token_amount
+            self._decrease_allowance(spender, token_amount)
+
+        return excess_allowance
+
     def create(
         self,
         content: dict[Literal["public", "private"], JSONLD],
         epochs_number: int,
-        token_amount: int | None = None,
+        token_amount: Wei | None = None,
         immutable: bool = False,
         content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
     ) -> dict[str, HexStr | dict[str, str]]:
@@ -97,7 +129,7 @@ class ContentAsset(Module):
         service_agreement_v1_address = str(
             self._get_contract_address("ServiceAgreementV1")
         )
-        self._increase_allowance(service_agreement_v1_address, token_amount)
+        self.increase_allowance(service_agreement_v1_address, token_amount)
 
         try:
             receipt = self._create(
@@ -113,7 +145,7 @@ class ContentAsset(Module):
                 }
             )
         except ContractLogicError as err:
-            self._decrease_allowance(service_agreement_v1_address, token_amount)
+            self.decrease_allowance(service_agreement_v1_address, token_amount)
             raise err
 
         events = self.manager.blockchain_provider.decode_logs_event(
@@ -200,7 +232,7 @@ class ContentAsset(Module):
         self,
         ual: UAL,
         content: dict[Literal["public", "private"], JSONLD],
-        token_amount: int | None = None,
+        token_amount: Wei | None = None,
         content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
     ) -> dict[str, HexStr | dict[str, str]]:
         parsed_ual = parse_ual(ual)
@@ -556,7 +588,7 @@ class ContentAsset(Module):
         self,
         ual: UAL,
         additional_epochs: int,
-        token_amount: int | None = None,
+        token_amount: Wei | None = None,
     ) -> dict[str, UAL | dict[str, str]]:
         parsed_ual = parse_ual(ual)
         content_asset_storage_address, token_id = (
@@ -596,7 +628,7 @@ class ContentAsset(Module):
     def add_tokens(
         self,
         ual: UAL,
-        token_amount: int | None = None,
+        token_amount: Wei | None = None,
     ) -> dict[str, UAL | dict[str, str]]:
         parsed_ual = parse_ual(ual)
         content_asset_storage_address, token_id = (
@@ -656,7 +688,7 @@ class ContentAsset(Module):
     def add_update_tokens(
         self,
         ual: UAL,
-        token_amount: int | None = None,
+        token_amount: Wei | None = None,
     ) -> dict[str, UAL | dict[str, str]]:
         parsed_ual = parse_ual(ual)
         content_asset_storage_address, token_id = (
