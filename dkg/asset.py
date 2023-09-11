@@ -77,10 +77,10 @@ class ContentAsset(Module):
     _local_store = Method(NodeRequest.local_store)
     _publish = Method(NodeRequest.publish)
 
-    def get_current_allowance(self) -> int:
-        return int(self._get_current_allowance(self._get_contract_address))
+    def get_current_allowance(self, spender: Address) -> int:
+        return int(self._get_current_allowance(spender))
 
-    def increase_allowance(self, spender: str, token_amount: Wei) -> int:
+    def increase_allowance(self, spender: Address, token_amount: Wei) -> int:
         current_allowance = int(self._get_current_allowance(spender=spender))
         missing_allowance = 0
         if current_allowance < token_amount:
@@ -89,7 +89,7 @@ class ContentAsset(Module):
 
         return missing_allowance
 
-    def decrease_allowance(self, spender: str, token_amount: Wei) -> int:
+    def decrease_allowance(self, spender: Address, token_amount: Wei) -> int:
         current_allowance = int(self._get_current_allowance(spender=spender))
 
         excess_allowance = 0
