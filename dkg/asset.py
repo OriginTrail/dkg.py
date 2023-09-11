@@ -77,8 +77,8 @@ class ContentAsset(Module):
     _local_store = Method(NodeRequest.local_store)
     _publish = Method(NodeRequest.publish)
 
-    def get_current_allowance(self, spender: str) -> int:
-        return int(self._get_current_allowance(spender=spender))
+    def get_current_allowance(self) -> int:
+        return int(self._get_current_allowance(self._get_contract_address))
 
     def increase_allowance(self, spender: str, token_amount: Wei) -> int:
         current_allowance = int(self._get_current_allowance(spender=spender))
