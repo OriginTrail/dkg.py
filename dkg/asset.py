@@ -25,19 +25,12 @@ from web3.constants import HASH_ZERO
 from web3.exceptions import ContractLogicError
 
 from dkg.constants import BLOCKCHAINS, PRIVATE_ASSERTION_PREDICATE
-from dkg.dataclasses import (
-    KnowledgeAssetContentVisibility,
-    KnowledgeAssetEnumStates,
-    NodeResponseDict,
-)
-from dkg.exceptions import (
-    DatasetOutputFormatNotSupported,
-    InvalidKnowledgeAsset,
-    InvalidStateOption,
-    InvalidTokenAmount,
-    MissingKnowledgeAssetState,
-    OperationNotFinished,
-)
+from dkg.dataclasses import (KnowledgeAssetContentVisibility,
+                             KnowledgeAssetEnumStates, NodeResponseDict)
+from dkg.exceptions import (DatasetOutputFormatNotSupported,
+                            InvalidKnowledgeAsset, InvalidStateOption,
+                            InvalidTokenAmount, MissingKnowledgeAssetState,
+                            OperationNotFinished)
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.module import Module
@@ -45,12 +38,10 @@ from dkg.types import JSONLD, UAL, Address, AgreementData, HexStr, NQuads, Wei
 from dkg.utils.blockchain_request import BlockchainRequest
 from dkg.utils.decorators import retry
 from dkg.utils.merkle import MerkleTree, hash_assertion_with_indexes
-from dkg.utils.metadata import (
-    generate_agreement_id,
-    generate_assertion_metadata,
-    generate_keyword,
-)
-from dkg.utils.node_request import NodeRequest, StoreTypes, validate_operation_status
+from dkg.utils.metadata import (generate_agreement_id,
+                                generate_assertion_metadata, generate_keyword)
+from dkg.utils.node_request import (NodeRequest, StoreTypes,
+                                    validate_operation_status)
 from dkg.utils.rdf import normalize_dataset
 from dkg.utils.ual import format_ual, parse_ual
 
@@ -66,7 +57,7 @@ class ContentAsset(Module):
 
     _get_current_allowance = Method(BlockchainRequest.allowance)
 
-    def get_current_allowance(self, spender: Address) -> int:
+    def get_current_allowance(self, spender: Address) -> Wei:
         return int(
             self._get_current_allowance(
                 self.manager.blockchain_provider.account.address, spender
@@ -75,7 +66,7 @@ class ContentAsset(Module):
 
     _increase_allowance = Method(BlockchainRequest.increase_allowance)
 
-    def increase_allowance(self, spender: Address, token_amount: Wei) -> int:
+    def increase_allowance(self, spender: Address, token_amount: Wei) -> Wei:
         current_allowance = self.get_current_allowance(spender)
         missing_allowance = 0
         if current_allowance < token_amount:
@@ -86,15 +77,13 @@ class ContentAsset(Module):
 
     _decrease_allowance = Method(BlockchainRequest.decrease_allowance)
 
-    def decrease_allowance(self, spender: Address, token_amount: Wei) -> int:
+    def decrease_allowance(self, spender: Address, token_amount: Wei) -> Wei:
         current_allowance = self.get_current_allowance(spender)
-        subtracted_value = 0
+        subtracted_value = min(token_amount, current_allowance)
 
         if current_allowance - token_amount > 0:
-            subtracted_value = token_amount
             self._decrease_allowance(spender, subtracted_value)
         else:
-            subtracted_value = current_allowance
             self._decrease_allowance(spender, subtracted_value)
 
         return subtracted_value
@@ -139,11 +128,10 @@ class ContentAsset(Module):
         service_agreement_v1_address = str(
             self._get_contract_address("ServiceAgreementV1")
         )
-        allowance_increased = (
-            self.increase_allowance(service_agreement_v1_address, token_amount) > 0
+        allowance_increase = self.increase_allowance(
+            service_agreement_v1_address, token_amount
         )
-
-        # self.increase_allowance(service_agreement_v1_address, token_amount)
+        allowance_increased = allowance_increase > 0
 
         try:
             receipt = self._create(
