@@ -25,12 +25,19 @@ from web3.constants import HASH_ZERO
 from web3.exceptions import ContractLogicError
 
 from dkg.constants import BLOCKCHAINS, PRIVATE_ASSERTION_PREDICATE
-from dkg.dataclasses import (KnowledgeAssetContentVisibility,
-                             KnowledgeAssetEnumStates, NodeResponseDict)
-from dkg.exceptions import (DatasetOutputFormatNotSupported,
-                            InvalidKnowledgeAsset, InvalidStateOption,
-                            InvalidTokenAmount, MissingKnowledgeAssetState,
-                            OperationNotFinished)
+from dkg.dataclasses import (
+    KnowledgeAssetContentVisibility,
+    KnowledgeAssetEnumStates,
+    NodeResponseDict,
+)
+from dkg.exceptions import (
+    DatasetOutputFormatNotSupported,
+    InvalidKnowledgeAsset,
+    InvalidStateOption,
+    InvalidTokenAmount,
+    MissingKnowledgeAssetState,
+    OperationNotFinished,
+)
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.module import Module
@@ -38,10 +45,12 @@ from dkg.types import JSONLD, UAL, Address, AgreementData, HexStr, NQuads, Wei
 from dkg.utils.blockchain_request import BlockchainRequest
 from dkg.utils.decorators import retry
 from dkg.utils.merkle import MerkleTree, hash_assertion_with_indexes
-from dkg.utils.metadata import (generate_agreement_id,
-                                generate_assertion_metadata, generate_keyword)
-from dkg.utils.node_request import (NodeRequest, StoreTypes,
-                                    validate_operation_status)
+from dkg.utils.metadata import (
+    generate_agreement_id,
+    generate_assertion_metadata,
+    generate_keyword,
+)
+from dkg.utils.node_request import NodeRequest, StoreTypes, validate_operation_status
 from dkg.utils.rdf import normalize_dataset
 from dkg.utils.ual import format_ual, parse_ual
 
@@ -81,10 +90,7 @@ class ContentAsset(Module):
         current_allowance = self.get_current_allowance(spender)
         subtracted_value = min(token_amount, current_allowance)
 
-        if current_allowance - token_amount > 0:
-            self._decrease_allowance(spender, subtracted_value)
-        else:
-            self._decrease_allowance(spender, subtracted_value)
+        self._decrease_allowance(spender, subtracted_value)
 
         return subtracted_value
 
