@@ -88,11 +88,16 @@ class ContentAsset(Module):
 
     def decrease_allowance(self, spender: Address, token_amount: Wei) -> int:
         current_allowance = self.get_current_allowance(spender)
+        subtracted_value = 0
 
-        if current_allowance - token_amount < 0:
-            self._decrease_allowance(spender, token_amount - current_allowance)
+        if current_allowance - token_amount > 0:
+            subtracted_value = token_amount
+            self._decrease_allowance(spender, subtracted_value)
+        else:
+            subtracted_value = current_allowance
+            self._decrease_allowance(spender, subtracted_value)
 
-        return token_amount - current_allowance
+        return subtracted_value
 
     _chain_id = Method(BlockchainRequest.chain_id)
 
