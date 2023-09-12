@@ -68,20 +68,25 @@ class ContentAsset(Module):
 
     _get_contract_address = Method(BlockchainRequest.get_contract_address)
     _get_asset_storage_address = Method(BlockchainRequest.get_asset_storage_address)
-    _increase_allowance = Method(BlockchainRequest.increase_allowance)
-    _decrease_allowance = Method(BlockchainRequest.decrease_allowance)
-    _get_current_allowance = Method(BlockchainRequest.allowance)
     _create = Method(BlockchainRequest.create_asset)
 
     _get_bid_suggestion = Method(NodeRequest.bid_suggestion)
     _local_store = Method(NodeRequest.local_store)
     _publish = Method(NodeRequest.publish)
 
+    _get_current_allowance = Method(BlockchainRequest.allowance)
+
     def get_current_allowance(self, spender: Address) -> int:
-        return int(self._get_current_allowance(spender))
+        return int(
+            self._get_current_allowance(
+                self.manager.blockchain_provider.account.address, spender
+            )
+        )
+
+    _increase_allowance = Method(BlockchainRequest.increase_allowance)
 
     def increase_allowance(self, spender: Address, token_amount: Wei) -> int:
-        current_allowance = int(self._get_current_allowance(spender=spender))
+        current_allowance = self.get_current_allowance(spender)
         missing_allowance = 0
         if current_allowance < token_amount:
             missing_allowance = token_amount - current_allowance
@@ -89,8 +94,10 @@ class ContentAsset(Module):
 
         return missing_allowance
 
+    _decrease_allowance = Method(BlockchainRequest.decrease_allowance)
+
     def decrease_allowance(self, spender: Address, token_amount: Wei) -> int:
-        current_allowance = int(self._get_current_allowance(spender=spender))
+        current_allowance = self.get_current_allowance(spender)
 
         excess_allowance = 0
         if current_allowance > token_amount:
