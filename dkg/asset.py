@@ -64,16 +64,6 @@ class ContentAsset(Module):
     def __init__(self, manager: DefaultRequestManager):
         self.manager = manager
 
-    _chain_id = Method(BlockchainRequest.chain_id)
-
-    _get_contract_address = Method(BlockchainRequest.get_contract_address)
-    _get_asset_storage_address = Method(BlockchainRequest.get_asset_storage_address)
-    _create = Method(BlockchainRequest.create_asset)
-
-    _get_bid_suggestion = Method(NodeRequest.bid_suggestion)
-    _local_store = Method(NodeRequest.local_store)
-    _publish = Method(NodeRequest.publish)
-
     _get_current_allowance = Method(BlockchainRequest.allowance)
 
     def get_current_allowance(self, spender: Address) -> int:
@@ -99,12 +89,20 @@ class ContentAsset(Module):
     def decrease_allowance(self, spender: Address, token_amount: Wei) -> int:
         current_allowance = self.get_current_allowance(spender)
 
-        excess_allowance = 0
-        if current_allowance > token_amount:
-            excess_allowance = current_allowance - token_amount
-            self._decrease_allowance(spender, token_amount)
+        if current_allowance - token_amount < 0:
+            self._decrease_allowance(spender, token_amount - current_allowance)
 
-        return excess_allowance
+        return token_amount - current_allowance
+
+    _chain_id = Method(BlockchainRequest.chain_id)
+
+    _get_contract_address = Method(BlockchainRequest.get_contract_address)
+    _get_asset_storage_address = Method(BlockchainRequest.get_asset_storage_address)
+    _create = Method(BlockchainRequest.create_asset)
+
+    _get_bid_suggestion = Method(NodeRequest.bid_suggestion)
+    _local_store = Method(NodeRequest.local_store)
+    _publish = Method(NodeRequest.publish)
 
     def create(
         self,
@@ -136,7 +134,11 @@ class ContentAsset(Module):
         service_agreement_v1_address = str(
             self._get_contract_address("ServiceAgreementV1")
         )
-        self.increase_allowance(service_agreement_v1_address, token_amount)
+        allowance_increased = (
+            self.increase_allowance(service_agreement_v1_address, token_amount) > 0
+        )
+
+        # self.increase_allowance(service_agreement_v1_address, token_amount)
 
         try:
             receipt = self._create(
@@ -152,7 +154,8 @@ class ContentAsset(Module):
                 }
             )
         except ContractLogicError as err:
-            self.decrease_allowance(service_agreement_v1_address, token_amount)
+            if allowance_increased:
+                self.decrease_allowance(service_agreement_v1_address, token_amount)
             raise err
 
         events = self.manager.blockchain_provider.decode_logs_event(
