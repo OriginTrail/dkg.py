@@ -21,6 +21,7 @@ from dkg.asset import ContentAsset
 from dkg.graph import Graph
 from dkg.manager import DefaultRequestManager
 from dkg.module import Module
+from dkg.network import Network
 from dkg.node import Node
 from dkg.providers import BlockchainProvider, NodeHTTPProvider
 from dkg.types import UAL, Address, ChecksumAddress
@@ -31,6 +32,7 @@ class DKG(Module):
     asset: ContentAsset
     node: Node
     graph: Graph
+    network: Network
 
     @staticmethod
     @wraps(format_ual)
@@ -54,6 +56,7 @@ class DKG(Module):
             "asset": ContentAsset(self.manager),
             "node": Node(self.manager),
             "graph": Graph(self.manager),
+            "network": Network(self.manager),
         }
         self._attach_modules(modules)
 
