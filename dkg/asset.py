@@ -34,7 +34,7 @@ from dkg.exceptions import (DatasetOutputFormatNotSupported,
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.module import Module
-from dkg.types import JSONLD, UAL, Address, AgreementData, HexStr, NQuads
+from dkg.types import JSONLD, UAL, Address, AgreementData, HexStr, Wei
 from dkg.utils.blockchain_request import BlockchainRequest
 from dkg.utils.decorators import retry
 from dkg.utils.merkle import MerkleTree, hash_assertion_with_indexes
@@ -42,7 +42,7 @@ from dkg.utils.metadata import (generate_agreement_id,
                                 generate_assertion_metadata, generate_keyword)
 from dkg.utils.node_request import (NodeRequest, StoreTypes,
                                     validate_operation_status)
-from dkg.utils.rdf import normalize_dataset
+from dkg.utils.rdf import format_content, normalize_dataset
 from dkg.utils.ual import format_ual, parse_ual
 
 
@@ -55,12 +55,53 @@ class ContentAsset(Module):
     def __init__(self, manager: DefaultRequestManager):
         self.manager = manager
 
+    _get_contract_address = Method(BlockchainRequest.get_contract_address)
+    _get_current_allowance = Method(BlockchainRequest.allowance)
+
+    def get_current_allowance(self, spender: Address | None = None) -> Wei:
+        if spender is None:
+            spender = self._get_contract_address("ServiceAgreementV1")
+
+        return int(
+            self._get_current_allowance(
+                self.manager.blockchain_provider.account.address, spender
+            )
+        )
+
+    _increase_allowance = Method(BlockchainRequest.increase_allowance)
+
+    def increase_allowance(
+        self, token_amount: Wei, spender: Address | None = None
+    ) -> Wei:
+        if spender is None:
+            spender = self._get_contract_address("ServiceAgreementV1")
+
+        current_allowance = self.get_current_allowance(spender)
+        missing_allowance = 0
+        if current_allowance < token_amount:
+            missing_allowance = token_amount - current_allowance
+            self._increase_allowance(spender, token_amount)
+
+        return missing_allowance
+
+    _decrease_allowance = Method(BlockchainRequest.decrease_allowance)
+
+    def decrease_allowance(
+        self, token_amount: Wei, spender: Address | None = None
+    ) -> Wei:
+        if spender is None:
+            spender = self._get_contract_address("ServiceAgreementV1")
+
+        current_allowance = self.get_current_allowance(spender)
+        subtracted_value = min(token_amount, current_allowance)
+
+        self._decrease_allowance(spender, subtracted_value)
+
+        return subtracted_value
+
     _chain_id = Method(BlockchainRequest.chain_id)
 
-    _get_contract_address = Method(BlockchainRequest.get_contract_address)
     _get_asset_storage_address = Method(BlockchainRequest.get_asset_storage_address)
-    _increase_allowance = Method(BlockchainRequest.increase_allowance)
-    _decrease_allowance = Method(BlockchainRequest.decrease_allowance)
     _create = Method(BlockchainRequest.create_asset)
 
     _get_bid_suggestion = Method(NodeRequest.bid_suggestion)
@@ -71,11 +112,17 @@ class ContentAsset(Module):
         self,
         content: dict[Literal["public", "private"], JSONLD],
         epochs_number: int,
-        token_amount: int | None = None,
+        token_amount: Wei | None = None,
         immutable: bool = False,
         content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
     ) -> dict[str, HexStr | dict[str, str]]:
-        assertions = self._process_content(content, content_type)
+        assertions = format_content(content, content_type)
+
+        public_assertion_id = MerkleTree(
+            hash_assertion_with_indexes(assertions["public"]),
+            sort_pairs=True,
+        ).root
+        public_assertion_metadata = generate_assertion_metadata(assertions["public"])
 
         chain_name = BLOCKCHAINS[self._chain_id()]["name"]
         content_asset_storage_address = self._get_asset_storage_address(
@@ -87,25 +134,23 @@ class ContentAsset(Module):
                 self._get_bid_suggestion(
                     chain_name,
                     epochs_number,
-                    assertions["public"]["size"],
+                    public_assertion_metadata["size"],
                     content_asset_storage_address,
-                    assertions["public"]["id"],
+                    public_assertion_id,
                     self.DEFAULT_HASH_FUNCTION_ID,
                 )["bidSuggestion"]
             )
 
-        service_agreement_v1_address = str(
-            self._get_contract_address("ServiceAgreementV1")
-        )
-        self._increase_allowance(service_agreement_v1_address, token_amount)
+        allowance_increase = self.increase_allowance(token_amount)
+        is_allowance_increased = allowance_increase > 0
 
         try:
             receipt = self._create(
                 {
-                    "assertionId": Web3.to_bytes(hexstr=assertions["public"]["id"]),
-                    "size": assertions["public"]["size"],
-                    "triplesNumber": assertions["public"]["triples_number"],
-                    "chunksNumber": assertions["public"]["chunks_number"],
+                    "assertionId": Web3.to_bytes(hexstr=public_assertion_id),
+                    "size": public_assertion_metadata["size"],
+                    "triplesNumber": public_assertion_metadata["triples_number"],
+                    "chunksNumber": public_assertion_metadata["chunks_number"],
                     "tokenAmount": token_amount,
                     "epochsNumber": epochs_number,
                     "scoreFunctionId": self.DEFAULT_SCORE_FUNCTION_ID,
@@ -113,7 +158,8 @@ class ContentAsset(Module):
                 }
             )
         except ContractLogicError as err:
-            self._decrease_allowance(service_agreement_v1_address, token_amount)
+            if is_allowance_increased:
+                self.decrease_allowance(token_amount)
             raise err
 
         events = self.manager.blockchain_provider.decode_logs_event(
@@ -128,8 +174,8 @@ class ContentAsset(Module):
                 "blockchain": chain_name,
                 "contract": content_asset_storage_address,
                 "tokenId": token_id,
-                "assertionId": assertions["public"]["id"],
-                "assertion": assertions["public"]["content"],
+                "assertionId": public_assertion_id,
+                "assertion": assertions["public"],
                 "storeType": StoreTypes.TRIPLE.value,
             }
         ]
@@ -140,8 +186,11 @@ class ContentAsset(Module):
                     "blockchain": chain_name,
                     "contract": content_asset_storage_address,
                     "tokenId": token_id,
-                    "assertionId": assertions["private"]["id"],
-                    "assertion": assertions["private"]["content"],
+                    "assertionId": MerkleTree(
+                        hash_assertion_with_indexes(assertions["private"]),
+                        sort_pairs=True,
+                    ).root,
+                    "assertion": assertions["private"],
                     "storeType": StoreTypes.TRIPLE.value,
                 }
             )
@@ -150,8 +199,8 @@ class ContentAsset(Module):
         self.get_operation_result(operation_id, "local-store")
 
         operation_id = self._publish(
-            assertions["public"]["id"],
-            assertions["public"]["content"],
+            public_assertion_id,
+            assertions["public"],
             chain_name,
             content_asset_storage_address,
             token_id,
@@ -161,7 +210,7 @@ class ContentAsset(Module):
 
         return {
             "UAL": format_ual(chain_name, content_asset_storage_address, token_id),
-            "publicAssertionId": assertions["public"]["id"],
+            "publicAssertionId": public_assertion_id,
             "operation": {
                 "operationId": operation_id,
                 "status": operation_result["status"],
@@ -200,7 +249,7 @@ class ContentAsset(Module):
         self,
         ual: UAL,
         content: dict[Literal["public", "private"], JSONLD],
-        token_amount: int | None = None,
+        token_amount: Wei | None = None,
         content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
     ) -> dict[str, HexStr | dict[str, str]]:
         parsed_ual = parse_ual(ual)
@@ -209,7 +258,13 @@ class ContentAsset(Module):
             parsed_ual["token_id"],
         )
 
-        assertions = self._process_content(content, content_type)
+        assertions = format_content(content, content_type)
+
+        public_assertion_id = MerkleTree(
+            hash_assertion_with_indexes(assertions["public"]),
+            sort_pairs=True,
+        ).root
+        public_assertion_metadata = generate_assertion_metadata(assertions["public"])
 
         chain_name = BLOCKCHAINS[self._chain_id()]["name"]
 
@@ -232,9 +287,9 @@ class ContentAsset(Module):
                 self._get_bid_suggestion(
                     chain_name,
                     epochs_left,
-                    assertions["public"]["size"],
+                    public_assertion_metadata["size"],
                     content_asset_storage_address,
-                    assertions["public"]["id"],
+                    public_assertion_id,
                     self.DEFAULT_HASH_FUNCTION_ID,
                 )["bidSuggestion"]
             )
@@ -242,22 +297,32 @@ class ContentAsset(Module):
             token_amount -= agreement_data.tokensInfo[0]
             token_amount = token_amount if token_amount > 0 else 0
 
-        self._update_asset_state(
-            token_id=token_id,
-            assertion_id=assertions["public"]["id"],
-            size=assertions["public"]["size"],
-            triples_number=assertions["public"]["triples_number"],
-            chunks_number=assertions["public"]["chunks_number"],
-            update_token_amount=token_amount,
-        )
+        is_allowance_increased = False
+        if token_amount > 0:
+            allowance_increase = self.increase_allowance(token_amount)
+            is_allowance_increased = allowance_increase > 0
+
+        try:
+            self._update_asset_state(
+                token_id=token_id,
+                assertion_id=public_assertion_id,
+                size=public_assertion_metadata["size"],
+                triples_number=public_assertion_metadata["triples_number"],
+                chunks_number=public_assertion_metadata["chunks_number"],
+                update_token_amount=token_amount,
+            )
+        except ContractLogicError as err:
+            if is_allowance_increased:
+                self.decrease_allowance(token_amount)
+            raise err
 
         assertions_list = [
             {
                 "blockchain": chain_name,
                 "contract": content_asset_storage_address,
                 "tokenId": token_id,
-                "assertionId": assertions["public"]["id"],
-                "assertion": assertions["public"]["content"],
+                "assertionId": public_assertion_id,
+                "assertion": assertions["public"],
                 "storeType": StoreTypes.PENDING.value,
             }
         ]
@@ -268,8 +333,11 @@ class ContentAsset(Module):
                     "blockchain": chain_name,
                     "contract": content_asset_storage_address,
                     "tokenId": token_id,
-                    "assertionId": assertions["private"]["id"],
-                    "assertion": assertions["private"]["content"],
+                    "assertionId": MerkleTree(
+                        hash_assertion_with_indexes(assertions["private"]),
+                        sort_pairs=True,
+                    ).root,
+                    "assertion": assertions["private"],
                     "storeType": StoreTypes.PENDING.value,
                 }
             )
@@ -278,8 +346,8 @@ class ContentAsset(Module):
         self.get_operation_result(operation_id, "local-store")
 
         operation_id = self._update(
-            assertions["public"]["id"],
-            assertions["public"]["content"],
+            public_assertion_id,
+            assertions["public"],
             chain_name,
             content_asset_storage_address,
             token_id,
@@ -289,7 +357,7 @@ class ContentAsset(Module):
 
         return {
             "UAL": format_ual(chain_name, content_asset_storage_address, token_id),
-            "publicAssertionId": assertions["public"]["id"],
+            "publicAssertionId": public_assertion_id,
             "operation": {
                 "operationId": operation_id,
                 "status": operation_result["status"],
@@ -556,7 +624,7 @@ class ContentAsset(Module):
         self,
         ual: UAL,
         additional_epochs: int,
-        token_amount: int | None = None,
+        token_amount: Wei | None = None,
     ) -> dict[str, UAL | dict[str, str]]:
         parsed_ual = parse_ual(ual)
         content_asset_storage_address, token_id = (
@@ -596,7 +664,7 @@ class ContentAsset(Module):
     def add_tokens(
         self,
         ual: UAL,
-        token_amount: int | None = None,
+        token_amount: Wei | None = None,
     ) -> dict[str, UAL | dict[str, str]]:
         parsed_ual = parse_ual(ual)
         content_asset_storage_address, token_id = (
@@ -656,7 +724,7 @@ class ContentAsset(Module):
     def add_update_tokens(
         self,
         ual: UAL,
-        token_amount: int | None = None,
+        token_amount: Wei | None = None,
     ) -> dict[str, UAL | dict[str, str]]:
         parsed_ual = parse_ual(ual)
         content_asset_storage_address, token_id = (
@@ -715,48 +783,6 @@ class ContentAsset(Module):
         token_id = parse_ual(ual)["token_id"]
 
         return self._owner(token_id)
-
-    def _process_content(
-        self,
-        content: dict[Literal["public", "private"], JSONLD],
-        type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
-    ) -> dict[str, dict[str, HexStr | NQuads | int]]:
-        public_graph = {"@graph": []}
-
-        if content.get("public", None):
-            public_graph["@graph"].append(content["public"])
-
-        if content.get("private", None):
-            private_assertion = normalize_dataset(content["private"], type)
-            private_assertion_id = MerkleTree(
-                hash_assertion_with_indexes(private_assertion),
-                sort_pairs=True,
-            ).root
-
-            public_graph["@graph"].append(
-                {PRIVATE_ASSERTION_PREDICATE: private_assertion_id}
-            )
-
-        public_assertion = normalize_dataset(public_graph, type)
-        public_assertion_id = MerkleTree(
-            hash_assertion_with_indexes(public_assertion),
-            sort_pairs=True,
-        ).root
-        public_assertion_metadata = generate_assertion_metadata(public_assertion)
-
-        return {
-            "public": {
-                "id": public_assertion_id,
-                "content": public_assertion,
-                **public_assertion_metadata,
-            },
-            "private": {
-                "id": private_assertion_id,
-                "content": private_assertion,
-            }
-            if content.get("private", None)
-            else {},
-        }
 
     _get_assertion_id_by_index = Method(BlockchainRequest.get_assertion_id_by_index)
 

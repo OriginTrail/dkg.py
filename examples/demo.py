@@ -37,6 +37,24 @@ def divider():
     print("==================================================")
 
 
+content = {
+    "public": {
+        "@context": ["http://schema.org"],
+        "@id": "uuid:1",
+        "company": "OT",
+        "user": {"@id": "uuid:user:1"},
+        "city": {"@id": "uuid:belgrade"},
+    },
+    "private": {
+        "@context": ["http://schema.org"],
+        "@graph": [
+            {"@id": "uuid:user:1", "name": "Adam", "lastname": "Smith"},
+            {"@id": "uuid:belgrade", "title": "Belgrade", "postCode": "11000"},
+        ],
+    },
+}
+
+
 divider()
 
 info_result = dkg.node.info
@@ -46,25 +64,55 @@ print(info_result)
 
 divider()
 
-create_asset_result = dkg.asset.create(
-    {
-        "public": {
-            "@context": ["http://schema.org"],
-            "@id": "uuid:1",
-            "company": "OT",
-            "user": {"@id": "uuid:user:1"},
-            "city": {"@id": "uuid:belgrade"},
-        },
-        "private": {
-            "@context": ["http://schema.org"],
-            "@graph": [
-                {"@id": "uuid:user:1", "name": "Adam", "lastname": "Smith"},
-                {"@id": "uuid:belgrade", "title": "Belgrade", "postCode": "11000"},
-            ],
-        },
-    },
-    2,
-)
+formatted_assertions = dkg.assertion.format_graph(content)
+print("======================== ASSET FORMATTED")
+print(formatted_assertions)
+
+divider()
+
+merkle_root = dkg.assertion.get_merkle_root(content)
+print("======================== PUBLIC ASSERTION MERKLE ROOT CALCULATED")
+print(merkle_root)
+
+divider()
+
+public_assertion_size = dkg.assertion.get_size(content)
+print("======================== PUBLIC ASSERTION SIZE CALCULATED")
+print(public_assertion_size)
+
+divider()
+
+public_assertion_triples_number = dkg.assertion.get_triples_number(content)
+print("======================== PUBLIC ASSERTION TRIPLES NUMBER CALCULATED")
+print(public_assertion_triples_number)
+
+divider()
+
+public_assertion_chunks_number = dkg.assertion.get_chunks_number(content)
+print("======================== PUBLIC ASSERTION CHUNKS NUMBER CALCULATED")
+print(public_assertion_chunks_number)
+
+divider()
+
+bid_suggestion = dkg.network.get_bid_suggestion(merkle_root, public_assertion_size, 2)
+print("======================== BID SUGGESTION CALCULATED")
+print(bid_suggestion)
+
+divider()
+
+current_allowance = dkg.asset.get_current_allowance()
+print("======================== GET CURRENT ALLOWANCE")
+print(current_allowance)
+
+divider()
+
+allowance_increase = dkg.asset.increase_allowance(bid_suggestion)
+print("======================== INCREASE ALLOWANCE")
+print(allowance_increase)
+
+divider()
+
+create_asset_result = dkg.asset.create(content, 2)
 print("======================== ASSET CREATED")
 print(create_asset_result)
 divider()
@@ -141,8 +189,7 @@ print(get_second_state_by_hash)
 divider()
 
 query_result = dkg.graph.query(
-    "construct { ?s ?p ?o } where { ?s ?p ?o . <uuid:1> ?p ?o }", "privateCurrent"
+    "construct { ?s ?p ?o } where { ?s ?p ?o . <uuid:user:1> ?p ?o }", "privateCurrent"
 )
 print("======================== QUERY LOCAL CURRENT RESULT")
 print(query_result)
-divider()

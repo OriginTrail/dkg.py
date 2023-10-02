@@ -15,19 +15,41 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from dkg.dataclasses import NodeResponseDict
+from dkg.constants import BLOCKCHAINS
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.module import Module
+from dkg.types import DataHexStr
+from dkg.utils.blockchain_request import BlockchainRequest
 from dkg.utils.node_request import NodeRequest
 
 
-class Node(Module):
+class Network(Module):
+    DEFAULT_HASH_FUNCTION_ID = 1
+
     def __init__(self, manager: DefaultRequestManager):
         self.manager = manager
 
-    _info = Method(NodeRequest.info)
+    _chain_id = Method(BlockchainRequest.chain_id)
+    _get_asset_storage_address = Method(BlockchainRequest.get_asset_storage_address)
 
-    @property
-    def info(self) -> NodeResponseDict:
-        return self._info()
+    _get_bid_suggestion = Method(NodeRequest.bid_suggestion)
+
+    def get_bid_suggestion(
+        self, merkle_root: DataHexStr, size_in_bytes: int, epochs_number: int,
+    ) -> int:
+        chain_name = BLOCKCHAINS[self._chain_id()]["name"]
+        content_asset_storage_address = self._get_asset_storage_address(
+            "ContentAssetStorage"
+        )
+
+        return int(
+            self._get_bid_suggestion(
+                chain_name,
+                epochs_number,
+                size_in_bytes,
+                content_asset_storage_address,
+                merkle_root,
+                self.DEFAULT_HASH_FUNCTION_ID,
+            )["bidSuggestion"]
+        )

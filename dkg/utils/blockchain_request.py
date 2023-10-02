@@ -60,6 +60,11 @@ class BlockchainRequest:
         args={"assetStorageName": str},
     )
 
+    allowance = ContractCall(
+        contract="Token",
+        function="allowance",
+        args={"owner": Address, "spender": Address}
+    )
     increase_allowance = ContractTransaction(
         contract="Token",
         function="increaseAllowance",

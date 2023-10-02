@@ -17,8 +17,10 @@
 
 from typing import Literal
 
+from dkg.constants import PRIVATE_ASSERTION_PREDICATE
 from dkg.exceptions import DatasetInputFormatNotSupported, InvalidDataset
-from dkg.types import JSONLD, NQuads
+from dkg.types import JSONLD, HexStr, NQuads
+from dkg.utils.merkle import MerkleTree, hash_assertion_with_indexes
 from pyld import jsonld
 
 
@@ -49,3 +51,33 @@ def normalize_dataset(
         raise InvalidDataset("Invalid dataset, no quads were extracted.")
 
     return assertion
+
+
+def format_content(
+    content: dict[Literal["public", "private"], JSONLD],
+    type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
+) -> dict[str, dict[str, HexStr | NQuads | int]]:
+    public_graph = {"@graph": []}
+
+    if content.get("public", None):
+        public_graph["@graph"].append(content["public"])
+
+    if content.get("private", None):
+        private_assertion = normalize_dataset(content["private"], type)
+        private_assertion_id = MerkleTree(
+            hash_assertion_with_indexes(private_assertion),
+            sort_pairs=True,
+        ).root
+
+        public_graph["@graph"].append(
+            {PRIVATE_ASSERTION_PREDICATE: private_assertion_id}
+        )
+
+    public_assertion = normalize_dataset(public_graph, type)
+
+    return {
+        "public": public_assertion,
+        "private": private_assertion
+        if content.get("private", None)
+        else {},
+    }
