@@ -186,7 +186,7 @@ ___
 
 ### Prerequisites
 
-* python `>=3.11`
+* python `>=3.10`
 * poetry `>=1.5.1`
 
 
@@ -256,6 +256,11 @@ This roadmap outlines the goals for the first major release of the `dkg.py`. Eac
 
 | Feature | Status | Tests coverage |
 |:-:|:-:|:-:|
+| Get Allowance | 🟩 Completed | ❌ |
+| Set Allowance | 🟩 Completed | ❌ |
+| Increase Allowance | 🟩 Completed | ❌ |
+| Decrease Allowance | 🟩 Completed | ❌ |
+| Get Bid Suggestion | 🟩 Completed | ❌ |
 | Create | 🟩 Completed | ❌ |
 | Transfer | 🟩 Completed | ❌ |
 | Update | 🟩 Completed | ❌ |
