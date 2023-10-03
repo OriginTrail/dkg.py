@@ -32,7 +32,7 @@ class Assertion(Module):
     def format_graph(self, content: dict[Literal["public", "private"], JSONLD]):
         return format_content(content)
 
-    def get_merkle_root(
+    def get_public_assertion_id(
         self, content: dict[Literal["public", "private"], JSONLD]
     ) -> HexStr:
         assertions = format_content(content)

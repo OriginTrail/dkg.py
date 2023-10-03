@@ -36,7 +36,7 @@ class Network(Module):
     _get_bid_suggestion = Method(NodeRequest.bid_suggestion)
 
     def get_bid_suggestion(
-        self, merkle_root: DataHexStr, size_in_bytes: int, epochs_number: int,
+        self, public_assertion_id: DataHexStr, size_in_bytes: int, epochs_number: int,
     ) -> int:
         chain_name = BLOCKCHAINS[self._chain_id()]["name"]
         content_asset_storage_address = self._get_asset_storage_address(
@@ -49,7 +49,7 @@ class Network(Module):
                 epochs_number,
                 size_in_bytes,
                 content_asset_storage_address,
-                merkle_root,
+                public_assertion_id,
                 self.DEFAULT_HASH_FUNCTION_ID,
             )["bidSuggestion"]
         )

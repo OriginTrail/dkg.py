@@ -70,9 +70,9 @@ print(formatted_assertions)
 
 divider()
 
-merkle_root = dkg.assertion.get_merkle_root(content)
-print("======================== PUBLIC ASSERTION MERKLE ROOT CALCULATED")
-print(merkle_root)
+public_assertion_id = dkg.assertion.get_public_assertion_id(content)
+print("======================== PUBLIC ASSERTION ID (MERKLE ROOT) CALCULATED")
+print(public_assertion_id)
 
 divider()
 
@@ -94,7 +94,11 @@ print(public_assertion_chunks_number)
 
 divider()
 
-bid_suggestion = dkg.network.get_bid_suggestion(merkle_root, public_assertion_size, 2)
+bid_suggestion = dkg.network.get_bid_suggestion(
+    public_assertion_id,
+    public_assertion_size,
+    2,
+)
 print("======================== BID SUGGESTION CALCULATED")
 print(bid_suggestion)
 
@@ -109,6 +113,18 @@ divider()
 allowance_increase = dkg.asset.increase_allowance(bid_suggestion)
 print("======================== INCREASE ALLOWANCE")
 print(allowance_increase)
+
+divider()
+
+allowance_decrease = dkg.asset.decrease_allowance(bid_suggestion // 3)
+print("======================== DECREASE ALLOWANCE")
+print(allowance_decrease)
+
+divider()
+
+allowance_set = dkg.asset.set_allowance(bid_suggestion)
+print("======================== SET ALLOWANCE")
+print(allowance_set)
 
 divider()
 

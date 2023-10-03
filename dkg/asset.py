@@ -69,6 +69,24 @@ class ContentAsset(Module):
         )
 
     _increase_allowance = Method(BlockchainRequest.increase_allowance)
+    _decrease_allowance = Method(BlockchainRequest.decrease_allowance)
+
+    def set_allowance(
+        self, token_amount: Wei, spender: Address | None = None
+    ) -> Wei:
+        if spender is None:
+            spender = self._get_contract_address("ServiceAgreementV1")
+
+        current_allowance = self.get_current_allowance(spender)
+
+        allowance_difference = token_amount - current_allowance
+
+        if allowance_difference > 0:
+            self._increase_allowance(spender, allowance_difference)
+        elif allowance_difference < 0:
+            self._decrease_allowance(spender, -allowance_difference)
+
+        return allowance_difference
 
     def increase_allowance(
         self, token_amount: Wei, spender: Address | None = None
@@ -76,15 +94,9 @@ class ContentAsset(Module):
         if spender is None:
             spender = self._get_contract_address("ServiceAgreementV1")
 
-        current_allowance = self.get_current_allowance(spender)
-        missing_allowance = 0
-        if current_allowance < token_amount:
-            missing_allowance = token_amount - current_allowance
-            self._increase_allowance(spender, token_amount)
+        self._increase_allowance(spender, token_amount)
 
-        return missing_allowance
-
-    _decrease_allowance = Method(BlockchainRequest.decrease_allowance)
+        return token_amount
 
     def decrease_allowance(
         self, token_amount: Wei, spender: Address | None = None
@@ -141,8 +153,9 @@ class ContentAsset(Module):
                 )["bidSuggestion"]
             )
 
-        allowance_increase = self.increase_allowance(token_amount)
-        is_allowance_increased = allowance_increase > 0
+        current_allowance = self.get_current_allowance()
+        if (is_allowance_increased := current_allowance < token_amount):
+            self.increase_allowance(token_amount)
 
         try:
             receipt = self._create(
@@ -297,10 +310,9 @@ class ContentAsset(Module):
             token_amount -= agreement_data.tokensInfo[0]
             token_amount = token_amount if token_amount > 0 else 0
 
-        is_allowance_increased = False
-        if token_amount > 0:
-            allowance_increase = self.increase_allowance(token_amount)
-            is_allowance_increased = allowance_increase > 0
+        current_allowance = self.get_current_allowance()
+        if (is_allowance_increased := current_allowance < token_amount):
+            self.increase_allowance(token_amount)
 
         try:
             self._update_asset_state(
