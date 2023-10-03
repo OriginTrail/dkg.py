@@ -24,7 +24,11 @@ from web3 import Web3
 from web3.constants import HASH_ZERO
 from web3.exceptions import ContractLogicError
 
-from dkg.constants import BLOCKCHAINS, PRIVATE_ASSERTION_PREDICATE
+from dkg.constants import (BLOCKCHAINS, DEFAULT_HASH_FUNCTION_ID,
+                           DEFAULT_SCORE_FUNCTION_ID,
+                           PRIVATE_ASSERTION_PREDICATE,
+                           PRIVATE_CURRENT_REPOSITORY,
+                           PRIVATE_HISTORICAL_REPOSITORY)
 from dkg.dataclasses import (KnowledgeAssetContentVisibility,
                              KnowledgeAssetEnumStates, NodeResponseDict)
 from dkg.exceptions import (DatasetOutputFormatNotSupported,
@@ -47,11 +51,6 @@ from dkg.utils.ual import format_ual, parse_ual
 
 
 class ContentAsset(Module):
-    DEFAULT_HASH_FUNCTION_ID = 1
-    DEFAULT_SCORE_FUNCTION_ID = 1
-    PRIVATE_HISTORICAL_REPOSITORY = "privateHistory"
-    PRIVATE_CURRENT_REPOSITORY = "privateCurrent"
-
     def __init__(self, manager: DefaultRequestManager):
         self.manager = manager
 
@@ -149,7 +148,7 @@ class ContentAsset(Module):
                     public_assertion_metadata["size"],
                     content_asset_storage_address,
                     public_assertion_id,
-                    self.DEFAULT_HASH_FUNCTION_ID,
+                    DEFAULT_HASH_FUNCTION_ID,
                 )["bidSuggestion"]
             )
 
@@ -166,7 +165,7 @@ class ContentAsset(Module):
                     "chunksNumber": public_assertion_metadata["chunks_number"],
                     "tokenAmount": token_amount,
                     "epochsNumber": epochs_number,
-                    "scoreFunctionId": self.DEFAULT_SCORE_FUNCTION_ID,
+                    "scoreFunctionId": DEFAULT_SCORE_FUNCTION_ID,
                     "immutable_": immutable,
                 }
             )
@@ -217,7 +216,7 @@ class ContentAsset(Module):
             chain_name,
             content_asset_storage_address,
             token_id,
-            self.DEFAULT_HASH_FUNCTION_ID,
+            DEFAULT_HASH_FUNCTION_ID,
         )["operationId"]
         operation_result = self.get_operation_result(operation_id, "publish")
 
@@ -303,7 +302,7 @@ class ContentAsset(Module):
                     public_assertion_metadata["size"],
                     content_asset_storage_address,
                     public_assertion_id,
-                    self.DEFAULT_HASH_FUNCTION_ID,
+                    DEFAULT_HASH_FUNCTION_ID,
                 )["bidSuggestion"]
             )
 
@@ -363,7 +362,7 @@ class ContentAsset(Module):
             chain_name,
             content_asset_storage_address,
             token_id,
-            self.DEFAULT_HASH_FUNCTION_ID,
+            DEFAULT_HASH_FUNCTION_ID,
         )["operationId"]
         operation_result = self.get_operation_result(operation_id, "update")
 
@@ -568,9 +567,9 @@ class ContentAsset(Module):
                     query_private_operation_id = self._query(
                         query,
                         "CONSTRUCT",
-                        self.PRIVATE_CURRENT_REPOSITORY
+                        PRIVATE_CURRENT_REPOSITORY
                         if is_state_finalized
-                        else self.PRIVATE_HISTORICAL_REPOSITORY,
+                        else PRIVATE_HISTORICAL_REPOSITORY,
                     )["operationId"]
 
                     query_private_operation_result = self.get_operation_result(
@@ -659,7 +658,7 @@ class ContentAsset(Module):
                     latest_finalized_state_size,
                     content_asset_storage_address,
                     latest_finalized_state,
-                    self.DEFAULT_HASH_FUNCTION_ID,
+                    DEFAULT_HASH_FUNCTION_ID,
                 )["bidSuggestion"]
             )
 
@@ -713,7 +712,7 @@ class ContentAsset(Module):
                     latest_finalized_state_size,
                     content_asset_storage_address,
                     latest_finalized_state,
-                    self.DEFAULT_HASH_FUNCTION_ID,
+                    DEFAULT_HASH_FUNCTION_ID,
                 )["bidSuggestion"]
             ) - sum(agreement_data.tokensInfo)
 
@@ -771,7 +770,7 @@ class ContentAsset(Module):
                     unfinalized_state_size,
                     content_asset_storage_address,
                     unfinalized_state,
-                    self.DEFAULT_HASH_FUNCTION_ID,
+                    DEFAULT_HASH_FUNCTION_ID,
                 )["bidSuggestion"]
             ) - sum(agreement_data.tokensInfo)
 

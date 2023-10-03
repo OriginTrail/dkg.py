@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from dkg.constants import BLOCKCHAINS
+from dkg.constants import BLOCKCHAINS, DEFAULT_HASH_FUNCTION_ID
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.module import Module
@@ -25,8 +25,6 @@ from dkg.utils.node_request import NodeRequest
 
 
 class Network(Module):
-    DEFAULT_HASH_FUNCTION_ID = 1
-
     def __init__(self, manager: DefaultRequestManager):
         self.manager = manager
 
@@ -50,6 +48,6 @@ class Network(Module):
                 size_in_bytes,
                 content_asset_storage_address,
                 public_assertion_id,
-                self.DEFAULT_HASH_FUNCTION_ID,
+                DEFAULT_HASH_FUNCTION_ID,
             )["bidSuggestion"]
         )
