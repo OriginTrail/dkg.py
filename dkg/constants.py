@@ -19,4 +19,12 @@ BLOCKCHAINS = {
             "name": "hardhat",
             "hubAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3"
         },
+        10200: {
+            "name": "chiado",
+            "hubAdress": ""
+        },
+        100: {
+            "name": "gnosis",
+            "hubAddress": ""
+        }
     }
