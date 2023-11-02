@@ -25,8 +25,9 @@ from requests import Response
 
 
 class NodeHTTPProvider:
-    def __init__(self, endpoint_uri: URI | str):
+    def __init__(self, endpoint_uri: URI | str, auth_token: str | None = None):
         self.endpoint_uri = URI(endpoint_uri)
+        self.auth_token = auth_token
 
     def make_request(
         self,
@@ -37,26 +38,48 @@ class NodeHTTPProvider:
     ) -> Response:
         request_func = getattr(self, method.name.lower())
 
+        headers = self._prepare_headers()
+
         match method:
             case HTTPRequestMethod.GET:
-                return request_func(path, params)
+                return request_func(path, params, headers)
             case HTTPRequestMethod.POST:
-                return request_func(path, data)
+                return request_func(path, data, headers)
             case HTTPRequestMethod():
                 raise HTTPRequestMethodNotSupported(
                     f"{method.name} method isn't supported"
                 )
 
-    def get(self, path: str, params: dict[str, Any] = {}) -> NodeResponseDict:
+    def get(
+        self, path: str, params: dict[str, Any] = {}, headers: dict[str, str] = {}
+    ) -> NodeResponseDict:
         try:
-            response = requests.get(f"{self.endpoint_uri}/{path}", params=params)
+            response = requests.get(
+                f"{self.endpoint_uri}/{path}",
+                params=params,
+                headers=headers,
+            )
             return NodeResponseDict(response.json())
         except requests.exceptions.HTTPError as err:
             raise NodeRequestError(err)
 
-    def post(self, path: str, data: dict[str, Any] = {}) -> NodeResponseDict:
+    def post(
+        self, path: str, data: dict[str, Any] = {}, headers: dict[str, str] = {}
+    ) -> NodeResponseDict:
         try:
-            response = requests.post(f"{self.endpoint_uri}/{path}", json=data)
+            response = requests.post(
+                f"{self.endpoint_uri}/{path}",
+                json=data,
+                headers=headers,
+            )
             return NodeResponseDict(response.json())
         except requests.exceptions.HTTPError as err:
             raise NodeRequestError(err)
+
+    def _prepare_headers(self) -> dict[str, str]:
+        return self._prepare_auth_header()
+
+    def _prepare_auth_header(self) -> dict[str, str]:
+        if self.auth_token:
+            return {"Authorization": f"Bearer {self.auth_token}"}
+        return {}
