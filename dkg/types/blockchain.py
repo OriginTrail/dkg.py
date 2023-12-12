@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from typing import NamedTuple, TypedDict
+from typing import Literal, NamedTuple, TypedDict
 
 
 class ABIParameter(TypedDict, total=False):
@@ -48,6 +48,9 @@ class ABIError(TypedDict):
 
 ABIElement = ABIFunction | ABIEvent | ABIError
 ABI = list[ABIElement]
+
+
+Environment = Literal["development", "devnet", "testnet", "mainnet"]
 
 
 class AgreementData(NamedTuple):

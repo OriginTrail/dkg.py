@@ -28,6 +28,22 @@ class DKGException(Exception):
     """
 
 
+class EnvironmentNotSupported(DKGException):
+    """
+    Raised when blockchain provider is initialized for unsupported environment.
+    """
+
+    pass
+
+
+class RPCURINotDefined(DKGException):
+    """
+    Raised when blockchain provider is initialized without RPC URI defined.
+    """
+
+    pass
+
+
 class NetworkNotSupported(DKGException):
     """
     Raised when blockchain provider is initialized for unsupported network.

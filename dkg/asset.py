@@ -21,10 +21,10 @@ from typing import Literal, Type
 
 from pyld import jsonld
 from web3 import Web3
-from web3.constants import HASH_ZERO
+from web3.constants import ADDRESS_ZERO, HASH_ZERO
 from web3.exceptions import ContractLogicError
 
-from dkg.constants import (BLOCKCHAINS, DEFAULT_HASH_FUNCTION_ID,
+from dkg.constants import (DEFAULT_HASH_FUNCTION_ID,
                            DEFAULT_SCORE_FUNCTION_ID,
                            PRIVATE_ASSERTION_PREDICATE,
                            PRIVATE_CURRENT_REPOSITORY,
@@ -53,6 +53,74 @@ from dkg.utils.ual import format_ual, parse_ual
 class ContentAsset(Module):
     def __init__(self, manager: DefaultRequestManager):
         self.manager = manager
+
+    _owner = Method(BlockchainRequest.owner_of)
+
+    def is_valid_ual(self, ual: UAL) -> bool:
+        if not ual or not isinstance(ual, str):
+            raise ValueError("UAL must be a non-empty string.")
+
+        parts = ual.split("/")
+        if len(parts) != 3:
+            raise ValueError("UAL format is incorrect.")
+
+        prefixes = parts[0].split(":")
+        prefixes_number = len(prefixes)
+        if prefixes_number != 3 and prefixes_number != 4:
+            raise ValueError("Prefix format in UAL is incorrect.")
+
+        if prefixes[0] != "did":
+            raise ValueError(
+                f"Invalid DID prefix. Expected: 'did'. Received: '{prefixes[0]}'."
+            )
+
+        if prefixes[1] != "dkg":
+            raise ValueError(
+                f"Invalid DKG prefix. Expected: 'dkg'. Received: '{prefixes[1]}'."
+            )
+
+        if (
+            prefixes[2] != (
+                blockchain_name := (self.manager
+                                    .blockchain_provider
+                                    .blockchain_id
+                                    .split(":")[0])
+            )
+        ):
+            raise ValueError(
+                "Invalid blockchain name in the UAL prefix. "
+                f"Expected: '{blockchain_name}'. Received: '${prefixes[2]}'."
+            )
+
+        if prefixes_number == 4:
+            chain_id = self.manager.blockchain_provider.blockchain_id.split(":")[1]
+
+            if int(prefixes[3]) != int(chain_id):
+                raise ValueError(
+                    "Chain ID in UAL does not match the blockchain. "
+                    f"Expected: '${chain_id}'. Received: '${prefixes[3]}'."
+                )
+
+        contract_address: Address = self.manager.blockchain_provider.contracts[
+            "ContentAssetStorage"
+        ]
+
+        if parts[1].lower() != contract_address.lower():
+            raise ValueError(
+                "Contract address in UAL does not match. "
+                f"Expected: '${contract_address.lower()}'. "
+                f"Received: '${parts[1].lower()}'."
+            )
+
+        try:
+            owner = self._owner(parts[2])
+
+            if not owner or owner == ADDRESS_ZERO:
+                raise ValueError("Token does not exist or has no owner.")
+
+            return True
+        except Exception as err:
+            raise ValueError(f"Error fetching asset owner: {err}")
 
     _get_contract_address = Method(BlockchainRequest.get_contract_address)
     _get_current_allowance = Method(BlockchainRequest.allowance)
@@ -127,6 +195,7 @@ class ContentAsset(Module):
         immutable: bool = False,
         content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
     ) -> dict[str, HexStr | dict[str, str]]:
+        blockchain_id = self.manager.blockchain_provider.blockchain_id
         assertions = format_content(content, content_type)
 
         public_assertion_id = MerkleTree(
@@ -135,7 +204,6 @@ class ContentAsset(Module):
         ).root
         public_assertion_metadata = generate_assertion_metadata(assertions["public"])
 
-        chain_name = BLOCKCHAINS[self._chain_id()]["name"]
         content_asset_storage_address = self._get_asset_storage_address(
             "ContentAssetStorage"
         )
@@ -143,7 +211,7 @@ class ContentAsset(Module):
         if token_amount is None:
             token_amount = int(
                 self._get_bid_suggestion(
-                    chain_name,
+                    blockchain_id,
                     epochs_number,
                     public_assertion_metadata["size"],
                     content_asset_storage_address,
@@ -183,7 +251,7 @@ class ContentAsset(Module):
 
         assertions_list = [
             {
-                "blockchain": chain_name,
+                "blockchain": blockchain_id,
                 "contract": content_asset_storage_address,
                 "tokenId": token_id,
                 "assertionId": public_assertion_id,
@@ -195,7 +263,7 @@ class ContentAsset(Module):
         if content.get("private", None):
             assertions_list.append(
                 {
-                    "blockchain": chain_name,
+                    "blockchain": blockchain_id,
                     "contract": content_asset_storage_address,
                     "tokenId": token_id,
                     "assertionId": MerkleTree(
@@ -213,7 +281,7 @@ class ContentAsset(Module):
         operation_id = self._publish(
             public_assertion_id,
             assertions["public"],
-            chain_name,
+            blockchain_id,
             content_asset_storage_address,
             token_id,
             DEFAULT_HASH_FUNCTION_ID,
@@ -221,7 +289,7 @@ class ContentAsset(Module):
         operation_result = self.get_operation_result(operation_id, "publish")
 
         return {
-            "UAL": format_ual(chain_name, content_asset_storage_address, token_id),
+            "UAL": format_ual(blockchain_id, content_asset_storage_address, token_id),
             "publicAssertionId": public_assertion_id,
             "operation": {
                 "operationId": operation_id,
@@ -265,7 +333,8 @@ class ContentAsset(Module):
         content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
     ) -> dict[str, HexStr | dict[str, str]]:
         parsed_ual = parse_ual(ual)
-        content_asset_storage_address, token_id = (
+        blockchain_id, content_asset_storage_address, token_id = (
+            parsed_ual["blockchain"],
             parsed_ual["contract_address"],
             parsed_ual["token_id"],
         )
@@ -277,8 +346,6 @@ class ContentAsset(Module):
             sort_pairs=True,
         ).root
         public_assertion_metadata = generate_assertion_metadata(assertions["public"])
-
-        chain_name = BLOCKCHAINS[self._chain_id()]["name"]
 
         if token_amount is None:
             agreement_id = self.get_agreement_id(
@@ -297,7 +364,7 @@ class ContentAsset(Module):
 
             token_amount = int(
                 self._get_bid_suggestion(
-                    chain_name,
+                    blockchain_id,
                     epochs_left,
                     public_assertion_metadata["size"],
                     content_asset_storage_address,
@@ -329,7 +396,7 @@ class ContentAsset(Module):
 
         assertions_list = [
             {
-                "blockchain": chain_name,
+                "blockchain": blockchain_id,
                 "contract": content_asset_storage_address,
                 "tokenId": token_id,
                 "assertionId": public_assertion_id,
@@ -341,7 +408,7 @@ class ContentAsset(Module):
         if content.get("private", None):
             assertions_list.append(
                 {
-                    "blockchain": chain_name,
+                    "blockchain": blockchain_id,
                     "contract": content_asset_storage_address,
                     "tokenId": token_id,
                     "assertionId": MerkleTree(
@@ -359,7 +426,7 @@ class ContentAsset(Module):
         operation_id = self._update(
             public_assertion_id,
             assertions["public"],
-            chain_name,
+            blockchain_id,
             content_asset_storage_address,
             token_id,
             DEFAULT_HASH_FUNCTION_ID,
@@ -367,7 +434,7 @@ class ContentAsset(Module):
         operation_result = self.get_operation_result(operation_id, "update")
 
         return {
-            "UAL": format_ual(chain_name, content_asset_storage_address, token_id),
+            "UAL": format_ual(blockchain_id, content_asset_storage_address, token_id),
             "publicAssertionId": public_assertion_id,
             "operation": {
                 "operationId": operation_id,
@@ -638,14 +705,13 @@ class ContentAsset(Module):
         token_amount: Wei | None = None,
     ) -> dict[str, UAL | dict[str, str]]:
         parsed_ual = parse_ual(ual)
-        content_asset_storage_address, token_id = (
+        blockchain_id, content_asset_storage_address, token_id = (
+            parsed_ual["blockchain"],
             parsed_ual["contract_address"],
             parsed_ual["token_id"],
         )
 
         if token_amount is None:
-            chain_name = BLOCKCHAINS[self._chain_id()]["name"]
-
             latest_finalized_state = self._get_latest_assertion_id(token_id)
             latest_finalized_state_size = self._get_assertion_size(
                 latest_finalized_state
@@ -653,7 +719,7 @@ class ContentAsset(Module):
 
             token_amount = int(
                 self._get_bid_suggestion(
-                    chain_name,
+                    blockchain_id,
                     additional_epochs,
                     latest_finalized_state_size,
                     content_asset_storage_address,
@@ -678,14 +744,13 @@ class ContentAsset(Module):
         token_amount: Wei | None = None,
     ) -> dict[str, UAL | dict[str, str]]:
         parsed_ual = parse_ual(ual)
-        content_asset_storage_address, token_id = (
+        blockchain_id, content_asset_storage_address, token_id = (
+            parsed_ual["blockchain"],
             parsed_ual["contract_address"],
             parsed_ual["token_id"],
         )
 
         if token_amount is None:
-            chain_name = BLOCKCHAINS[self._chain_id()]["name"]
-
             agreement_id = self.get_agreement_id(
                 content_asset_storage_address, token_id
             )
@@ -707,7 +772,7 @@ class ContentAsset(Module):
 
             token_amount = int(
                 self._get_bid_suggestion(
-                    chain_name,
+                    blockchain_id,
                     epochs_left,
                     latest_finalized_state_size,
                     content_asset_storage_address,
@@ -738,14 +803,13 @@ class ContentAsset(Module):
         token_amount: Wei | None = None,
     ) -> dict[str, UAL | dict[str, str]]:
         parsed_ual = parse_ual(ual)
-        content_asset_storage_address, token_id = (
+        blockchain_id, content_asset_storage_address, token_id = (
+            parsed_ual["blockchain"],
             parsed_ual["contract_address"],
             parsed_ual["token_id"],
         )
 
         if token_amount is None:
-            chain_name = BLOCKCHAINS[self._chain_id()]["name"]
-
             agreement_id = self.get_agreement_id(
                 content_asset_storage_address, token_id
             )
@@ -765,7 +829,7 @@ class ContentAsset(Module):
 
             token_amount = int(
                 self._get_bid_suggestion(
-                    chain_name,
+                    blockchain_id,
                     epochs_left,
                     unfinalized_state_size,
                     content_asset_storage_address,
@@ -787,8 +851,6 @@ class ContentAsset(Module):
             "UAL": ual,
             "operation": {"status": "COMPLETED"},
         }
-
-    _owner = Method(BlockchainRequest.owner_of)
 
     def get_owner(self, ual: UAL) -> Address:
         token_id = parse_ual(ual)["token_id"]
