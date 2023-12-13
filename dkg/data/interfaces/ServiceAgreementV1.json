@@ -11,28 +11,6 @@
     "type": "constructor"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "caller",
-        "type": "address"
-      }
-    ],
-    "name": "OnlyHubContractsFunction",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "caller",
-        "type": "address"
-      }
-    ],
-    "name": "OnlyHubOwnerFunction",
-    "type": "error"
-  },
-  {
     "inputs": [],
     "name": "ScoreError",
     "type": "error"
@@ -387,12 +365,12 @@
     "outputs": [
       {
         "internalType": "bytes32",
-        "name": "",
+        "name": "assertionId",
         "type": "bytes32"
       },
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "challenge",
         "type": "uint256"
       }
     ],
@@ -649,6 +627,32 @@
         "internalType": "contract ServiceAgreementStorageProxy",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bool",
+        "name": "_status",
+        "type": "bool"
+      }
+    ],
+    "name": "setStatus",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "status",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",

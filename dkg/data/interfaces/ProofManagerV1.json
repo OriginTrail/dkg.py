@@ -70,17 +70,6 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "caller",
-        "type": "address"
-      }
-    ],
-    "name": "OnlyHubOwnerFunction",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "bytes32",
         "name": "agreementId",
         "type": "bytes32"
@@ -275,12 +264,12 @@
     "outputs": [
       {
         "internalType": "bytes32",
-        "name": "",
+        "name": "assertionId",
         "type": "bytes32"
       },
       {
         "internalType": "uint256",
-        "name": "",
+        "name": "challenge",
         "type": "uint256"
       }
     ],
@@ -497,6 +486,19 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bool",
+        "name": "_status",
+        "type": "bool"
+      }
+    ],
+    "name": "setStatus",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "stakingContract",
     "outputs": [
@@ -504,6 +506,19 @@
         "internalType": "contract Staking",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "status",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",
