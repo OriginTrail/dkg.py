@@ -16,6 +16,7 @@
 # under the License.
 
 import json
+import requests
 from collections import namedtuple
 from functools import wraps
 from pathlib import Path
@@ -32,13 +33,11 @@ from web3.contract.contract import ContractFunction
 from web3.logs import DISCARD
 from web3.middleware import construct_sign_and_send_raw_middleware
 from web3.types import ABI, ABIFunction, Environment, TxReceipt
-from dkg.constants import BLOCKCHAINS
+from dkg.constants import BLOCKCHAINS, DEFAULT_GAS_PRICE_GWEI
 
 
 class BlockchainProvider:
     CONTRACTS_METADATA_DIR = Path(__file__).parents[1] / "data/interfaces"
-
-    GAS_BUFFER = 1.2  # 20% gas buffer for estimateGas()
 
     def __init__(
         self,
@@ -85,10 +84,15 @@ class BlockchainProvider:
                     f"Network with blockchain ID {self.blockchain_id} isn't supported!"
                 )
 
+        self.gas_price_oracle = BLOCKCHAINS[self.environment][self.blockchain_id].get(
+            "gas_price_oracle",
+            None,
+        )
+
         self.abi = self._load_abi()
         self.output_named_tuples = self._generate_output_named_tuples()
 
-        hub_address: Address = BLOCKCHAINS[self.blockchain_id]["hubAddress"]
+        hub_address: Address = BLOCKCHAINS[self.blockchain_id]["hub"]
         self.contracts: dict[str, Contract] = {
             "Hub": self.w3.eth.contract(
                 address=hub_address,
@@ -157,15 +161,17 @@ class BlockchainProvider:
                 )
 
             nonce = self.w3.eth.get_transaction_count(self.w3.eth.default_account)
-            gas_price = gas_price if gas_price is not None else self.w3.eth.gas_price
+            gas_price = (
+                gas_price or
+                self._get_oracle_gas_price() or
+                self.w3.eth.gas_price
+            )
 
-            options = {"nonce": nonce, "gasPrice": gas_price}
-            gas_estimate = contract_function(**args).estimate_gas(options)
-
-            if gas_limit is None:
-                options["gas"] = int(gas_estimate * self.GAS_BUFFER)
-            else:
-                options["gas"] = gas_limit
+            options = {
+                "nonce": nonce,
+                "gasPrice": gas_price,
+                "gas": gas_limit or contract_function(**args).estimate_gas()
+            }
 
             tx_hash = contract_function(**args).transact(options)
             tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
@@ -187,6 +193,22 @@ class BlockchainProvider:
             construct_sign_and_send_raw_middleware(self.account)
         )
         self.w3.eth.default_account = self.account.address
+
+    def _get_oracle_gas_price(self) -> int | None:
+        if self.gas_price_oracle is None:
+            return None
+
+        response_json = requests.get(self.gas_price_oracle).json()
+
+        match self.blockchain_id:
+            case "gnosis:100":
+                gas_price = int(response_json["result"], 16)
+            case "gnosis:10200":
+                gas_price = self.w3.to_wei(response_json["average"], "gwei")
+            case _:
+                gas_price = self.w3.to_wei(DEFAULT_GAS_PRICE_GWEI, "gwei")
+
+        return gas_price
 
     def _init_contracts(self):
         for contract in self.abi.keys():

@@ -24,8 +24,7 @@ from web3 import Web3
 from web3.constants import ADDRESS_ZERO, HASH_ZERO
 from web3.exceptions import ContractLogicError
 
-from dkg.constants import (DEFAULT_HASH_FUNCTION_ID,
-                           DEFAULT_SCORE_FUNCTION_ID,
+from dkg.constants import (DEFAULT_HASH_FUNCTION_ID, DEFAULT_SCORE_FUNCTION_ID,
                            PRIVATE_ASSERTION_PREDICATE,
                            PRIVATE_CURRENT_REPOSITORY,
                            PRIVATE_HISTORICAL_REPOSITORY)
@@ -79,12 +78,9 @@ class ContentAsset(Module):
                 f"Invalid DKG prefix. Expected: 'dkg'. Received: '{prefixes[1]}'."
             )
 
-        if (
-            prefixes[2] != (
-                blockchain_name := (self.manager
-                                    .blockchain_provider
-                                    .blockchain_id
-                                    .split(":")[0])
+        if prefixes[2] != (
+            blockchain_name := (
+                self.manager.blockchain_provider.blockchain_id.split(":")[0]
             )
         ):
             raise ValueError(
@@ -138,9 +134,7 @@ class ContentAsset(Module):
     _increase_allowance = Method(BlockchainRequest.increase_allowance)
     _decrease_allowance = Method(BlockchainRequest.decrease_allowance)
 
-    def set_allowance(
-        self, token_amount: Wei, spender: Address | None = None
-    ) -> Wei:
+    def set_allowance(self, token_amount: Wei, spender: Address | None = None) -> Wei:
         if spender is None:
             spender = self._get_contract_address("ServiceAgreementV1")
 
@@ -221,7 +215,7 @@ class ContentAsset(Module):
             )
 
         current_allowance = self.get_current_allowance()
-        if (is_allowance_increased := current_allowance < token_amount):
+        if is_allowance_increased := current_allowance < token_amount:
             self.increase_allowance(token_amount)
 
         try:
@@ -377,7 +371,7 @@ class ContentAsset(Module):
             token_amount = token_amount if token_amount > 0 else 0
 
         current_allowance = self.get_current_allowance()
-        if (is_allowance_increased := current_allowance < token_amount):
+        if is_allowance_increased := current_allowance < token_amount:
             self.increase_allowance(token_amount)
 
         try:
