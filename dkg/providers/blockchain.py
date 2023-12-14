@@ -16,15 +16,15 @@
 # under the License.
 
 import json
-import requests
 from collections import namedtuple
 from functools import wraps
 from pathlib import Path
 from typing import Any, Type
 
-from dkg.exceptions import (
-    AccountMissing, EnvironmentNotSupported, NetworkNotSupported, RPCURINotDefined
-)
+import requests
+from dkg.constants import BLOCKCHAINS, DEFAULT_GAS_PRICE_GWEI
+from dkg.exceptions import (AccountMissing, EnvironmentNotSupported,
+                            NetworkNotSupported, RPCURINotDefined)
 from dkg.types import URI, Address, DataHexStr, Wei
 from eth_account.signers.local import LocalAccount
 from web3 import Web3
@@ -33,7 +33,6 @@ from web3.contract.contract import ContractFunction
 from web3.logs import DISCARD
 from web3.middleware import construct_sign_and_send_raw_middleware
 from web3.types import ABI, ABIFunction, Environment, TxReceipt
-from dkg.constants import BLOCKCHAINS, DEFAULT_GAS_PRICE_GWEI
 
 
 class BlockchainProvider:
@@ -48,9 +47,7 @@ class BlockchainProvider:
         verify: bool = True,
     ):
         if environment not in BLOCKCHAINS.keys():
-            raise EnvironmentNotSupported(
-                f"Environment {environment} isn't supported!"
-            )
+            raise EnvironmentNotSupported(f"Environment {environment} isn't supported!")
 
         self.environment = environment
         self.rpc_uri = rpc_uri
@@ -62,10 +59,9 @@ class BlockchainProvider:
 
         if self.rpc_uri is None and self.blockchain_id is not None:
             self.blockchain_id = blockchain_id
-            self.rpc_uri = (
-                self.rpc_uri or
-                BLOCKCHAINS[self.environment][self.blockchain_id].get("rpc", None)
-            )
+            self.rpc_uri = self.rpc_uri or BLOCKCHAINS[self.environment][
+                self.blockchain_id
+            ].get("rpc", None)
 
         if self.rpc_uri is None:
             raise RPCURINotDefined(
@@ -116,21 +112,20 @@ class BlockchainProvider:
     def handle_updated_contract(func):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
-            contract_name = (
-                kwargs.get('contract_name') or (args[0] if args else None)
-            )
+            contract_name = kwargs.get("contract_name") or (args[0] if args else None)
 
             try:
                 return func(self, *args, **kwargs)
             except Exception as err:
                 if (
-                    contract_name and
-                    any(msg in str(err) for msg in ["revert", "VM Exception"]) and
-                    not self._check_contract_status(contract_name)
+                    contract_name
+                    and any(msg in str(err) for msg in ["revert", "VM Exception"])
+                    and not self._check_contract_status(contract_name)
                 ):
                     self._update_contract_instance(contract_name)
                     return func(self, *args, **kwargs)
                 raise
+
         return wrapper
 
     @handle_updated_contract
@@ -161,16 +156,12 @@ class BlockchainProvider:
                 )
 
             nonce = self.w3.eth.get_transaction_count(self.w3.eth.default_account)
-            gas_price = (
-                gas_price or
-                self._get_oracle_gas_price() or
-                self.w3.eth.gas_price
-            )
+            gas_price = gas_price or self._get_network_gas_price()
 
             options = {
                 "nonce": nonce,
                 "gasPrice": gas_price,
-                "gas": gas_limit or contract_function(**args).estimate_gas()
+                "gas": gas_limit or contract_function(**args).estimate_gas(),
             }
 
             tx_hash = contract_function(**args).transact(options)
@@ -194,21 +185,37 @@ class BlockchainProvider:
         )
         self.w3.eth.default_account = self.account.address
 
-    def _get_oracle_gas_price(self) -> int | None:
-        if self.gas_price_oracle is None:
-            return None
+    def _get_network_gas_price(self) -> int | None:
+        blockchain_name, chain_id = self.blockchain_id.split(":")
 
-        response_json = requests.get(self.gas_price_oracle).json()
+        default_gas_price = self.w3.to_wei(DEFAULT_GAS_PRICE_GWEI, "gwei")
 
-        match self.blockchain_id:
-            case "gnosis:100":
-                gas_price = int(response_json["result"], 16)
-            case "gnosis:10200":
-                gas_price = self.w3.to_wei(response_json["average"], "gwei")
+        match blockchain_name:
+            case "otp":
+                return self.w3.eth.gas_price
+            case "gnosis":
+                if self.gas_price_oracle is None:
+                    return None
+
+                try:
+                    response_json: dict = requests.get(self.gas_price_oracle).json()
+                except Exception:
+                    return default_gas_price
+
+                gas_price = None
+                match chain_id:
+                    case "100":
+                        gas_price_hex = response_json.get("result")
+                        if gas_price_hex:
+                            gas_price = int(gas_price_hex, 16)
+                    case "10200":
+                        gas_price_avg = response_json.get("average")
+                        if gas_price_avg:
+                            gas_price = self.w3.to_wei(gas_price_avg, "gwei")
+
+                return gas_price if gas_price is not None else default_gas_price
             case _:
-                gas_price = self.w3.to_wei(DEFAULT_GAS_PRICE_GWEI, "gwei")
-
-        return gas_price
+                return default_gas_price
 
     def _init_contracts(self):
         for contract in self.abi.keys():
