@@ -241,7 +241,10 @@ class BlockchainProvider:
         )
 
     def _check_contract_status(self, contract: str) -> bool:
-        return self.call_function(contract, "status")
+        try:
+            return self.call_function(contract, "status")
+        except Exception:
+            return False
 
     def _generate_output_named_tuples(self) -> dict[str, dict[str, Type[tuple]]]:
         def generate_output_namedtuple(function_abi: ABIFunction) -> Type[tuple] | None:
