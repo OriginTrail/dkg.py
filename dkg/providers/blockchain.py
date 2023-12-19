@@ -16,6 +16,7 @@
 # under the License.
 
 import json
+import os
 from collections import namedtuple
 from functools import wraps
 from pathlib import Path
@@ -97,8 +98,11 @@ class BlockchainProvider:
         }
         self._init_contracts()
 
-        if private_key is not None:
-            self.set_account(private_key)
+        if (
+            private_key is not None or
+            (private_key_env := os.environ.get("PRIVATE_KEY", None)) is not None
+        ):
+            self.set_account(private_key or private_key_env)
 
     def make_json_rpc_request(self, endpoint: str, args: dict[str, Any] = {}) -> Any:
         web3_method = getattr(self.w3.eth, endpoint)
