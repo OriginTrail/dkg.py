@@ -57,5 +57,5 @@ class AgreementData(NamedTuple):
     startTime: int
     epochsNumber: int
     epochLength: int
-    tokensInfo: list[int]
+    tokens: list[int]
     scoreFunctionIdAndProofWindowOffsetPerc: list[int]

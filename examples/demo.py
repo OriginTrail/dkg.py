@@ -24,8 +24,9 @@ from dkg.providers import BlockchainProvider, NodeHTTPProvider
 
 node_provider = NodeHTTPProvider("http://localhost:8900")
 blockchain_provider = BlockchainProvider(
-    "http://localhost:8545",
-    "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+    "development",
+    "hardhat1:31337",
+    private_key="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
 )
 
 dkg = DKG(node_provider, blockchain_provider)
@@ -133,6 +134,11 @@ print("======================== ASSET CREATED")
 print(create_asset_result)
 divider()
 
+validate_ual = dkg.asset.is_valid_ual(create_asset_result["UAL"])
+print("======================== VALIDATE UAL")
+print(f"Is {create_asset_result['UAL']} a valid UAL: {validate_ual}")
+divider()
+
 owner_result = dkg.asset.get_owner(create_asset_result["UAL"])
 print("======================== GET ASSET OWNER")
 print(owner_result)
@@ -183,7 +189,7 @@ print(get_first_state_by_index)
 divider()
 
 # TODO: Remove when wait_for_finalization is implemented
-time.sleep(30)
+time.sleep(60)
 
 get_second_state_by_index = dkg.asset.get(create_asset_result["UAL"], 1, "all")
 print("======================== ASSET SECOND STATE (GET BY STATE INDEX) RESOLVED")

@@ -25,14 +25,14 @@ import requests
 from dkg.constants import BLOCKCHAINS, DEFAULT_GAS_PRICE_GWEI
 from dkg.exceptions import (AccountMissing, EnvironmentNotSupported,
                             NetworkNotSupported, RPCURINotDefined)
-from dkg.types import URI, Address, DataHexStr, Wei
+from dkg.types import URI, Address, DataHexStr, Environment, Wei
 from eth_account.signers.local import LocalAccount
 from web3 import Web3
 from web3.contract import Contract
 from web3.contract.contract import ContractFunction
 from web3.logs import DISCARD
 from web3.middleware import construct_sign_and_send_raw_middleware
-from web3.types import ABI, ABIFunction, Environment, TxReceipt
+from web3.types import ABI, ABIFunction, TxReceipt
 
 
 class BlockchainProvider:
@@ -88,7 +88,7 @@ class BlockchainProvider:
         self.abi = self._load_abi()
         self.output_named_tuples = self._generate_output_named_tuples()
 
-        hub_address: Address = BLOCKCHAINS[self.blockchain_id]["hub"]
+        hub_address: Address = BLOCKCHAINS[self.environment][self.blockchain_id]["hub"]
         self.contracts: dict[str, Contract] = {
             "Hub": self.w3.eth.contract(
                 address=hub_address,

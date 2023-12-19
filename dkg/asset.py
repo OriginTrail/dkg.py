@@ -97,9 +97,9 @@ class ContentAsset(Module):
                     f"Expected: '${chain_id}'. Received: '${prefixes[3]}'."
                 )
 
-        contract_address: Address = self.manager.blockchain_provider.contracts[
+        contract_address = self.manager.blockchain_provider.contracts[
             "ContentAssetStorage"
-        ]
+        ].address
 
         if parts[1].lower() != contract_address.lower():
             raise ValueError(
@@ -109,7 +109,7 @@ class ContentAsset(Module):
             )
 
         try:
-            owner = self._owner(parts[2])
+            owner = self._owner(int(parts[2]))
 
             if not owner or owner == ADDRESS_ZERO:
                 raise ValueError("Token does not exist or has no owner.")
@@ -367,7 +367,7 @@ class ContentAsset(Module):
                 )["bidSuggestion"]
             )
 
-            token_amount -= agreement_data.tokensInfo[0]
+            token_amount -= agreement_data.tokens[0]
             token_amount = token_amount if token_amount > 0 else 0
 
         current_allowance = self.get_current_allowance()
