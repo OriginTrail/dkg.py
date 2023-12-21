@@ -28,6 +28,7 @@ from dkg.exceptions import (AccountMissing, EnvironmentNotSupported,
                             NetworkNotSupported, RPCURINotDefined)
 from dkg.types import URI, Address, DataHexStr, Environment, Wei
 from eth_account.signers.local import LocalAccount
+from requests.exceptions import ConnectionError, HTTPError, RequestException, Timeout
 from web3 import Web3
 from web3.contract import Contract
 from web3.contract.contract import ContractFunction
@@ -198,11 +199,19 @@ class BlockchainProvider:
                 return self.w3.eth.gas_price
             case "gnosis":
                 if self.gas_price_oracle is None:
-                    return None
+                    return default_gas_price
 
                 try:
-                    response_json: dict = requests.get(self.gas_price_oracle).json()
-                except Exception:
+                    response = requests.get(self.gas_price_oracle)
+
+                    response.raise_for_status()
+
+                    try:
+                        response_json: dict = response.json()
+                    except ValueError:
+                        return default_gas_price
+
+                except (HTTPError, ConnectionError, Timeout, RequestException):
                     return default_gas_price
 
                 gas_price = None
