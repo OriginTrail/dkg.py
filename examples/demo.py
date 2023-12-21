@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import json
 import math
 import random
 import time
@@ -36,6 +37,10 @@ def divider():
     print("==================================================")
     print("==================================================")
     print("==================================================")
+
+
+def print_json(json_dict: dict):
+    print(json.dumps(json_dict, indent=4))
 
 
 content = {
@@ -61,13 +66,13 @@ divider()
 info_result = dkg.node.info
 
 print("======================== NODE INFO RECEIVED")
-print(info_result)
+print_json(info_result)
 
 divider()
 
 formatted_assertions = dkg.assertion.format_graph(content)
 print("======================== ASSET FORMATTED")
-print(formatted_assertions)
+print_json(formatted_assertions)
 
 divider()
 
@@ -131,7 +136,7 @@ divider()
 
 create_asset_result = dkg.asset.create(content, 2)
 print("======================== ASSET CREATED")
-print(create_asset_result)
+print_json(create_asset_result)
 divider()
 
 validate_ual = dkg.asset.is_valid_ual(create_asset_result["UAL"])
@@ -146,7 +151,7 @@ divider()
 
 get_asset_result = dkg.asset.get(create_asset_result["UAL"])
 print("======================== ASSET RESOLVED")
-print(get_asset_result)
+print_json(get_asset_result)
 divider()
 
 update_asset_result = dkg.asset.update(
@@ -166,26 +171,26 @@ update_asset_result = dkg.asset.update(
     },
 )
 print("======================== ASSET UPDATED")
-print(update_asset_result)
+print_json(update_asset_result)
 divider()
 
 get_latest_asset_result = dkg.asset.get(
     create_asset_result["UAL"], "latest", "all"
 )
 print("======================== ASSET LATEST RESOLVED")
-print(get_latest_asset_result)
+print_json(get_latest_asset_result)
 divider()
 
 get_latest_finalized_asset_result = dkg.asset.get(
     create_asset_result["UAL"], "latest_finalized", "all"
 )
 print("======================== ASSET LATEST FINALIZED RESOLVED")
-print(get_latest_finalized_asset_result)
+print_json(get_latest_finalized_asset_result)
 divider()
 
 get_first_state_by_index = dkg.asset.get(create_asset_result["UAL"], 0, "all")
 print("======================== ASSET FIRST STATE (GET BY STATE INDEX) RESOLVED")
-print(get_first_state_by_index)
+print_json(get_first_state_by_index)
 divider()
 
 # TODO: Remove when wait_for_finalization is implemented
@@ -193,21 +198,21 @@ time.sleep(60)
 
 get_second_state_by_index = dkg.asset.get(create_asset_result["UAL"], 1, "all")
 print("======================== ASSET SECOND STATE (GET BY STATE INDEX) RESOLVED")
-print(get_second_state_by_index)
+print_json(get_second_state_by_index)
 divider()
 
 get_first_state_by_hash = dkg.asset.get(
     create_asset_result["UAL"], create_asset_result["publicAssertionId"], "all"
 )
 print("======================== ASSET FIRST STATE (GET BY STATE HASH) RESOLVED")
-print(get_first_state_by_hash)
+print_json(get_first_state_by_hash)
 divider()
 
 get_second_state_by_hash = dkg.asset.get(
     create_asset_result["UAL"], update_asset_result["publicAssertionId"], "all"
 )
 print("======================== ASSET SECOND STATE (GET BY STATE HASH) RESOLVED")
-print(get_second_state_by_hash)
+print_json(get_second_state_by_hash)
 divider()
 
 query_result = dkg.graph.query(

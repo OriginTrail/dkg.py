@@ -132,7 +132,6 @@ class BlockchainProvider:
 
         return wrapper
 
-    @handle_updated_contract
     def call_function(
         self,
         contract: str,
