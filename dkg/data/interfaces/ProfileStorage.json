@@ -240,17 +240,17 @@
     "outputs": [
       {
         "internalType": "bytes",
-        "name": "",
+        "name": "nodeId",
         "type": "bytes"
       },
       {
         "internalType": "uint96[2]",
-        "name": "",
+        "name": "profileSettings",
         "type": "uint96[2]"
       },
       {
         "internalType": "address",
-        "name": "",
+        "name": "sharesContractAddress",
         "type": "address"
       }
     ],

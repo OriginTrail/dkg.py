@@ -16,43 +16,81 @@
 # under the License.
 
 import json
+import os
 from collections import namedtuple
+from functools import wraps
 from pathlib import Path
 from typing import Any, Type
 
-from dkg.exceptions import AccountMissing, NetworkNotSupported
-from dkg.types import URI, Address, DataHexStr, Wei
+import requests
+from dkg.constants import BLOCKCHAINS, DEFAULT_GAS_PRICE_GWEI
+from dkg.exceptions import (AccountMissing, EnvironmentNotSupported,
+                            NetworkNotSupported, RPCURINotDefined)
+from dkg.types import URI, Address, DataHexStr, Environment, Wei
 from eth_account.signers.local import LocalAccount
+from requests.exceptions import ConnectionError, HTTPError, RequestException, Timeout
 from web3 import Web3
 from web3.contract import Contract
 from web3.contract.contract import ContractFunction
 from web3.logs import DISCARD
 from web3.middleware import construct_sign_and_send_raw_middleware
 from web3.types import ABI, ABIFunction, TxReceipt
-from dkg.constants import BLOCKCHAINS
 
 
 class BlockchainProvider:
     CONTRACTS_METADATA_DIR = Path(__file__).parents[1] / "data/interfaces"
 
-    GAS_BUFFER = 1.2  # 20% gas buffer for estimateGas()
-
     def __init__(
         self,
-        rpc_uri: URI,
+        environment: Environment,
+        blockchain_id: str,
+        rpc_uri: URI | None = None,
         private_key: DataHexStr | None = None,
         verify: bool = True,
     ):
-        self.w3 = Web3(Web3.HTTPProvider(rpc_uri, request_kwargs={"verify": verify}))
+        if environment not in BLOCKCHAINS.keys():
+            raise EnvironmentNotSupported(f"Environment {environment} isn't supported!")
 
-        if (chain_id := self.w3.eth.chain_id) not in BLOCKCHAINS.keys():
-            raise NetworkNotSupported(
-                f"Network with chain ID {chain_id} isn't supported!"
+        self.environment = environment
+        self.rpc_uri = rpc_uri
+        self.blockchain_id = (
+            blockchain_id
+            if blockchain_id in BLOCKCHAINS[self.environment].keys()
+            else None
+        )
+
+        if self.rpc_uri is None and self.blockchain_id is not None:
+            self.blockchain_id = blockchain_id
+            self.rpc_uri = self.rpc_uri or BLOCKCHAINS[self.environment][
+                self.blockchain_id
+            ].get("rpc", None)
+
+        if self.rpc_uri is None:
+            raise RPCURINotDefined(
+                "No RPC URI provided for unrecognized "
+                f"blockchain ID {self.blockchain_id}"
             )
-        hub_address: Address = BLOCKCHAINS[chain_id]["hubAddress"]
+
+        self.w3 = Web3(
+            Web3.HTTPProvider(self.rpc_uri, request_kwargs={"verify": verify})
+        )
+
+        if self.blockchain_id is None:
+            self.blockchain_id = f"{blockchain_id}:{self.w3.eth.chain_id}"
+            if self.blockchain_id not in BLOCKCHAINS[self.environment]:
+                raise NetworkNotSupported(
+                    f"Network with blockchain ID {self.blockchain_id} isn't supported!"
+                )
+
+        self.gas_price_oracle = BLOCKCHAINS[self.environment][self.blockchain_id].get(
+            "gas_price_oracle",
+            None,
+        )
 
         self.abi = self._load_abi()
         self.output_named_tuples = self._generate_output_named_tuples()
+
+        hub_address: Address = BLOCKCHAINS[self.environment][self.blockchain_id]["hub"]
         self.contracts: dict[str, Contract] = {
             "Hub": self.w3.eth.contract(
                 address=hub_address,
@@ -61,8 +99,11 @@ class BlockchainProvider:
         }
         self._init_contracts()
 
-        if private_key is not None:
-            self.set_account(private_key)
+        if (
+            private_key is not None or
+            (private_key_env := os.environ.get("PRIVATE_KEY", None)) is not None
+        ):
+            self.set_account(private_key or private_key_env)
 
     def make_json_rpc_request(self, endpoint: str, args: dict[str, Any] = {}) -> Any:
         web3_method = getattr(self.w3.eth, endpoint)
@@ -71,6 +112,26 @@ class BlockchainProvider:
             return web3_method(**args)
         else:
             return web3_method
+
+    @staticmethod
+    def handle_updated_contract(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            contract_name = kwargs.get("contract_name") or (args[0] if args else None)
+
+            try:
+                return func(self, *args, **kwargs)
+            except Exception as err:
+                if (
+                    contract_name
+                    and any(msg in str(err) for msg in ["revert", "VM Exception"])
+                    and not self._check_contract_status(contract_name)
+                ):
+                    self._update_contract_instance(contract_name)
+                    return func(self, *args, **kwargs)
+                raise
+
+        return wrapper
 
     def call_function(
         self,
@@ -99,15 +160,13 @@ class BlockchainProvider:
                 )
 
             nonce = self.w3.eth.get_transaction_count(self.w3.eth.default_account)
-            gas_price = gas_price if gas_price is not None else self.w3.eth.gas_price
+            gas_price = gas_price or self._get_network_gas_price()
 
-            options = {"nonce": nonce, "gasPrice": gas_price}
-            gas_estimate = contract_function(**args).estimate_gas(options)
-
-            if gas_limit is None:
-                options["gas"] = int(gas_estimate * self.GAS_BUFFER)
-            else:
-                options["gas"] = gas_limit
+            options = {
+                "nonce": nonce,
+                "gasPrice": gas_price,
+                "gas": gas_limit or contract_function(**args).estimate_gas(),
+            }
 
             tx_hash = contract_function(**args).transact(options)
             tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
@@ -130,25 +189,74 @@ class BlockchainProvider:
         )
         self.w3.eth.default_account = self.account.address
 
+    def _get_network_gas_price(self) -> int | None:
+        blockchain_name, chain_id = self.blockchain_id.split(":")
+
+        default_gas_price = self.w3.to_wei(DEFAULT_GAS_PRICE_GWEI, "gwei")
+
+        match blockchain_name:
+            case "otp":
+                return self.w3.eth.gas_price
+            case "gnosis":
+                if self.gas_price_oracle is None:
+                    return default_gas_price
+
+                try:
+                    response = requests.get(self.gas_price_oracle)
+
+                    response.raise_for_status()
+
+                    try:
+                        response_json: dict = response.json()
+                    except ValueError:
+                        return default_gas_price
+
+                except (HTTPError, ConnectionError, Timeout, RequestException):
+                    return default_gas_price
+
+                gas_price = None
+                match chain_id:
+                    case "100":
+                        gas_price_hex = response_json.get("result")
+                        if gas_price_hex:
+                            gas_price = int(gas_price_hex, 16)
+                    case "10200":
+                        gas_price_avg = response_json.get("average")
+                        if gas_price_avg:
+                            gas_price = self.w3.to_wei(gas_price_avg, "gwei")
+
+                return gas_price if gas_price is not None else default_gas_price
+            case _:
+                return default_gas_price
+
     def _init_contracts(self):
         for contract in self.abi.keys():
             if contract == "Hub":
                 continue
 
-            self.contracts[contract] = self.w3.eth.contract(
-                address=(
-                    self.contracts["Hub"]
-                    .functions.getContractAddress(
-                        contract if contract != "ERC20Token" else "Token"
-                    )
-                    .call()
-                    if not contract.endswith("AssetStorage")
-                    else self.contracts["Hub"]
-                    .functions.getAssetStorageAddress(contract)
-                    .call()
-                ),
-                abi=self.abi[contract],
-            )
+            self._update_contract_instance(contract)
+
+    def _update_contract_instance(self, contract: str):
+        self.contracts[contract] = self.w3.eth.contract(
+            address=(
+                self.contracts["Hub"]
+                .functions.getContractAddress(
+                    contract if contract != "ERC20Token" else "Token"
+                )
+                .call()
+                if not contract.endswith("AssetStorage")
+                else self.contracts["Hub"]
+                .functions.getAssetStorageAddress(contract)
+                .call()
+            ),
+            abi=self.abi[contract],
+        )
+
+    def _check_contract_status(self, contract: str) -> bool:
+        try:
+            return self.call_function(contract, "status")
+        except Exception:
+            return False
 
     def _generate_output_named_tuples(self) -> dict[str, dict[str, Type[tuple]]]:
         def generate_output_namedtuple(function_abi: ABIFunction) -> Type[tuple] | None:

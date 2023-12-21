@@ -13,17 +13,6 @@
   {
     "inputs": [
       {
-        "internalType": "address",
-        "name": "caller",
-        "type": "address"
-      }
-    ],
-    "name": "OnlyHubOwnerFunction",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "bytes32",
         "name": "agreementId",
         "type": "bytes32"
@@ -381,6 +370,32 @@
     "inputs": [
       {
         "internalType": "bytes32",
+        "name": "agreementId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "deleteServiceAgreementV1Object",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "agreementId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "deleteServiceAgreementV1U1Object",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
         "name": "stateId",
         "type": "bytes32"
       }
@@ -417,7 +432,7 @@
       },
       {
         "internalType": "uint96[2]",
-        "name": "tokensInfo",
+        "name": "tokens",
         "type": "uint96[2]"
       },
       {

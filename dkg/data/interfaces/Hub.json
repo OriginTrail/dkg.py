@@ -111,7 +111,7 @@
             "type": "address"
           }
         ],
-        "internalType": "struct UnorderedNamedContractDynamicSetLib.Contract[]",
+        "internalType": "struct UnorderedNamedContractDynamicSetStructs.Contract[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -136,7 +136,7 @@
             "type": "address"
           }
         ],
-        "internalType": "struct UnorderedNamedContractDynamicSetLib.Contract[]",
+        "internalType": "struct UnorderedNamedContractDynamicSetStructs.Contract[]",
         "name": "",
         "type": "tuple[]"
       }

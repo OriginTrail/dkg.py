@@ -27,7 +27,10 @@ def format_ual(
 
 
 def parse_ual(ual: UAL) -> dict[str, str | Address | int]:
-    args = ual.split(":")[-1].split("/")
+    if not ual.startswith("did:dkg:"):
+        raise ValidationError("Invalid UAL!")
+
+    args = ual.replace("did:dkg:", "").split("/")
 
     if len(args) != 3:
         raise ValidationError("Invalid UAL!")
