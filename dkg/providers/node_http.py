@@ -22,6 +22,7 @@ from dkg.dataclasses import HTTPRequestMethod, NodeResponseDict
 from dkg.exceptions import HTTPRequestMethodNotSupported, NodeRequestError
 from dkg.types import URI
 from requests import Response
+from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestException
 
 
 class NodeHTTPProvider:
@@ -59,9 +60,16 @@ class NodeHTTPProvider:
                 params=params,
                 headers=headers,
             )
-            return NodeResponseDict(response.json())
-        except requests.exceptions.HTTPError as err:
-            raise NodeRequestError(err)
+
+            response.raise_for_status()
+
+            try:
+                return NodeResponseDict(response.json())
+            except ValueError as err:
+                raise NodeRequestError(f"JSON decoding failed: {err}")
+
+        except (HTTPError, ConnectionError, Timeout, RequestException) as err:
+            raise NodeRequestError(f"Request failed: {err}")
 
     def post(
         self, path: str, data: dict[str, Any] = {}, headers: dict[str, str] = {}
@@ -72,9 +80,15 @@ class NodeHTTPProvider:
                 json=data,
                 headers=headers,
             )
-            return NodeResponseDict(response.json())
-        except requests.exceptions.HTTPError as err:
-            raise NodeRequestError(err)
+            response.raise_for_status()
+
+            try:
+                return NodeResponseDict(response.json())
+            except ValueError as err:
+                raise NodeRequestError(f"JSON decoding failed: {err}")
+
+        except (HTTPError, ConnectionError, Timeout, RequestException) as err:
+            raise NodeRequestError(f"Request failed: {err}")
 
     def _prepare_headers(self) -> dict[str, str]:
         return self._prepare_auth_header()
