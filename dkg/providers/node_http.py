@@ -21,7 +21,6 @@ import requests
 from dkg.dataclasses import HTTPRequestMethod, NodeResponseDict
 from dkg.exceptions import HTTPRequestMethodNotSupported, NodeRequestError
 from dkg.types import URI
-from requests import Response
 from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestException
 
 
@@ -36,31 +35,22 @@ class NodeHTTPProvider:
         path: str,
         params: dict[str, Any] = {},
         data: dict[str, Any] = {},
-    ) -> Response:
-        request_func = getattr(self, method.name.lower())
+    ) -> NodeResponseDict:
+        url = f"{self.endpoint_uri}/{path}"
+        headers = (
+            {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
+        )
 
-        headers = self._prepare_headers()
-
-        match method:
-            case HTTPRequestMethod.GET:
-                return request_func(path, params, headers)
-            case HTTPRequestMethod.POST:
-                return request_func(path, data, headers)
-            case HTTPRequestMethod():
+        try:
+            if method == HTTPRequestMethod.GET:
+                response = requests.get(url, params=params, headers=headers)
+            elif method == HTTPRequestMethod.POST:
+                response = requests.post(url, json=data, headers=headers)
+            else:
                 raise HTTPRequestMethodNotSupported(
                     f"{method.name} method isn't supported"
                 )
 
-    def get(
-        self, path: str, params: dict[str, Any] = {}, headers: dict[str, str] = {}
-    ) -> NodeResponseDict:
-        try:
-            response = requests.get(
-                f"{self.endpoint_uri}/{path}",
-                params=params,
-                headers=headers,
-            )
-
             response.raise_for_status()
 
             try:
@@ -70,30 +60,3 @@ class NodeHTTPProvider:
 
         except (HTTPError, ConnectionError, Timeout, RequestException) as err:
             raise NodeRequestError(f"Request failed: {err}")
-
-    def post(
-        self, path: str, data: dict[str, Any] = {}, headers: dict[str, str] = {}
-    ) -> NodeResponseDict:
-        try:
-            response = requests.post(
-                f"{self.endpoint_uri}/{path}",
-                json=data,
-                headers=headers,
-            )
-            response.raise_for_status()
-
-            try:
-                return NodeResponseDict(response.json())
-            except ValueError as err:
-                raise NodeRequestError(f"JSON decoding failed: {err}")
-
-        except (HTTPError, ConnectionError, Timeout, RequestException) as err:
-            raise NodeRequestError(f"Request failed: {err}")
-
-    def _prepare_headers(self) -> dict[str, str]:
-        return self._prepare_auth_header()
-
-    def _prepare_auth_header(self) -> dict[str, str]:
-        if self.auth_token:
-            return {"Authorization": f"Bearer {self.auth_token}"}
-        return {}
