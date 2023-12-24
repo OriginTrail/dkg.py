@@ -133,6 +133,7 @@ class BlockchainProvider:
 
         return wrapper
 
+    @handle_updated_contract
     def call_function(
         self,
         contract: str,
@@ -240,14 +241,10 @@ class BlockchainProvider:
         self.contracts[contract] = self.w3.eth.contract(
             address=(
                 self.contracts["Hub"]
-                .functions.getContractAddress(
-                    contract if contract != "ERC20Token" else "Token"
-                )
-                .call()
+                .functions.getContractAddress(contract).call()
                 if not contract.endswith("AssetStorage")
                 else self.contracts["Hub"]
-                .functions.getAssetStorageAddress(contract)
-                .call()
+                .functions.getAssetStorageAddress(contract).call()
             ),
             abi=self.abi[contract],
         )
