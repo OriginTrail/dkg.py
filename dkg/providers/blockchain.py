@@ -117,7 +117,7 @@ class BlockchainProvider:
     def handle_updated_contract(func):
         @wraps(func)
         def wrapper(self, *args, **kwargs):
-            contract_name = kwargs.get("contract_name") or (args[0] if args else None)
+            contract_name = kwargs.get("contract") or (args[0] if args else None)
 
             try:
                 return func(self, *args, **kwargs)
