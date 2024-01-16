@@ -68,8 +68,22 @@ DEFAULT_GAS_PRICE_GWEI = 100
 
 DEFAULT_HASH_FUNCTION_ID = 1
 DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS = {
-    "otp:20430": 1,
-    "gnosis:10200": 2,
+    "development": {
+        "hardhat1:31337": 1,
+        "hardhat2:31337": 2,
+    },
+    "devnet": {
+        "otp:2160": 1,
+        "gnosis:10200": 2,
+    },
+    "testnet": {
+        "otp:20430": 1,
+        "gnosis:10200": 2,
+    },
+    "mainnet": {
+        "otp:2043": 1,
+        "gnosis:100": 2,
+    },
 }
 
 PRIVATE_HISTORICAL_REPOSITORY = "privateHistory"
