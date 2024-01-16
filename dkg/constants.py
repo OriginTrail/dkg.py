@@ -68,10 +68,7 @@ DEFAULT_GAS_PRICE_GWEI = 100
 
 DEFAULT_HASH_FUNCTION_ID = 1
 DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS = {
-    "development": {
-        "hardhat1:31337": 1,
-        "hardhat2:31337": 2,
-    },
+    "development": {"hardhat1:31337": 1, "hardhat2:31337": 2, "otp:2043": 1},
     "devnet": {
         "otp:2160": 1,
         "gnosis:10200": 2,
