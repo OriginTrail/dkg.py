@@ -25,7 +25,7 @@ from web3.constants import ADDRESS_ZERO, HASH_ZERO
 from web3.exceptions import ContractLogicError
 
 from dkg.constants import (DEFAULT_HASH_FUNCTION_ID,
-                           DEFAULT_SCORE_FUNCTION_ID_OTP,
+                           DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS,
                            PRIVATE_ASSERTION_PREDICATE,
                            PRIVATE_CURRENT_REPOSITORY,
                            PRIVATE_HISTORICAL_REPOSITORY)
@@ -228,7 +228,9 @@ class ContentAsset(Module):
                     "chunksNumber": public_assertion_metadata["chunks_number"],
                     "tokenAmount": token_amount,
                     "epochsNumber": epochs_number,
-                    "scoreFunctionId": DEFAULT_SCORE_FUNCTION_ID_OTP,
+                    "scoreFunctionId": DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS[
+                        blockchain_id
+                    ],
                     "immutable_": immutable,
                 }
             )
