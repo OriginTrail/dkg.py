@@ -21,11 +21,11 @@ PRIVATE_ASSERTION_PREDICATE = (
 
 BLOCKCHAINS = {
     "development": {
-        "hardhat1:31337":  {
+        "hardhat1:31337": {
             "hub": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
             "rpc": "http://localhost:8545",
         },
-        "hardhat2:31337":  {
+        "hardhat2:31337": {
             "hub": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
             "rpc": "http://localhost:9545",
         },
@@ -67,7 +67,8 @@ BLOCKCHAINS = {
 DEFAULT_GAS_PRICE_GWEI = 100
 
 DEFAULT_HASH_FUNCTION_ID = 1
-DEFAULT_SCORE_FUNCTION_ID = 1
+DEFAULT_SCORE_FUNCTION_ID_OTP = 1
+DEFAULT_SCORE_FUNCTION_ID_GNOSIS = 2
 
 PRIVATE_HISTORICAL_REPOSITORY = "privateHistory"
 PRIVATE_CURRENT_REPOSITORY = "privateCurrent"
