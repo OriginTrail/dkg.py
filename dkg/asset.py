@@ -24,26 +24,17 @@ from web3 import Web3
 from web3.constants import ADDRESS_ZERO, HASH_ZERO
 from web3.exceptions import ContractLogicError
 
-from dkg.constants import (
-    DEFAULT_HASH_FUNCTION_ID,
-    DEFAULT_SCORE_FUNCTION_ID_OTP,
-    PRIVATE_ASSERTION_PREDICATE,
-    PRIVATE_CURRENT_REPOSITORY,
-    PRIVATE_HISTORICAL_REPOSITORY,
-)
-from dkg.dataclasses import (
-    KnowledgeAssetContentVisibility,
-    KnowledgeAssetEnumStates,
-    NodeResponseDict,
-)
-from dkg.exceptions import (
-    DatasetOutputFormatNotSupported,
-    InvalidKnowledgeAsset,
-    InvalidStateOption,
-    InvalidTokenAmount,
-    MissingKnowledgeAssetState,
-    OperationNotFinished,
-)
+from dkg.constants import (DEFAULT_HASH_FUNCTION_ID,
+                           DEFAULT_SCORE_FUNCTION_ID_OTP,
+                           PRIVATE_ASSERTION_PREDICATE,
+                           PRIVATE_CURRENT_REPOSITORY,
+                           PRIVATE_HISTORICAL_REPOSITORY)
+from dkg.dataclasses import (KnowledgeAssetContentVisibility,
+                             KnowledgeAssetEnumStates, NodeResponseDict)
+from dkg.exceptions import (DatasetOutputFormatNotSupported,
+                            InvalidKnowledgeAsset, InvalidStateOption,
+                            InvalidTokenAmount, MissingKnowledgeAssetState,
+                            OperationNotFinished)
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.module import Module
@@ -51,12 +42,10 @@ from dkg.types import JSONLD, UAL, Address, AgreementData, HexStr, Wei
 from dkg.utils.blockchain_request import BlockchainRequest
 from dkg.utils.decorators import retry
 from dkg.utils.merkle import MerkleTree, hash_assertion_with_indexes
-from dkg.utils.metadata import (
-    generate_agreement_id,
-    generate_assertion_metadata,
-    generate_keyword,
-)
-from dkg.utils.node_request import NodeRequest, StoreTypes, validate_operation_status
+from dkg.utils.metadata import (generate_agreement_id,
+                                generate_assertion_metadata, generate_keyword)
+from dkg.utils.node_request import (NodeRequest, StoreTypes,
+                                    validate_operation_status)
 from dkg.utils.rdf import format_content, normalize_dataset
 from dkg.utils.ual import format_ual, parse_ual
 
