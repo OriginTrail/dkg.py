@@ -46,6 +46,7 @@ class BlockchainProvider:
         blockchain_id: str,
         rpc_uri: URI | None = None,
         private_key: DataHexStr | None = None,
+        gas_price: Wei | None = None,
         verify: bool = True,
     ):
         if environment not in BLOCKCHAINS.keys():
@@ -82,6 +83,7 @@ class BlockchainProvider:
                     f"Network with blockchain ID {self.blockchain_id} isn't supported!"
                 )
 
+        self.gas_price = gas_price
         self.gas_price_oracle = BLOCKCHAINS[self.environment][self.blockchain_id].get(
             "gas_price_oracle",
             None,
@@ -161,7 +163,7 @@ class BlockchainProvider:
                 )
 
             nonce = self.w3.eth.get_transaction_count(self.w3.eth.default_account)
-            gas_price = gas_price or self._get_network_gas_price()
+            gas_price = self.gas_price or gas_price or self._get_network_gas_price()
 
             options = {
                 "nonce": nonce,
