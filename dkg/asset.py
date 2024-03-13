@@ -236,10 +236,7 @@ class ContentAsset(Module):
         if is_allowance_increased := current_allowance < token_amount:
             self.increase_allowance(token_amount)
 
-        result = {
-            "publicAssertionId": public_assertion_id,
-            "operation": {}
-        }
+        result = {"publicAssertionId": public_assertion_id, "operation": {}}
 
         try:
             receipt: TxReceipt = self._create(
@@ -268,7 +265,9 @@ class ContentAsset(Module):
         )
         token_id = events[0].args["tokenId"]
 
-        result["UAL"] = format_ual(blockchain_id, content_asset_storage_address, token_id)
+        result["UAL"] = format_ual(
+            blockchain_id, content_asset_storage_address, token_id
+        )
         result["operation"]["mintKnowledgeAsset"] = receipt
 
         assertions_list = [
@@ -315,7 +314,7 @@ class ContentAsset(Module):
         if operation_result["status"] == OperationStatus.COMPLETED:
             operation_id = self._local_store(assertions_list)["operationId"]
             operation_result = self.get_operation_result(operation_id, "local-store")
-            
+
             result["operation"]["localStore"] = {
                 "operationId": operation_id,
                 "status": operation_result["status"],
@@ -754,7 +753,9 @@ class ContentAsset(Module):
                 )["bidSuggestion"]
             )
 
-        receipt: TxReceipt = self._extend_storing_period(token_id, additional_epochs, token_amount)
+        receipt: TxReceipt = self._extend_storing_period(
+            token_id, additional_epochs, token_amount
+        )
 
         return {
             "UAL": ual,
