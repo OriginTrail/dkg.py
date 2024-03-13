@@ -248,8 +248,8 @@ class ContentAsset(Module):
                     "tokenAmount": token_amount,
                     "epochsNumber": epochs_number,
                     "scoreFunctionId": DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS[
-                        blockchain_id
-                    ],
+                        self.manager.blockchain_provider.environment
+                    ][blockchain_id],
                     "immutable_": immutable,
                 }
             )
