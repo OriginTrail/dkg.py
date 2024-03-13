@@ -28,7 +28,6 @@ from dkg.exceptions import (AccountMissing, EnvironmentNotSupported,
                             NetworkNotSupported, RPCURINotDefined)
 from dkg.types import URI, Address, DataHexStr, Environment, Wei
 from eth_account.signers.local import LocalAccount
-from requests.exceptions import ConnectionError, HTTPError, RequestException, Timeout
 from web3 import Web3
 from web3.contract import Contract
 from web3.contract.contract import ContractFunction
@@ -192,45 +191,40 @@ class BlockchainProvider:
         )
         self.w3.eth.default_account = self.account.address
 
-    def _get_network_gas_price(self) -> int | None:
-        blockchain_name, chain_id = self.blockchain_id.split(":")
+    def _get_network_gas_price(self) -> Wei | None:
+        blockchain_name, _ = self.blockchain_id.split(":")
 
-        default_gas_price = self.w3.to_wei(DEFAULT_GAS_PRICE_GWEI, "gwei")
+        default_gas_price = self.w3.to_wei(
+            DEFAULT_GAS_PRICE_GWEI[blockchain_name],
+            "gwei"
+        )
 
-        match blockchain_name:
-            case "otp":
-                return self.w3.eth.gas_price
-            case "gnosis":
-                if self.gas_price_oracle is None:
-                    return default_gas_price
+        def fetch_gas_price(oracle_url: str) -> Wei | None:
+            try:
+                response = requests.get(oracle_url)
+                response.raise_for_status()
+                data: dict = response.json()
 
-                try:
-                    response = requests.get(self.gas_price_oracle)
+                if "result" in data:
+                    return int(data['result'], 16)
+                elif "average" in data:
+                    return self.w3.to_wei(data['average'], 'gwei')
+                else:
+                    return None
+            except Exception:
+                return None
 
-                    response.raise_for_status()
+        oracles = self.gas_price_oracle
+        if oracles is not None:
+            if isinstance(oracles, str):
+                oracles = [oracles]
 
-                    try:
-                        response_json: dict = response.json()
-                    except ValueError:
-                        return default_gas_price
-
-                except (HTTPError, ConnectionError, Timeout, RequestException):
-                    return default_gas_price
-
-                gas_price = None
-                match chain_id:
-                    case "100":
-                        gas_price_hex = response_json.get("result")
-                        if gas_price_hex:
-                            gas_price = int(gas_price_hex, 16)
-                    case "10200":
-                        gas_price_avg = response_json.get("average")
-                        if gas_price_avg:
-                            gas_price = self.w3.to_wei(gas_price_avg, "gwei")
-
-                return gas_price if gas_price is not None else default_gas_price
-            case _:
-                return default_gas_price
+            for oracle_url in oracles:
+                gas_price = fetch_gas_price(oracle_url)
+                if gas_price is not None:
+                    return gas_price
+                
+        return default_gas_price
 
     def _init_contracts(self):
         for contract in self.abi.keys():

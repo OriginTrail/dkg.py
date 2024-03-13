@@ -61,13 +61,42 @@ BLOCKCHAINS = {
             "hub": "0x5fA7916c48Fe6D5F1738d12Ad234b78c90B4cAdA",
             "rpc": "https://astrosat-parachain-rpc.origin-trail.network",
         },
+        "gnosis:100": {
+            "hub": "0xbEF14fc04F870c2dD65c13Df4faB6ba01A9c746b",
+            "rpc": "https://rpc.gnosischain.com/",
+            "gas_price_oracle": [
+                "https://api.gnosisscan.io/api?module=proxy&action=eth_gasPrice",
+                "https://blockscout.com/xdai/mainnet/api/v1/gas-price-oracle",
+            ],
+        }
     },
 }
 
-DEFAULT_GAS_PRICE_GWEI = 100
+DEFAULT_GAS_PRICE_GWEI = {
+    "gnosis": 20,
+    "otp": 1,
+}
 
 DEFAULT_HASH_FUNCTION_ID = 1
-DEFAULT_SCORE_FUNCTION_ID = 1
+DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS = {
+    "development": {
+        "hardhat1:31337": 1,
+        "hardhat2:31337": 2,
+        "otp:2043": 1
+    },
+    "devnet": {
+        "otp:2160": 1,
+        "gnosis:10200": 2,
+    },
+    "testnet": {
+        "otp:20430": 1,
+        "gnosis:10200": 2,
+    },
+    "mainnet": {
+        "otp:2043": 1,
+        "gnosis:100": 2,
+    },
+}
 
 PRIVATE_HISTORICAL_REPOSITORY = "privateHistory"
 PRIVATE_CURRENT_REPOSITORY = "privateCurrent"
