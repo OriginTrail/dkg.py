@@ -8,13 +8,13 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-pyyaml = "^6.0"
-web3 = "^6.0.0"
+pyyaml = "^6.0.1"
+web3 = "^6.15.1"
 pandas = "^1.5.3"
-eth-account = "^0.8.0"
+eth-account = "^0.11.0"
 rdflib = "^6.3.2"
 hexbytes = "^0.3.0"
-eth-abi = "^4.0.0"
+eth-abi = "^5.0.1"
 ot-pyld = "^2.1.1"
 
 
