@@ -161,11 +161,9 @@ class BlockchainProvider:
                     "account."
                 )
 
-            nonce = self.w3.eth.get_transaction_count(self.w3.eth.default_account)
             gas_price = self.gas_price or gas_price or self._get_network_gas_price()
 
             options = {
-                "nonce": nonce,
                 "gasPrice": gas_price,
                 "gas": gas_limit or contract_function(**args).estimate_gas(),
             }

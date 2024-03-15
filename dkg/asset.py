@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import json
 import math
 import re
 from typing import Literal, Type
@@ -268,7 +269,7 @@ class ContentAsset(Module):
         result["UAL"] = format_ual(
             blockchain_id, content_asset_storage_address, token_id
         )
-        result["operation"]["mintKnowledgeAsset"] = receipt
+        result["operation"]["mintKnowledgeAsset"] = json.loads(Web3.to_json(receipt))
 
         assertions_list = [
             {
@@ -340,7 +341,7 @@ class ContentAsset(Module):
         return {
             "UAL": ual,
             "owner": new_owner,
-            "operation": receipt,
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _update = Method(NodeRequest.update)
@@ -476,7 +477,7 @@ class ContentAsset(Module):
 
         return {
             "UAL": ual,
-            "operation": receipt,
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _burn_asset = Method(BlockchainRequest.burn_asset)
@@ -486,7 +487,7 @@ class ContentAsset(Module):
 
         receipt: TxReceipt = self._burn_asset(token_id)
 
-        return {"UAL": ual, "operation": receipt}
+        return {"UAL": ual, "operation": json.loads(Web3.to_json(receipt))}
 
     _get_assertion_ids = Method(BlockchainRequest.get_assertion_ids)
     _get_latest_assertion_id = Method(BlockchainRequest.get_latest_assertion_id)
@@ -759,7 +760,7 @@ class ContentAsset(Module):
 
         return {
             "UAL": ual,
-            "operation": receipt,
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _get_assertion_size = Method(BlockchainRequest.get_assertion_size)
@@ -819,7 +820,7 @@ class ContentAsset(Module):
 
         return {
             "UAL": ual,
-            "operation": receipt,
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _add_update_tokens = Method(BlockchainRequest.increase_asset_update_token_amount)
@@ -876,7 +877,7 @@ class ContentAsset(Module):
 
         return {
             "UAL": ual,
-            "operation": receipt,
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     def get_owner(self, ual: UAL) -> Address:
