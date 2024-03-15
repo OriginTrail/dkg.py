@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+import json
 import math
 import re
 from typing import Literal, Type
@@ -23,17 +24,28 @@ from pyld import jsonld
 from web3 import Web3
 from web3.constants import ADDRESS_ZERO, HASH_ZERO
 from web3.exceptions import ContractLogicError
+from web3.types import TxReceipt
 
-from dkg.constants import (DEFAULT_HASH_FUNCTION_ID, DEFAULT_SCORE_FUNCTION_ID,
-                           PRIVATE_ASSERTION_PREDICATE,
-                           PRIVATE_CURRENT_REPOSITORY,
-                           PRIVATE_HISTORICAL_REPOSITORY)
-from dkg.dataclasses import (KnowledgeAssetContentVisibility,
-                             KnowledgeAssetEnumStates, NodeResponseDict)
-from dkg.exceptions import (DatasetOutputFormatNotSupported,
-                            InvalidKnowledgeAsset, InvalidStateOption,
-                            InvalidTokenAmount, MissingKnowledgeAssetState,
-                            OperationNotFinished)
+from dkg.constants import (
+    DEFAULT_HASH_FUNCTION_ID,
+    DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS,
+    PRIVATE_ASSERTION_PREDICATE,
+    PRIVATE_CURRENT_REPOSITORY,
+    PRIVATE_HISTORICAL_REPOSITORY,
+)
+from dkg.dataclasses import (
+    KnowledgeAssetContentVisibility,
+    KnowledgeAssetEnumStates,
+    NodeResponseDict,
+)
+from dkg.exceptions import (
+    DatasetOutputFormatNotSupported,
+    InvalidKnowledgeAsset,
+    InvalidStateOption,
+    InvalidTokenAmount,
+    MissingKnowledgeAssetState,
+    OperationNotFinished,
+)
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.module import Module
@@ -41,10 +53,17 @@ from dkg.types import JSONLD, UAL, Address, AgreementData, HexStr, Wei
 from dkg.utils.blockchain_request import BlockchainRequest
 from dkg.utils.decorators import retry
 from dkg.utils.merkle import MerkleTree, hash_assertion_with_indexes
-from dkg.utils.metadata import (generate_agreement_id,
-                                generate_assertion_metadata, generate_keyword)
-from dkg.utils.node_request import (NodeRequest, StoreTypes,
-                                    validate_operation_status)
+from dkg.utils.metadata import (
+    generate_agreement_id,
+    generate_assertion_metadata,
+    generate_keyword,
+)
+from dkg.utils.node_request import (
+    NodeRequest,
+    OperationStatus,
+    StoreTypes,
+    validate_operation_status,
+)
 from dkg.utils.rdf import format_content, normalize_dataset
 from dkg.utils.ual import format_ual, parse_ual
 
@@ -188,7 +207,7 @@ class ContentAsset(Module):
         token_amount: Wei | None = None,
         immutable: bool = False,
         content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
-    ) -> dict[str, HexStr | dict[str, str]]:
+    ) -> dict[str, UAL | HexStr | dict[str, dict[str, str] | TxReceipt]]:
         blockchain_id = self.manager.blockchain_provider.blockchain_id
         assertions = format_content(content, content_type)
 
@@ -218,8 +237,10 @@ class ContentAsset(Module):
         if is_allowance_increased := current_allowance < token_amount:
             self.increase_allowance(token_amount)
 
+        result = {"publicAssertionId": public_assertion_id, "operation": {}}
+
         try:
-            receipt = self._create(
+            receipt: TxReceipt = self._create(
                 {
                     "assertionId": Web3.to_bytes(hexstr=public_assertion_id),
                     "size": public_assertion_metadata["size"],
@@ -227,7 +248,9 @@ class ContentAsset(Module):
                     "chunksNumber": public_assertion_metadata["chunks_number"],
                     "tokenAmount": token_amount,
                     "epochsNumber": epochs_number,
-                    "scoreFunctionId": DEFAULT_SCORE_FUNCTION_ID,
+                    "scoreFunctionId": DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS[
+                        self.manager.blockchain_provider.environment
+                    ][blockchain_id],
                     "immutable_": immutable,
                 }
             )
@@ -242,6 +265,11 @@ class ContentAsset(Module):
             "AssetMinted",
         )
         token_id = events[0].args["tokenId"]
+
+        result["UAL"] = format_ual(
+            blockchain_id, content_asset_storage_address, token_id
+        )
+        result["operation"]["mintKnowledgeAsset"] = json.loads(Web3.to_json(receipt))
 
         assertions_list = [
             {
@@ -269,9 +297,6 @@ class ContentAsset(Module):
                 }
             )
 
-        operation_id = self._local_store(assertions_list)["operationId"]
-        self.get_operation_result(operation_id, "local-store")
-
         operation_id = self._publish(
             public_assertion_id,
             assertions["public"],
@@ -282,14 +307,21 @@ class ContentAsset(Module):
         )["operationId"]
         operation_result = self.get_operation_result(operation_id, "publish")
 
-        return {
-            "UAL": format_ual(blockchain_id, content_asset_storage_address, token_id),
-            "publicAssertionId": public_assertion_id,
-            "operation": {
+        result["operation"]["publish"] = {
+            "operationId": operation_id,
+            "status": operation_result["status"],
+        }
+
+        if operation_result["status"] == OperationStatus.COMPLETED:
+            operation_id = self._local_store(assertions_list)["operationId"]
+            operation_result = self.get_operation_result(operation_id, "local-store")
+
+            result["operation"]["localStore"] = {
                 "operationId": operation_id,
                 "status": operation_result["status"],
-            },
-        }
+            }
+
+        return result
 
     _transfer = Method(BlockchainRequest.transfer_asset)
 
@@ -297,10 +329,10 @@ class ContentAsset(Module):
         self,
         ual: UAL,
         new_owner: Address,
-    ) -> dict[str, UAL | Address | dict[str, str]]:
+    ) -> dict[str, UAL | Address | TxReceipt]:
         token_id = parse_ual(ual)["token_id"]
 
-        self._transfer(
+        receipt: TxReceipt = self._transfer(
             self.manager.blockchain_provider.account,
             new_owner,
             token_id,
@@ -309,7 +341,7 @@ class ContentAsset(Module):
         return {
             "UAL": ual,
             "owner": new_owner,
-            "operation": {"status": "COMPLETED"},
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _update = Method(NodeRequest.update)
@@ -325,7 +357,7 @@ class ContentAsset(Module):
         content: dict[Literal["public", "private"], JSONLD],
         token_amount: Wei | None = None,
         content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
-    ) -> dict[str, HexStr | dict[str, str]]:
+    ) -> dict[str, UAL | HexStr | dict[str, str]]:
         parsed_ual = parse_ual(ual)
         blockchain_id, content_asset_storage_address, token_id = (
             parsed_ual["blockchain"],
@@ -438,24 +470,24 @@ class ContentAsset(Module):
 
     _cancel_update = Method(BlockchainRequest.cancel_asset_state_update)
 
-    def cancel_update(self, ual: UAL) -> dict[str, UAL | dict[str, str]]:
+    def cancel_update(self, ual: UAL) -> dict[str, UAL | TxReceipt]:
         token_id = parse_ual(ual)["token_id"]
 
-        self._cancel_update(token_id)
+        receipt: TxReceipt = self._cancel_update(token_id)
 
         return {
             "UAL": ual,
-            "operation": {"status": "COMPLETED"},
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _burn_asset = Method(BlockchainRequest.burn_asset)
 
-    def burn(self, ual: UAL) -> dict[str, UAL | dict[str, str]]:
+    def burn(self, ual: UAL) -> dict[str, UAL | TxReceipt]:
         token_id = parse_ual(ual)["token_id"]
 
-        self._burn_asset(token_id)
+        receipt: TxReceipt = self._burn_asset(token_id)
 
-        return {"UAL": ual, "operation": {"status": "COMPLETED"}}
+        return {"UAL": ual, "operation": json.loads(Web3.to_json(receipt))}
 
     _get_assertion_ids = Method(BlockchainRequest.get_assertion_ids)
     _get_latest_assertion_id = Method(BlockchainRequest.get_latest_assertion_id)
@@ -471,7 +503,7 @@ class ContentAsset(Module):
         content_visibility: str = KnowledgeAssetContentVisibility.ALL.value,
         output_format: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
         validate: bool = True,
-    ) -> dict[str, HexStr | list[JSONLD] | dict[str, str]]:
+    ) -> dict[str, UAL | HexStr | list[JSONLD] | dict[str, str]]:
         state = (
             state.upper()
             if (isinstance(state, str) and not re.match(r"^0x[a-fA-F0-9]{64}$", state))
@@ -697,7 +729,7 @@ class ContentAsset(Module):
         ual: UAL,
         additional_epochs: int,
         token_amount: Wei | None = None,
-    ) -> dict[str, UAL | dict[str, str]]:
+    ) -> dict[str, UAL | TxReceipt]:
         parsed_ual = parse_ual(ual)
         blockchain_id, content_asset_storage_address, token_id = (
             parsed_ual["blockchain"],
@@ -722,11 +754,13 @@ class ContentAsset(Module):
                 )["bidSuggestion"]
             )
 
-        self._extend_storing_period(token_id, additional_epochs, token_amount)
+        receipt: TxReceipt = self._extend_storing_period(
+            token_id, additional_epochs, token_amount
+        )
 
         return {
             "UAL": ual,
-            "operation": {"status": "COMPLETED"},
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _get_assertion_size = Method(BlockchainRequest.get_assertion_size)
@@ -736,7 +770,7 @@ class ContentAsset(Module):
         self,
         ual: UAL,
         token_amount: Wei | None = None,
-    ) -> dict[str, UAL | dict[str, str]]:
+    ) -> dict[str, UAL | TxReceipt]:
         parsed_ual = parse_ual(ual)
         blockchain_id, content_asset_storage_address, token_id = (
             parsed_ual["blockchain"],
@@ -782,11 +816,11 @@ class ContentAsset(Module):
                     "more tokens!"
                 )
 
-        self._add_tokens(token_id, token_amount)
+        receipt: TxReceipt = self._add_tokens(token_id, token_amount)
 
         return {
             "UAL": ual,
-            "operation": {"status": "COMPLETED"},
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _add_update_tokens = Method(BlockchainRequest.increase_asset_update_token_amount)
@@ -795,7 +829,7 @@ class ContentAsset(Module):
         self,
         ual: UAL,
         token_amount: Wei | None = None,
-    ) -> dict[str, UAL | dict[str, str]]:
+    ) -> dict[str, UAL | TxReceipt]:
         parsed_ual = parse_ual(ual)
         blockchain_id, content_asset_storage_address, token_id = (
             parsed_ual["blockchain"],
@@ -839,11 +873,11 @@ class ContentAsset(Module):
                     "more update tokens!"
                 )
 
-        self._add_update_tokens(token_id, token_amount)
+        receipt: TxReceipt = self._add_update_tokens(token_id, token_amount)
 
         return {
             "UAL": ual,
-            "operation": {"status": "COMPLETED"},
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     def get_owner(self, ual: UAL) -> Address:
