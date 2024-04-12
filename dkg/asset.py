@@ -44,7 +44,6 @@ from dkg.exceptions import (
     InvalidKnowledgeAsset,
     InvalidStateOption,
     InvalidTokenAmount,
-    InvalidBidSuggestionOption,
     MissingKnowledgeAssetState,
     OperationNotFinished,
 )
@@ -223,13 +222,7 @@ class ContentAsset(Module):
             "ContentAssetStorage"
         )
 
-        if token_amount is None or isinstance(token_amount, BidSuggestionRange):
-            if token_amount == BidSuggestionRange.ALL:
-                raise InvalidBidSuggestionOption(
-                    f"Allowed bid suggestion ranges for this function: "
-                    "LOW, MEDIUM, HIGH"
-                )
-
+        if token_amount is None:
             token_amount = int(
                 self._get_bid_suggestion(
                     blockchain_id,
@@ -382,13 +375,7 @@ class ContentAsset(Module):
         ).root
         public_assertion_metadata = generate_assertion_metadata(assertions["public"])
 
-        if token_amount is None or isinstance(token_amount, BidSuggestionRange):
-            if token_amount == BidSuggestionRange.ALL:
-                raise InvalidBidSuggestionOption(
-                    f"Allowed bid suggestion ranges for this function: "
-                    "LOW, MEDIUM, HIGH"
-                )
-
+        if token_amount is None:
             agreement_id = self.get_agreement_id(
                 content_asset_storage_address, token_id
             )
@@ -753,13 +740,7 @@ class ContentAsset(Module):
             parsed_ual["token_id"],
         )
 
-        if token_amount is None or isinstance(token_amount, BidSuggestionRange):
-            if token_amount == BidSuggestionRange.ALL:
-                raise InvalidBidSuggestionOption(
-                    f"Allowed bid suggestion ranges for this function: "
-                    "LOW, MEDIUM, HIGH"
-                )
-
+        if token_amount is None:
             latest_finalized_state = self._get_latest_assertion_id(token_id)
             latest_finalized_state_size = self._get_assertion_size(
                 latest_finalized_state
@@ -801,13 +782,7 @@ class ContentAsset(Module):
             parsed_ual["token_id"],
         )
 
-        if token_amount is None or isinstance(token_amount, BidSuggestionRange):
-            if token_amount == BidSuggestionRange.ALL:
-                raise InvalidBidSuggestionOption(
-                    f"Allowed bid suggestion ranges for this function: "
-                    "LOW, MEDIUM, HIGH"
-                )
-
+        if token_amount is None:
             agreement_id = self.get_agreement_id(
                 content_asset_storage_address, token_id
             )
@@ -867,13 +842,7 @@ class ContentAsset(Module):
             parsed_ual["token_id"],
         )
 
-        if token_amount is None or isinstance(token_amount, BidSuggestionRange):
-            if token_amount == BidSuggestionRange.ALL:
-                raise InvalidBidSuggestionOption(
-                    f"Allowed bid suggestion ranges for this function: "
-                    "LOW, MEDIUM, HIGH"
-                )
-
+        if token_amount is None:
             agreement_id = self.get_agreement_id(
                 content_asset_storage_address, token_id
             )
