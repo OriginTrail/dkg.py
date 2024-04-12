@@ -126,6 +126,14 @@ class AccountMissing(DKGException):
     pass
 
 
+class InvalidBidSuggestionOption(DKGException):
+    """
+    Rasied when trying to use ALL bid suggestion range for token amount estimation.
+    """
+
+    pass
+
+
 class InvalidDataset(DKGException):
     """
     Raised when dataset URDNA2015 normalization doesn't result in any quads.

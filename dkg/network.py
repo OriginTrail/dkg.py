@@ -16,6 +16,7 @@
 # under the License.
 
 from dkg.constants import DEFAULT_HASH_FUNCTION_ID
+from dkg.dataclasses import BidSuggestionRange
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.module import Module
@@ -33,19 +34,28 @@ class Network(Module):
     _get_bid_suggestion = Method(NodeRequest.bid_suggestion)
 
     def get_bid_suggestion(
-        self, public_assertion_id: DataHexStr, size_in_bytes: int, epochs_number: int,
+        self,
+        public_assertion_id: DataHexStr,
+        size_in_bytes: int,
+        epochs_number: int,
+        range: BidSuggestionRange = BidSuggestionRange.LOW.value,
     ) -> int:
         content_asset_storage_address = self._get_asset_storage_address(
             "ContentAssetStorage"
         )
 
-        return int(
-            self._get_bid_suggestion(
-                self.manager.blockchain_provider.blockchain_id,
-                epochs_number,
-                size_in_bytes,
-                content_asset_storage_address,
-                public_assertion_id,
-                DEFAULT_HASH_FUNCTION_ID,
-            )["bidSuggestion"]
+        response = self._get_bid_suggestion(
+            self.manager.blockchain_provider.blockchain_id,
+            epochs_number,
+            size_in_bytes,
+            content_asset_storage_address,
+            public_assertion_id,
+            DEFAULT_HASH_FUNCTION_ID,
+            range,
+        )
+
+        return (
+            int(response["bidSuggestion"])
+            if range != BidSuggestionRange.ALL
+            else response
         )

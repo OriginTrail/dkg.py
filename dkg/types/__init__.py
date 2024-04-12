@@ -1,3 +1,4 @@
+from .general import AutoStrEnum, AutoStrEnumUpperCase # NOQA: F401
 from .blockchain import (ABI, ABIElement, ABIError, ABIEvent,  # NOQA: F401
                          ABIFunction, ABIParameter, AgreementData, Environment)
 from .dkg_node import UAL  # NOQA: F401
