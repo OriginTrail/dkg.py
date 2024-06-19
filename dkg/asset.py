@@ -34,6 +34,7 @@ from dkg.constants import (
     PRIVATE_HISTORICAL_REPOSITORY,
 )
 from dkg.dataclasses import (
+    BidSuggestionRange,
     KnowledgeAssetContentVisibility,
     KnowledgeAssetEnumStates,
     NodeResponseDict,
@@ -230,6 +231,7 @@ class ContentAsset(Module):
                     content_asset_storage_address,
                     public_assertion_id,
                     DEFAULT_HASH_FUNCTION_ID,
+                    token_amount or BidSuggestionRange.LOW,
                 )["bidSuggestion"]
             )
 
@@ -396,6 +398,7 @@ class ContentAsset(Module):
                     content_asset_storage_address,
                     public_assertion_id,
                     DEFAULT_HASH_FUNCTION_ID,
+                    token_amount or BidSuggestionRange.LOW,
                 )["bidSuggestion"]
             )
 
@@ -499,8 +502,8 @@ class ContentAsset(Module):
     def get(
         self,
         ual: UAL,
-        state: str | HexStr | int = KnowledgeAssetEnumStates.LATEST.value,
-        content_visibility: str = KnowledgeAssetContentVisibility.ALL.value,
+        state: str | HexStr | int = KnowledgeAssetEnumStates.LATEST,
+        content_visibility: str = KnowledgeAssetContentVisibility.ALL,
         output_format: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
         validate: bool = True,
     ) -> dict[str, UAL | HexStr | list[JSONLD] | dict[str, str]]:
@@ -528,10 +531,10 @@ class ContentAsset(Module):
         is_state_finalized = False
 
         match state:
-            case KnowledgeAssetEnumStates.LATEST.value:
+            case KnowledgeAssetEnumStates.LATEST:
                 public_assertion_id, is_state_finalized = handle_latest_state(token_id)
 
-            case KnowledgeAssetEnumStates.LATEST_FINALIZED.value:
+            case KnowledgeAssetEnumStates.LATEST_FINALIZED:
                 public_assertion_id, is_state_finalized = handle_latest_finalized_state(
                     token_id
                 )
@@ -592,7 +595,7 @@ class ContentAsset(Module):
                 )
 
         result = {"operation": {}}
-        if content_visibility != KnowledgeAssetContentVisibility.PRIVATE.value:
+        if content_visibility != KnowledgeAssetContentVisibility.PRIVATE:
             formatted_public_assertion = public_assertion
 
             match output_format:
@@ -609,7 +612,7 @@ class ContentAsset(Module):
                         f"{output_format} isn't supported!"
                     )
 
-            if content_visibility == KnowledgeAssetContentVisibility.PUBLIC.value:
+            if content_visibility == KnowledgeAssetContentVisibility.PUBLIC:
                 result = {
                     **result,
                     "asertion": formatted_public_assertion,
@@ -626,7 +629,7 @@ class ContentAsset(Module):
                 "status": get_public_operation_result["status"],
             }
 
-        if content_visibility != KnowledgeAssetContentVisibility.PUBLIC.value:
+        if content_visibility != KnowledgeAssetContentVisibility.PUBLIC:
             private_assertion_link_triples = list(
                 filter(
                     lambda element: PRIVATE_ASSERTION_PREDICATE in element,
@@ -702,7 +705,7 @@ class ContentAsset(Module):
                                 f"{output_format} isn't supported!"
                             )
 
-                    if content_visibility == KnowledgeAssetContentVisibility.PRIVATE:
+                    if content_visibility == KnowledgeAssetContentVisibility:
                         result = {
                             **result,
                             "assertion": formatted_private_assertion,
@@ -751,6 +754,7 @@ class ContentAsset(Module):
                     content_asset_storage_address,
                     latest_finalized_state,
                     DEFAULT_HASH_FUNCTION_ID,
+                    token_amount or BidSuggestionRange.LOW,
                 )["bidSuggestion"]
             )
 
@@ -806,6 +810,7 @@ class ContentAsset(Module):
                     content_asset_storage_address,
                     latest_finalized_state,
                     DEFAULT_HASH_FUNCTION_ID,
+                    token_amount or BidSuggestionRange.LOW,
                 )["bidSuggestion"]
             ) - sum(agreement_data.tokensInfo)
 
@@ -863,6 +868,7 @@ class ContentAsset(Module):
                     content_asset_storage_address,
                     unfinalized_state,
                     DEFAULT_HASH_FUNCTION_ID,
+                    token_amount or BidSuggestionRange.LOW,
                 )["bidSuggestion"]
             ) - sum(agreement_data.tokensInfo)
 

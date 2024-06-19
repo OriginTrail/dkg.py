@@ -16,12 +16,12 @@
 # under the License.
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import auto, Enum
 from typing import Any, Type
 
-from dkg.dataclasses import HTTPRequestMethod
+from dkg.dataclasses import BidSuggestionRange, HTTPRequestMethod
 from dkg.exceptions import OperationFailed, OperationNotFinished
-from dkg.types import UAL, Address, DataHexStr, NQuads
+from dkg.types import  AutoStrEnumUpperCase, UAL, Address, DataHexStr, NQuads
 
 
 @dataclass
@@ -44,6 +44,7 @@ class NodeRequest:
             "contentAssetStorageAddress": Address,
             "firstAssertionId": DataHexStr,
             "hashFunctionId": int,
+            "bidSuggestionRange": BidSuggestionRange,
         },
     )
     get_operation_result = NodeCall(
@@ -92,86 +93,82 @@ class NodeRequest:
     )
 
 
-class LocalStoreOperationStatus(Enum):
-    LOCAL_STORE_INIT_START = "LOCAL_STORE_INIT_START"
-    LOCAL_STORE_INIT_END = "LOCAL_STORE_INIT_END"
-    LOCAL_STORE_START = "LOCAL_STORE_START"
-    LOCAL_STORE_END = "LOCAL_STORE_END"
+class LocalStoreOperationStatus(AutoStrEnumUpperCase):
+    LOCAL_STORE_INIT_START = auto()
+    LOCAL_STORE_INIT_END = auto()
+    LOCAL_STORE_START = auto()
+    LOCAL_STORE_END = auto()
 
 
 class PublishOperationStatus(Enum):
-    VALIDATING_PUBLISH_ASSERTION_REMOTE_START = (
-        "VALIDATING_PUBLISH_ASSERTION_REMOTE_START"
-    )
-    VALIDATING_PUBLISH_ASSERTION_REMOTE_END = "VALIDATING_PUBLISH_ASSERTION_REMOTE_END"
-    INSERTING_ASSERTION = "INSERTING_ASSERTION"
-    PUBLISHING_ASSERTION = "PUBLISHING_ASSERTION"
-    PUBLISH_START = "PUBLISH_START"
-    PUBLISH_INIT_START = "PUBLISH_INIT_START"
-    PUBLISH_INIT_END = "PUBLISH_INIT_END"
-    PUBLISH_LOCAL_STORE_START = "PUBLISH_LOCAL_STORE_START"
-    PUBLISH_LOCAL_STORE_END = "PUBLISH_LOCAL_STORE_END"
-    PUBLISH_REPLICATE_START = "PUBLISH_REPLICATE_START"
-    PUBLISH_REPLICATE_END = "PUBLISH_REPLICATE_END"
-    PUBLISH_END = "PUBLISH_END"
+    VALIDATING_PUBLISH_ASSERTION_REMOTE_START = auto()
+    VALIDATING_PUBLISH_ASSERTION_REMOTE_END = auto()
+    INSERTING_ASSERTION = auto()
+    PUBLISHING_ASSERTION = auto()
+    PUBLISH_START = auto()
+    PUBLISH_INIT_START = auto()
+    PUBLISH_INIT_END = auto()
+    PUBLISH_LOCAL_STORE_START = auto()
+    PUBLISH_LOCAL_STORE_END = auto()
+    PUBLISH_REPLICATE_START = auto()
+    PUBLISH_REPLICATE_END = auto()
+    PUBLISH_END = auto()
 
 
-class UpdateOperationStatus(Enum):
-    UPDATE_START = "UPDATE_START"
-    UPDATE_INIT_START = "UPDATE_INIT_START"
-    UPDATE_INIT_END = "UPDATE_INIT_END"
-    UPDATE_REPLICATE_START = "UPDATE_REPLICATE_START"
-    UPDATE_REPLICATE_END = "UPDATE_REPLICATE_END"
-    VALIDATING_UPDATE_ASSERTION_REMOTE_START = (
-        "VALIDATING_UPDATE_ASSERTION_REMOTE_START"
-    )
-    VALIDATING_UPDATE_ASSERTION_REMOTE_END = "VALIDATING_UPDATE_ASSERTION_REMOTE_END"
-    UPDATE_END = "UPDATE_END"
+class UpdateOperationStatus(AutoStrEnumUpperCase):
+    UPDATE_START = auto()
+    UPDATE_INIT_START = auto()
+    UPDATE_INIT_END = auto()
+    UPDATE_REPLICATE_START = auto()
+    UPDATE_REPLICATE_END = auto()
+    VALIDATING_UPDATE_ASSERTION_REMOTE_START = auto()
+    VALIDATING_UPDATE_ASSERTION_REMOTE_END = auto()
+    UPDATE_END = auto()
 
 
-class StoreTypes(Enum):
-    TRIPLE = "TRIPLE"
-    PENDING = "PENDING"
+class StoreTypes(AutoStrEnumUpperCase):
+    TRIPLE = auto()
+    PENDING = auto()
 
 
-class GetOperationStatus(Enum):
-    ASSERTION_EXISTS_LOCAL_START = "ASSERTION_EXISTS_LOCAL_START"
-    ASSERTION_EXISTS_LOCAL_END = "ASSERTION_EXISTS_LOCAL_END"
-    GET_START = "GET_START"
-    GET_INIT_START = "GET_INIT_START"
-    GET_INIT_END = "GET_INIT_END"
-    GET_LOCAL_START = "GET_LOCAL_START"
-    GET_LOCAL_END = "GET_LOCAL_END"
-    GET_REMOTE_START = "GET_REMOTE_START"
-    GET_REMOTE_END = "GET_REMOTE_END"
-    GET_FETCH_FROM_NODES_START = "GET_FETCH_FROM_NODES_START"
-    GET_FETCH_FROM_NODES_END = "GET_FETCH_FROM_NODES_END"
-    GET_END = "GET_END"
+class GetOperationStatus(AutoStrEnumUpperCase):
+    ASSERTION_EXISTS_LOCAL_START = auto()
+    ASSERTION_EXISTS_LOCAL_END = auto()
+    GET_START = auto()
+    GET_INIT_START = auto()
+    GET_INIT_END = auto()
+    GET_LOCAL_START = auto()
+    GET_LOCAL_END = auto()
+    GET_REMOTE_START = auto()
+    GET_REMOTE_END = auto()
+    GET_FETCH_FROM_NODES_START = auto()
+    GET_FETCH_FROM_NODES_END = auto()
+    GET_END = auto()
 
 
-class QueryOperationStatus(Enum):
-    QUERY_INIT_START = "QUERY_INIT_START"
-    QUERY_INIT_END = "QUERY_INIT_END"
-    QUERY_START = "QUERY_START"
-    QUERY_END = "QUERY_END"
+class QueryOperationStatus(AutoStrEnumUpperCase):
+    QUERY_INIT_START = auto()
+    QUERY_INIT_END = auto()
+    QUERY_START = auto()
+    QUERY_END = auto()
 
 
-class OperationStatus(Enum):
-    PENDING = "PENDING"
-    FAILED = "FAILED"
-    COMPLETED = "COMPLETED"
-    FIND_NODES_START = "FIND_NODES_START"
-    FIND_NODES_END = "FIND_NODES_END"
-    FIND_NODES_LOCAL_START = "FIND_NODES_LOCAL_START"
-    FIND_NODES_LOCAL_END = "FIND_NODES_LOCAL_END"
-    FIND_NODES_OPEN_CONNECTION_START = "FIND_NODES_OPEN_CONNECTION_START"
-    FIND_NODES_OPEN_CONNECTION_END = "FIND_NODES_OPEN_CONNECTION_END"
-    FIND_NODES_CREATE_STREAM_START = "FIND_NODES_CREATE_STREAM_START"
-    FIND_NODES_CREATE_STREAM_END = "FIND_NODES_CREATE_STREAM_END"
-    FIND_NODES_SEND_MESSAGE_START = "FIND_NODES_SEND_MESSAGE_START"
-    FIND_NODES_SEND_MESSAGE_END = "FIND_NODES_SEND_MESSAGE_END"
-    DIAL_PROTOCOL_START = "DIAL_PROTOCOL_START"
-    DIAL_PROTOCOL_END = "DIAL_PROTOCOL_END"
+class OperationStatus(AutoStrEnumUpperCase):
+    PENDING = auto()
+    FAILED = auto()
+    COMPLETED = auto()
+    FIND_NODES_START = auto()
+    FIND_NODES_END = auto()
+    FIND_NODES_LOCAL_START = auto()
+    FIND_NODES_LOCAL_END = auto()
+    FIND_NODES_OPEN_CONNECTION_START = auto()
+    FIND_NODES_OPEN_CONNECTION_END = auto()
+    FIND_NODES_CREATE_STREAM_START = auto()
+    FIND_NODES_CREATE_STREAM_END = auto()
+    FIND_NODES_SEND_MESSAGE_START = auto()
+    FIND_NODES_SEND_MESSAGE_END = auto()
+    DIAL_PROTOCOL_START = auto()
+    DIAL_PROTOCOL_END = auto()
     LOCAL_STORE = LocalStoreOperationStatus
     PUBLISH = PublishOperationStatus
     UPDATE = UpdateOperationStatus

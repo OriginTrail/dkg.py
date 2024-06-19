@@ -190,6 +190,9 @@ class BlockchainProvider:
         self.w3.eth.default_account = self.account.address
 
     def _get_network_gas_price(self) -> Wei | None:
+        if self.environment == "development":
+            return None
+
         blockchain_name, _ = self.blockchain_id.split(":")
 
         default_gas_price = self.w3.to_wei(

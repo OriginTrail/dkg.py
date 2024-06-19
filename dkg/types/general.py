@@ -15,39 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from enum import auto, Enum
+from enum import Enum
 
-import pandas as pd
-
-from dkg.types import AutoStrEnum, AutoStrEnumUpperCase
-
-
-class BlockchainResponseDict(dict):
-    pass
+class AutoStrEnum(str, Enum):
+    @staticmethod
+    def _generate_next_value_(name: str, start: int, count: int, last_values: list) -> str:
+        return name.lower()
 
 
-class HTTPRequestMethod(Enum):
-    GET = 1
-    POST = 2
-
-
-class NodeResponseDict(dict):
-    def to_dataframe(self) -> pd.DataFrame:
-        return pd.DataFrame(self)
-
-
-class BidSuggestionRange(AutoStrEnum):
-    LOW = auto()
-    MEDIUM = auto()
-    HIGH = auto()
-    ALL = auto()
-
-class KnowledgeAssetEnumStates(AutoStrEnumUpperCase):
-    LATEST = auto()
-    LATEST_FINALIZED = auto()
-
-
-class KnowledgeAssetContentVisibility(AutoStrEnumUpperCase):
-    ALL = auto()
-    PUBLIC = auto()
-    PRIVATE = auto()
+class AutoStrEnumUpperCase(str, Enum):
+    @staticmethod
+    def _generate_next_value_(name: str, start: int, count: int, last_values: list) -> str:
+        return name
