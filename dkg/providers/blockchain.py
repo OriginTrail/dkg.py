@@ -137,14 +137,18 @@ class BlockchainProvider:
     @handle_updated_contract
     def call_function(
         self,
-        contract: str,
+        contract: str | Contract,
         function: str,
         args: dict[str, Any] = {},
         state_changing: bool = False,
         gas_price: Wei | None = None,
         gas_limit: Wei | None = None,
     ) -> TxReceipt | Any:
-        contract_instance = self.contracts[contract]
+        contract_instance = (
+            self.contracts[contract]
+            if isinstance(contract, str)
+            else contract
+        )
         contract_function: ContractFunction = getattr(
             contract_instance.functions, function
         )
@@ -181,6 +185,9 @@ class BlockchainProvider:
             .events[event_name]()
             .process_receipt(receipt, errors=DISCARD)
         )
+    
+    def set_contract(self, key: str, contract: Contract):
+        self.contracts[key] = contract
 
     def set_account(self, private_key: DataHexStr):
         self.account: LocalAccount = self.w3.eth.account.from_key(private_key)
@@ -232,7 +239,8 @@ class BlockchainProvider:
             if contract == "Hub":
                 continue
 
-            self._update_contract_instance(contract)
+            if (self.contracts["Hub"].functions.isContract(contract).call()):
+                self._update_contract_instance(contract)
 
     def _update_contract_instance(self, contract: str):
         self.contracts[contract] = self.w3.eth.contract(

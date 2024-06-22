@@ -1,0 +1,436 @@
+import json
+
+from typing import Any
+from web3 import Web3
+from web3.contract import Contract
+from web3.types import TxReceipt
+
+from dkg.dataclasses import ParanetIncentivizationType
+from dkg.manager import DefaultRequestManager
+from dkg.method import Method
+from dkg.module import Module
+from dkg.types import Address, UAL, HexStr
+from dkg.utils.blockchain_request import BlockchainRequest
+from dkg.utils.ual import parse_ual
+
+
+class Paranet(Module):
+    def __init__(self, manager: DefaultRequestManager):
+        self.manager = manager
+
+    _register_paranet = Method(BlockchainRequest.register_paranet)
+
+    def create(
+        self, ual: UAL, name: str, description: str
+    ) -> dict[str, str | HexStr | TxReceipt]:
+        parsed_ual = parse_ual(ual)
+        knowledge_asset_storage, knowledge_asset_token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
+
+        receipt: TxReceipt = self._register_paranet(
+            knowledge_asset_storage,
+            knowledge_asset_token_id,
+            name,
+            description,
+        )
+
+        return {
+            "UAL": ual,
+            "paranetId": Web3.solidity_keccak(
+                ["address", "uint256"],
+                [knowledge_asset_storage, knowledge_asset_token_id],
+            ),
+            "operation": json.loads(Web3.to_json(receipt)),
+        }
+
+    _deploy_neuro_incentives_pool = Method(
+        BlockchainRequest.deploy_neuro_incentives_pool
+    )
+
+    incentives_pools_deployment_functions = {
+        ParanetIncentivizationType.NEUROWEB: _deploy_neuro_incentives_pool,
+    }
+
+    def deploy_incentives_contract(
+        self,
+        ual: UAL,
+        incentives_pool_parameters: dict[str, Any],
+        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+    ) -> dict[str, str | HexStr | TxReceipt]:
+        deploy_incentives_pool_fn = self.incentives_pools_deployment_functions.get(
+            incentives_type,
+            None,
+        )
+
+        if deploy_incentives_pool_fn is None:
+            raise ValueError(
+                f"{incentives_type} Incentive Type isn't supported. Supported "
+                f"Incentive Types: {self.incentives_pools_deployment_functions.keys()}"
+            )
+
+        parsed_ual = parse_ual(ual)
+        knowledge_asset_storage, knowledge_asset_token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
+
+        receipt: TxReceipt = deploy_incentives_pool_fn(
+            knowledge_asset_storage,
+            knowledge_asset_token_id,
+            **incentives_pool_parameters,
+        )
+
+        events = self.manager.blockchain_provider.decode_logs_event(
+            receipt,
+            "ParanetIncentivesPoolFactory",
+            "ParanetIncetivesPoolDeployed",
+        )
+
+        return {
+            "UAL": ual,
+            "paranetId": Web3.solidity_keccak(
+                ["address", "uint256"],
+                [knowledge_asset_storage, knowledge_asset_token_id],
+            ),
+            "incentivesPoolAddress": events[0].args["incentivePool"]["addr"],
+            "operation": json.loads(Web3.to_json(receipt)),
+        }
+
+    _get_incentives_pool_address = Method(BlockchainRequest.get_incentives_pool_address)
+
+    def get_incentives_pool_address(
+        self,
+        ual: UAL,
+        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+    ) -> Address:
+        parsed_ual = parse_ual(ual)
+        knowledge_asset_storage, knowledge_asset_token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
+        paranet_id = Web3.solidity_keccak(
+            ["address", "uint256"], [knowledge_asset_storage, knowledge_asset_token_id]
+        )
+
+        return self._get_incentives_pool_address(paranet_id, incentives_type)
+
+    _register_paranet_service = Method(BlockchainRequest.register_paranet_service)
+
+    def create_service(
+        self, ual: UAL, name: str, description: str, addresses: list[Address]
+    ) -> dict[str, str | HexStr | TxReceipt]:
+        parsed_ual = parse_ual(ual)
+        knowledge_asset_storage, knowledge_asset_token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
+
+        receipt: TxReceipt = self._register_paranet_service(
+            knowledge_asset_storage,
+            knowledge_asset_token_id,
+            name,
+            description,
+            addresses,
+        )
+
+        return {
+            "UAL": ual,
+            "paranetServiceId": Web3.solidity_keccak(
+                ["address", "uint256"],
+                [knowledge_asset_storage, knowledge_asset_token_id],
+            ),
+            "operation": json.loads(Web3.to_json(receipt)),
+        }
+
+    _add_paranet_services = Method(BlockchainRequest.add_paranet_services)
+
+    def add_services(
+        self, ual: UAL, services_uals: list[UAL]
+    ) -> dict[str, str | HexStr | TxReceipt]:
+        parsed_paranet_ual = parse_ual(ual)
+        paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id = (
+            parsed_paranet_ual["contract_address"],
+            parsed_paranet_ual["token_id"],
+        )
+
+        parsed_service_uals = []
+        for service_ual in services_uals:
+            parsed_service_ual = parse_ual(service_ual)
+            (service_knowledge_asset_storage, service_knowledge_asset_token_id) = (
+                parsed_service_ual["contract_address"],
+                parsed_service_ual["token_id"],
+            )
+
+            parsed_service_uals.append(
+                {
+                    "knowledgeAssetStorageContract": service_knowledge_asset_storage,
+                    "tokenId": service_knowledge_asset_token_id,
+                }
+            )
+
+        receipt: TxReceipt = self._add_paranet_services(
+            paranet_knowledge_asset_storage,
+            paranet_knowledge_asset_token_id,
+            parsed_service_uals,
+        )
+
+        return {
+            "UAL": ual,
+            "paranetId": Web3.solidity_keccak(
+                ["address", "uint256"],
+                [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
+            ),
+            "operation": json.loads(Web3.to_json(receipt)),
+        }
+
+    _is_knowledge_miner = Method(BlockchainRequest.is_knowledge_miner)
+
+    def is_knowledge_miner(self, address: Address | None = None) -> bool:
+        return self._is_knowledge_miner(
+            address or self.manager.blockchain_provider.account.address
+        )
+
+    _is_paranet_operator = Method(BlockchainRequest.is_paranet_operator)
+
+    def is_operator(self, address: Address | None = None) -> bool:
+        return self._is_paranet_operator(
+            address or self.manager.blockchain_provider.account.address
+        )
+
+    _is_proposal_voter = Method(BlockchainRequest.is_proposal_voter)
+
+    def is_voter(self, address: Address | None = None) -> bool:
+        return self._is_proposal_voter(
+            address or self.manager.blockchain_provider.account.address
+        )
+
+    _get_claimable_knowledge_miner_reward_amount = Method(
+        BlockchainRequest.get_claimable_knowledge_miner_reward_amount
+    )
+
+    def calculate_claimable_miner_reward_amount(
+        self,
+        ual: UAL,
+        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+    ) -> int:
+        incentives_pool = self._get_incentives_pool_contract(ual, incentives_type)
+        self._get_claimable_knowledge_miner_reward_amount.action[
+            "contract"
+        ] = incentives_pool
+
+        return self._get_claimable_knowledge_miner_reward_amount()
+
+    _get_claimable_all_knowledge_miners_reward_amount = Method(
+        BlockchainRequest.get_claimable_all_knowledge_miners_reward_amount
+    )
+
+    def calculate_all_claimable_miner_rewards_amount(
+        self,
+        ual: UAL,
+        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+    ) -> int:
+        incentives_pool = self._get_incentives_pool_contract(ual, incentives_type)
+        self._get_claimable_all_knowledge_miners_reward_amount.action[
+            "contract"
+        ] = incentives_pool
+
+        return self._get_claimable_all_knowledge_miners_reward_amount()
+
+    _claim_knowledge_miner_reward = Method(
+        BlockchainRequest.claim_knowledge_miner_reward
+    )
+
+    def claim_miner_reward(
+        self,
+        ual: UAL,
+        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+    ) -> dict[str, str | HexStr | TxReceipt]:
+        incentives_pool = self._get_incentives_pool_contract(ual, incentives_type)
+        self._claim_knowledge_miner_reward.action["contract"] = incentives_pool
+
+        receipt: TxReceipt = self._claim_knowledge_miner_reward()
+
+        parsed_ual = parse_ual(ual)
+        knowledge_asset_storage, knowledge_asset_token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
+
+        return {
+            "UAL": ual,
+            "paranetId": Web3.solidity_keccak(
+                ["address", "uint256"],
+                [knowledge_asset_storage, knowledge_asset_token_id],
+            ),
+            "operation": json.loads(Web3.to_json(receipt)),
+        }
+
+    _get_claimable_paranet_operator_reward_amount = Method(
+        BlockchainRequest.get_claimable_paranet_operator_reward_amount
+    )
+
+    def calculate_claimable_operator_reward_amount(
+        self,
+        ual: UAL,
+        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+    ) -> int:
+        incentives_pool = self._get_incentives_pool_contract(ual, incentives_type)
+        self._get_claimable_paranet_operator_reward_amount.action[
+            "contract"
+        ] = incentives_pool
+
+        return self._get_claimable_paranet_operator_reward_amount()
+
+    _claim_paranet_operator_reward = Method(
+        BlockchainRequest.claim_paranet_operator_reward
+    )
+
+    def claim_operator_reward(
+        self,
+        ual: UAL,
+        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+    ) -> dict[str, str | HexStr | TxReceipt]:
+        incentives_pool = self._get_incentives_pool_contract(ual, incentives_type)
+        self._claim_paranet_operator_reward.action["contract"] = incentives_pool
+
+        receipt: TxReceipt = self._claim_paranet_operator_reward()
+
+        parsed_ual = parse_ual(ual)
+        knowledge_asset_storage, knowledge_asset_token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
+
+        return {
+            "UAL": ual,
+            "paranetId": Web3.solidity_keccak(
+                ["address", "uint256"],
+                [knowledge_asset_storage, knowledge_asset_token_id],
+            ),
+            "operation": json.loads(Web3.to_json(receipt)),
+        }
+
+    _get_claimable_proposal_voter_reward_amount = Method(
+        BlockchainRequest.get_claimable_proposal_voter_reward_amount
+    )
+
+    def calculate_claimable_voter_reward_amount(
+        self,
+        ual: UAL,
+        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+    ) -> int:
+        incentives_pool = self._get_incentives_pool_contract(ual, incentives_type)
+        self._get_claimable_proposal_voter_reward_amount.action[
+            "contract"
+        ] = incentives_pool
+
+        return self._get_claimable_proposal_voter_reward_amount()
+
+    _get_claimable_all_proposal_voters_reward_amount = Method(
+        BlockchainRequest.get_claimable_all_proposal_voters_reward_amount
+    )
+
+    def calculate_all_claimable_voters_reward_amount(
+        self,
+        ual: UAL,
+        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+    ) -> int:
+        incentives_pool = self._get_incentives_pool_contract(ual, incentives_type)
+        self._get_claimable_all_proposal_voters_reward_amount.action[
+            "contract"
+        ] = incentives_pool
+
+        return self._get_claimable_all_proposal_voters_reward_amount()
+
+    _claim_incentivization_proposal_voter_reward = Method(
+        BlockchainRequest.claim_incentivization_proposal_voter_reward
+    )
+
+    def claim_voter_reward(
+        self,
+        ual: UAL,
+        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+    ) -> dict[str, str | HexStr | TxReceipt]:
+        incentives_pool = self._get_incentives_pool_contract(ual, incentives_type)
+        self._claim_incentivization_proposal_voter_reward.action[
+            "contract"
+        ] = incentives_pool
+
+        receipt: TxReceipt = self._claim_incentivization_proposal_voter_reward()
+
+        parsed_ual = parse_ual(ual)
+        knowledge_asset_storage, knowledge_asset_token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
+
+        return {
+            "UAL": ual,
+            "paranetId": Web3.solidity_keccak(
+                ["address", "uint256"],
+                [knowledge_asset_storage, knowledge_asset_token_id],
+            ),
+            "operation": json.loads(Web3.to_json(receipt)),
+        }
+
+    _get_updating_knowledge_asset_states = Method(
+        BlockchainRequest.get_updating_knowledge_asset_states
+    )
+    _process_updated_knowledge_asset_states_metadata = Method(
+        BlockchainRequest.process_updated_knowledge_asset_states_metadata
+    )
+
+    def update_claimable_rewards(self, ual: UAL) -> dict[str, str | HexStr | TxReceipt]:
+        parsed_ual = parse_ual(ual)
+        knowledge_asset_storage, knowledge_asset_token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
+
+        paranetId = Web3.solidity_keccak(
+            ["address", "uint256"], [knowledge_asset_storage, knowledge_asset_token_id]
+        )
+
+        updating_states = self._get_updating_knowledge_asset_states(
+            self.manager.blockchain_provider.account.address,
+            paranetId,
+        )
+        receipt: TxReceipt = self._process_updated_knowledge_asset_states_metadata(
+            knowledge_asset_storage,
+            knowledge_asset_token_id,
+            0,
+            len(updating_states) - 1,
+        )
+
+        return {
+            "UAL": ual,
+            "paranetId": paranetId,
+            "operation": json.loads(Web3.to_json(receipt)),
+        }
+
+    def _get_incentives_pool_contract(
+        self,
+        ual: UAL,
+        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+    ) -> Contract:
+        incentives_pool_name = f"Paranet{incentives_type}IncentivesPool"
+        is_incentives_pool_cached = (
+            incentives_pool_name in self.manager.blockchain_provider.contracts.keys()
+        )
+
+        if is_incentives_pool_cached:
+            incentives_pool = self.manager.blockchain_provider.contracts[
+                incentives_pool_name
+            ]
+        else:
+            incentives_pool = Web3.eth.contract(
+                address=self.get_incentives_pool_address(ual, incentives_type),
+                abi=self.manager.blockchain_provider.abi[incentives_pool_name],
+            )
+            self.manager.blockchain_provider.set_contract(
+                incentives_pool_name, incentives_pool
+            )
+
+        return incentives_pool

@@ -345,6 +345,19 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "cancelAssetStateUpdateFromContract",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "contentAssetStorage",
     "outputs": [
@@ -408,7 +421,79 @@
       }
     ],
     "name": "createAsset",
-    "outputs": [],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "originalSender",
+        "type": "address"
+      },
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "assertionId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "uint128",
+            "name": "size",
+            "type": "uint128"
+          },
+          {
+            "internalType": "uint32",
+            "name": "triplesNumber",
+            "type": "uint32"
+          },
+          {
+            "internalType": "uint96",
+            "name": "chunksNumber",
+            "type": "uint96"
+          },
+          {
+            "internalType": "uint16",
+            "name": "epochsNumber",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint96",
+            "name": "tokenAmount",
+            "type": "uint96"
+          },
+          {
+            "internalType": "uint8",
+            "name": "scoreFunctionId",
+            "type": "uint8"
+          },
+          {
+            "internalType": "bool",
+            "name": "immutable_",
+            "type": "bool"
+          }
+        ],
+        "internalType": "struct ContentAssetStructs.AssetInputArgs",
+        "name": "args",
+        "type": "tuple"
+      }
+    ],
+    "name": "createAssetFromContract",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -456,7 +541,13 @@
       }
     ],
     "name": "createAssetWithVariables",
-    "outputs": [],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -501,7 +592,7 @@
     "name": "hub",
     "outputs": [
       {
-        "internalType": "contract Hub",
+        "internalType": "contract HubV2",
         "name": "",
         "type": "address"
       }
@@ -571,6 +662,45 @@
     "outputs": [
       {
         "internalType": "contract ParametersStorage",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paranetKnowledgeAssetsRegistry",
+    "outputs": [
+      {
+        "internalType": "contract ParanetKnowledgeAssetsRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paranetKnowledgeMinersRegistry",
+    "outputs": [
+      {
+        "internalType": "contract ParanetKnowledgeMinersRegistry",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "paranetsRegistry",
+    "outputs": [
+      {
+        "internalType": "contract ParanetsRegistry",
         "name": "",
         "type": "address"
       }
