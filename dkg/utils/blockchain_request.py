@@ -253,13 +253,13 @@ class BlockchainRequest:
         },
     )
 
-    is_paranet_operator = ContractCall(
-        function="isParanetOperator",
-        args={"addr": Address},
-    )
-    is_knowledge_miner = ContractCall(
-        function="isKnowledgeMiner",
-        args={"addr": Address},
+    is_knowledge_miner_registered = ContractCall(
+        contract="ParanetsRegistry",
+        function="isKnowledgeMinerRegistered",
+        args={
+            "paranetId": HexStr,
+            "knowledgeMinerAddress": Address,
+        },
     )
     is_proposal_voter = ContractCall(
         function="isProposalVoter",

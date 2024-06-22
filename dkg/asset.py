@@ -244,7 +244,7 @@ class KnowledgeAsset(Module):
         result = {"publicAssertionId": public_assertion_id, "operation": {}}
 
         try:
-            if (paranetUAL is None):
+            if paranetUAL is None:
                 receipt: TxReceipt = self._create(
                     {
                         "assertionId": Web3.to_bytes(hexstr=public_assertion_id),
@@ -279,7 +279,7 @@ class KnowledgeAsset(Module):
                             self.manager.blockchain_provider.environment
                         ][blockchain_id],
                         "immutable_": immutable,
-                    }
+                    },
                 )
         except ContractLogicError as err:
             if is_allowance_increased:
@@ -349,10 +349,12 @@ class KnowledgeAsset(Module):
             }
 
         return result
-    
+
     _submit_knowledge_asset = Method(BlockchainRequest.submit_knowledge_asset)
 
-    def submit_to_paranet(self, ual: UAL, paranetUAL: UAL) -> dict[str, UAL | Address | TxReceipt]:
+    def submit_to_paranet(
+        self, ual: UAL, paranetUAL: UAL
+    ) -> dict[str, UAL | Address | TxReceipt]:
         parsed_ual = parse_ual(ual)
         knowledge_asset_storage, knowledge_asset_token_id = (
             parsed_ual["contract_address"],
@@ -376,8 +378,8 @@ class KnowledgeAsset(Module):
             "UAL": ual,
             "paranetUAL": paranetUAL,
             "paranetId": Web3.solidity_keccak(
-                ['address', 'uint256'],
-                [knowledge_asset_storage, knowledge_asset_token_id]
+                ["address", "uint256"],
+                [knowledge_asset_storage, knowledge_asset_token_id],
             ),
             "operation": json.loads(Web3.to_json(receipt)),
         }

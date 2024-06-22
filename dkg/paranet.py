@@ -185,23 +185,45 @@ class Paranet(Module):
             "operation": json.loads(Web3.to_json(receipt)),
         }
 
-    _is_knowledge_miner = Method(BlockchainRequest.is_knowledge_miner)
+    _is_knowledge_miner_registered = Method(
+        BlockchainRequest.is_knowledge_miner_registered
+    )
 
-    def is_knowledge_miner(self, address: Address | None = None) -> bool:
-        return self._is_knowledge_miner(
-            address or self.manager.blockchain_provider.account.address
+    def is_knowledge_miner(self, ual: UAL, address: Address | None = None) -> bool:
+        parsed_ual = parse_ual(ual)
+        knowledge_asset_storage, knowledge_asset_token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
         )
 
-    _is_paranet_operator = Method(BlockchainRequest.is_paranet_operator)
+        paranet_id = Web3.solidity_keccak(
+            ["address", "uint256"], [knowledge_asset_storage, knowledge_asset_token_id]
+        )
 
-    def is_operator(self, address: Address | None = None) -> bool:
-        return self._is_paranet_operator(
+        return self._is_knowledge_miner_registered(
+            paranet_id, address or self.manager.blockchain_provider.account.address
+        )
+
+    _owner_of = Method(BlockchainRequest.owner_of)
+
+    def is_operator(self, ual: UAL, address: Address | None = None) -> bool:
+        knowledge_asset_token_id = parse_ual(ual)["token_id"]
+
+        return self._owner_of(knowledge_asset_token_id) == (
             address or self.manager.blockchain_provider.account.address
         )
 
     _is_proposal_voter = Method(BlockchainRequest.is_proposal_voter)
 
-    def is_voter(self, address: Address | None = None) -> bool:
+    def is_voter(
+        self,
+        ual: UAL,
+        address: Address | None = None,
+        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+    ) -> bool:
+        incentives_pool = self._get_incentives_pool_contract(ual, incentives_type)
+        self._is_proposal_voter.action["contract"] = incentives_pool
+
         return self._is_proposal_voter(
             address or self.manager.blockchain_provider.account.address
         )
@@ -389,13 +411,13 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        paranetId = Web3.solidity_keccak(
+        paranet_id = Web3.solidity_keccak(
             ["address", "uint256"], [knowledge_asset_storage, knowledge_asset_token_id]
         )
 
         updating_states = self._get_updating_knowledge_asset_states(
             self.manager.blockchain_provider.account.address,
-            paranetId,
+            paranet_id,
         )
         receipt: TxReceipt = self._process_updated_knowledge_asset_states_metadata(
             knowledge_asset_storage,
@@ -406,7 +428,7 @@ class Paranet(Module):
 
         return {
             "UAL": ual,
-            "paranetId": paranetId,
+            "paranetId": paranet_id,
             "operation": json.loads(Web3.to_json(receipt)),
         }
 
