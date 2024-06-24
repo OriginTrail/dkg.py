@@ -26,7 +26,7 @@ from dkg.providers import BlockchainProvider, NodeHTTPProvider
 node_provider = NodeHTTPProvider("http://localhost:8900")
 blockchain_provider = BlockchainProvider(
     "development",
-    "hardhat1:31337",
+    "hardhat2:31337",
     private_key="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
 )
 

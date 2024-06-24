@@ -1,11 +1,28 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+
+#   http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
 import json
 
-from typing import Any
+from dataclasses import dataclass
 from web3 import Web3
 from web3.contract import Contract
 from web3.types import TxReceipt
 
-from dkg.dataclasses import ParanetIncentivizationType
+from dkg.dataclasses import BaseIncentivesPoolParams, ParanetIncentivizationType
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.module import Module
@@ -15,6 +32,23 @@ from dkg.utils.ual import parse_ual
 
 
 class Paranet(Module):
+    @dataclass
+    class NeuroWebIncentivesPoolParams(BaseIncentivesPoolParams):
+        neuro_emission_multiplier: float
+        operator_percentage: float
+        voters_percentage: float
+        
+        def to_contract_args(self) -> dict:
+            return {
+                "tracToNeuroEmissionMultiplier": int(
+                    self.neuro_emission_multiplier * (10 ** 12)
+                ),
+                "paranetOperatorRewardPercentage": int(self.operator_percentage * 100),
+                "paranetIncentivizationProposalVotersRewardPercentage": int(
+                    self.voters_percentage * 100
+                ),
+            }
+
     def __init__(self, manager: DefaultRequestManager):
         self.manager = manager
 
@@ -56,7 +90,7 @@ class Paranet(Module):
     def deploy_incentives_contract(
         self,
         ual: UAL,
-        incentives_pool_parameters: dict[str, Any],
+        incentives_pool_parameters: NeuroWebIncentivesPoolParams,
         incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
     ) -> dict[str, str | HexStr | TxReceipt]:
         deploy_incentives_pool_fn = self.incentives_pools_deployment_functions.get(
@@ -79,7 +113,7 @@ class Paranet(Module):
         receipt: TxReceipt = deploy_incentives_pool_fn(
             knowledge_asset_storage,
             knowledge_asset_token_id,
-            **incentives_pool_parameters,
+            **incentives_pool_parameters.to_contract_args(),
         )
 
         events = self.manager.blockchain_provider.decode_logs_event(
@@ -222,7 +256,7 @@ class Paranet(Module):
         incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
     ) -> bool:
         incentives_pool = self._get_incentives_pool_contract(ual, incentives_type)
-        self._is_proposal_voter.action["contract"] = incentives_pool
+        self._is_proposal_voter.action.contract = incentives_pool
 
         return self._is_proposal_voter(
             address or self.manager.blockchain_provider.account.address
@@ -270,7 +304,7 @@ class Paranet(Module):
         incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
     ) -> dict[str, str | HexStr | TxReceipt]:
         incentives_pool = self._get_incentives_pool_contract(ual, incentives_type)
-        self._claim_knowledge_miner_reward.action["contract"] = incentives_pool
+        self._claim_knowledge_miner_reward.action.contract = incentives_pool
 
         receipt: TxReceipt = self._claim_knowledge_miner_reward()
 
@@ -315,7 +349,7 @@ class Paranet(Module):
         incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
     ) -> dict[str, str | HexStr | TxReceipt]:
         incentives_pool = self._get_incentives_pool_contract(ual, incentives_type)
-        self._claim_paranet_operator_reward.action["contract"] = incentives_pool
+        self._claim_paranet_operator_reward.action.contract = incentives_pool
 
         receipt: TxReceipt = self._claim_paranet_operator_reward()
 

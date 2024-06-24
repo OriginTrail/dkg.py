@@ -239,7 +239,7 @@ class BlockchainProvider:
             if contract == "Hub":
                 continue
 
-            if (self.contracts["Hub"].functions.isContract(contract).call()):
+            if (self.contracts["Hub"].functions.isContract(contractName=contract).call()):
                 self._update_contract_instance(contract)
 
     def _update_contract_instance(self, contract: str):

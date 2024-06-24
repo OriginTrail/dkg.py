@@ -209,7 +209,7 @@ class KnowledgeAsset(Module):
         token_amount: Wei | None = None,
         immutable: bool = False,
         content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
-        paranetUAL: UAL | None = None,
+        paranet_ual: UAL | None = None,
     ) -> dict[str, UAL | HexStr | dict[str, dict[str, str] | TxReceipt]]:
         blockchain_id = self.manager.blockchain_provider.blockchain_id
         assertions = format_content(content, content_type)
@@ -244,7 +244,7 @@ class KnowledgeAsset(Module):
         result = {"publicAssertionId": public_assertion_id, "operation": {}}
 
         try:
-            if paranetUAL is None:
+            if paranet_ual is None:
                 receipt: TxReceipt = self._create(
                     {
                         "assertionId": Web3.to_bytes(hexstr=public_assertion_id),
@@ -260,7 +260,7 @@ class KnowledgeAsset(Module):
                     }
                 )
             else:
-                parsed_paranet_ual = parse_ual(paranetUAL)
+                parsed_paranet_ual = parse_ual(paranet_ual)
                 paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id = (
                     parsed_paranet_ual["contract_address"],
                     parsed_paranet_ual["token_id"],
@@ -353,7 +353,7 @@ class KnowledgeAsset(Module):
     _submit_knowledge_asset = Method(BlockchainRequest.submit_knowledge_asset)
 
     def submit_to_paranet(
-        self, ual: UAL, paranetUAL: UAL
+        self, ual: UAL, paranet_ual: UAL
     ) -> dict[str, UAL | Address | TxReceipt]:
         parsed_ual = parse_ual(ual)
         knowledge_asset_storage, knowledge_asset_token_id = (
@@ -361,7 +361,7 @@ class KnowledgeAsset(Module):
             parsed_ual["token_id"],
         )
 
-        parsed_paranet_ual = parse_ual(paranetUAL)
+        parsed_paranet_ual = parse_ual(paranet_ual)
         paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id = (
             parsed_paranet_ual["contract_address"],
             parsed_paranet_ual["token_id"],
@@ -376,7 +376,7 @@ class KnowledgeAsset(Module):
 
         return {
             "UAL": ual,
-            "paranetUAL": paranetUAL,
+            "paranetUAL": paranet_ual,
             "paranetId": Web3.solidity_keccak(
                 ["address", "uint256"],
                 [knowledge_asset_storage, knowledge_asset_token_id],

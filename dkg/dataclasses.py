@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+from dataclasses import dataclass
 from enum import auto, Enum
 
 import pandas as pd
@@ -56,3 +57,9 @@ class KnowledgeAssetContentVisibility(AutoStrEnumUpperCase):
 
 class ParanetIncentivizationType(AutoStrEnumCapitalize):
     NEUROWEB = auto()
+
+
+@dataclass
+class BaseIncentivesPoolParams:
+    def to_contract_args(self) -> dict:
+        raise NotImplementedError("This method should be overridden in subclasses")

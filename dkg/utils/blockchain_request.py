@@ -29,8 +29,8 @@ class JSONRPCRequest:
 
 @dataclass
 class ContractInteraction:
-    contract: str
-    function: str
+    contract: str | None = None
+    function: str | None = None
     args: dict[str, Type] = field(default_factory=dict)
 
 
