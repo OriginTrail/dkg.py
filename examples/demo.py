@@ -174,9 +174,7 @@ print("======================== ASSET UPDATED")
 print_json(update_asset_result)
 divider()
 
-get_latest_asset_result = dkg.asset.get(
-    create_asset_result["UAL"], "latest", "all"
-)
+get_latest_asset_result = dkg.asset.get(create_asset_result["UAL"], "latest", "all")
 print("======================== ASSET LATEST RESOLVED")
 print_json(get_latest_asset_result)
 divider()

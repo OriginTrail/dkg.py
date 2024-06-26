@@ -24,8 +24,12 @@ from typing import Any, Type
 
 import requests
 from dkg.constants import BLOCKCHAINS, DEFAULT_GAS_PRICE_GWEI
-from dkg.exceptions import (AccountMissing, EnvironmentNotSupported,
-                            NetworkNotSupported, RPCURINotDefined)
+from dkg.exceptions import (
+    AccountMissing,
+    EnvironmentNotSupported,
+    NetworkNotSupported,
+    RPCURINotDefined,
+)
 from dkg.types import URI, Address, DataHexStr, Environment, Wei
 from eth_account.signers.local import LocalAccount
 from web3 import Web3
@@ -96,13 +100,14 @@ class BlockchainProvider:
             "Hub": self.w3.eth.contract(
                 address=hub_address,
                 abi=self.abi["Hub"],
+                decode_tuples=True,
             )
         }
         self._init_contracts()
 
         if (
-            private_key is not None or
-            (private_key_env := os.environ.get("PRIVATE_KEY", None)) is not None
+            private_key is not None
+            or (private_key_env := os.environ.get("PRIVATE_KEY", None)) is not None
         ):
             self.set_account(private_key or private_key_env)
 
@@ -125,37 +130,48 @@ class BlockchainProvider:
             except Exception as err:
                 if (
                     contract_name
+                    and isinstance(contract_name, str)
                     and any(msg in str(err) for msg in ["revert", "VM Exception"])
                     and not self._check_contract_status(contract_name)
                 ):
-                    self._update_contract_instance(contract_name)
-                    return func(self, *args, **kwargs)
-                raise
+                    is_updated = self._update_contract_instance(contract_name)
+                    if is_updated:
+                        return func(self, *args, **kwargs)
+                raise err
 
         return wrapper
 
     @handle_updated_contract
     def call_function(
         self,
-        contract: str | Contract,
+        contract: str | dict[str, str],
         function: str,
         args: dict[str, Any] = {},
         state_changing: bool = False,
         gas_price: Wei | None = None,
         gas_limit: Wei | None = None,
     ) -> TxReceipt | Any:
-        contract_instance = (
-            self.contracts[contract]
-            if isinstance(contract, str)
-            else contract
-        )
+        if isinstance(contract, str):
+            contract_name = contract
+            contract_instance = self.contracts[contract_name]
+        else:
+            contract_name = contract["name"]
+            contract_instance = self.w3.eth.contract(
+                address=contract["address"],
+                abi=self.abi[contract_name],
+                decode_tuples=True,
+            )
+            self.contracts[contract_name] = contract_instance
+
         contract_function: ContractFunction = getattr(
             contract_instance.functions, function
         )
 
         if not state_changing:
             result = contract_function(**args).call()
-            if function in (output_named_tuples := self.output_named_tuples[contract]):
+            if function in (
+                output_named_tuples := self.output_named_tuples[contract_name]
+            ):
                 result = output_named_tuples[function](*result)
             return result
         else:
@@ -185,9 +201,6 @@ class BlockchainProvider:
             .events[event_name]()
             .process_receipt(receipt, errors=DISCARD)
         )
-    
-    def set_contract(self, key: str, contract: Contract):
-        self.contracts[key] = contract
 
     def set_account(self, private_key: DataHexStr):
         self.account: LocalAccount = self.w3.eth.account.from_key(private_key)
@@ -203,8 +216,7 @@ class BlockchainProvider:
         blockchain_name, _ = self.blockchain_id.split(":")
 
         default_gas_price = self.w3.to_wei(
-            DEFAULT_GAS_PRICE_GWEI[blockchain_name],
-            "gwei"
+            DEFAULT_GAS_PRICE_GWEI[blockchain_name], "gwei"
         )
 
         def fetch_gas_price(oracle_url: str) -> Wei | None:
@@ -214,9 +226,9 @@ class BlockchainProvider:
                 data: dict = response.json()
 
                 if "result" in data:
-                    return int(data['result'], 16)
+                    return int(data["result"], 16)
                 elif "average" in data:
-                    return self.w3.to_wei(data['average'], 'gwei')
+                    return self.w3.to_wei(data["average"], "gwei")
                 else:
                     return None
             except Exception:
@@ -231,7 +243,7 @@ class BlockchainProvider:
                 gas_price = fetch_gas_price(oracle_url)
                 if gas_price is not None:
                     return gas_price
-                
+
         return default_gas_price
 
     def _init_contracts(self):
@@ -239,20 +251,28 @@ class BlockchainProvider:
             if contract == "Hub":
                 continue
 
-            if (self.contracts["Hub"].functions.isContract(contractName=contract).call()):
-                self._update_contract_instance(contract)
+            self._update_contract_instance(contract)
 
-    def _update_contract_instance(self, contract: str):
-        self.contracts[contract] = self.w3.eth.contract(
-            address=(
-                self.contracts["Hub"]
-                .functions.getContractAddress(contract).call()
-                if not contract.endswith("AssetStorage")
-                else self.contracts["Hub"]
-                .functions.getAssetStorageAddress(contract).call()
-            ),
-            abi=self.abi[contract],
-        )
+    def _update_contract_instance(self, contract: str) -> bool:
+        if (
+            self.contracts["Hub"].functions.isContract(contractName=contract).call()
+            or self.contracts["Hub"]
+            .functions.isAssetStorage(assetStorageName=contract)
+            .call()
+        ):
+            self.contracts[contract] = self.w3.eth.contract(
+                address=(
+                    self.contracts["Hub"].functions.getContractAddress(contract).call()
+                    if not contract.endswith("AssetStorage")
+                    else self.contracts["Hub"]
+                    .functions.getAssetStorageAddress(contract)
+                    .call()
+                ),
+                abi=self.abi[contract],
+                decode_tuples=True,
+            )
+            return True
+        return False
 
     def _check_contract_status(self, contract: str) -> bool:
         try:

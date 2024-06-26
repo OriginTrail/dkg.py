@@ -29,10 +29,6 @@ BLOCKCHAINS = {
             "hub": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
             "rpc": "http://localhost:9545",
         },
-        "otp:2043": {
-            "hub": "0x7585a99C5C150a08f5CDeFD16465C6De8D41EbbD",
-            "rpc": "http://parachain-alphanet-02.origin-trail.network:9933",
-        },
     },
     "devnet": {
         "otp:2160": {
@@ -44,6 +40,10 @@ BLOCKCHAINS = {
             "rpc": "https://rpc.chiadochain.net",
             "gas_price_oracle": "https://blockscout.chiadochain.net/api/v1/gas-price-oracle",
         },
+        "base:84532": {
+            "hub": "0x6C861Cb69300C34DfeF674F7C00E734e840C29C0",
+            "rpc": "https://sepolia.base.org",
+        }
     },
     "testnet": {
         "otp:20430": {
@@ -55,6 +55,10 @@ BLOCKCHAINS = {
             "rpc": "https://rpc.chiadochain.net",
             "gas_price_oracle": "https://blockscout.chiadochain.net/api/v1/gas-price-oracle",
         },
+        "base:84532": {
+            "hub": "0x144eDa5cbf8926327cb2cceef168A121F0E4A299",
+            "rpc": "https://sepolia.base.org",
+        }
     },
     "mainnet": {
         "otp:2043": {
