@@ -305,7 +305,7 @@ class KnowledgeAsset(Module):
                 "tokenId": token_id,
                 "assertionId": public_assertion_id,
                 "assertion": assertions["public"],
-                "storeType": StoreTypes.TRIPLE.value,
+                "storeType": StoreTypes.TRIPLE,
             }
         ]
 
@@ -320,7 +320,7 @@ class KnowledgeAsset(Module):
                         sort_pairs=True,
                     ).root,
                     "assertion": assertions["private"],
-                    "storeType": StoreTypes.TRIPLE.value,
+                    "storeType": StoreTypes.TRIPLE,
                 }
             )
 
@@ -489,7 +489,7 @@ class KnowledgeAsset(Module):
                 "tokenId": token_id,
                 "assertionId": public_assertion_id,
                 "assertion": assertions["public"],
-                "storeType": StoreTypes.PENDING.value,
+                "storeType": StoreTypes.PENDING,
             }
         ]
 
@@ -504,7 +504,7 @@ class KnowledgeAsset(Module):
                         sort_pairs=True,
                     ).root,
                     "assertion": assertions["private"],
-                    "storeType": StoreTypes.PENDING.value,
+                    "storeType": StoreTypes.PENDING,
                 }
             )
 

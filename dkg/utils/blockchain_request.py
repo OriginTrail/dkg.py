@@ -18,6 +18,7 @@
 from dataclasses import dataclass, field
 from typing import Type
 
+from dkg.dataclasses import ParanetIncentivizationType
 from dkg.types import Address, HexStr, Wei
 
 
@@ -30,8 +31,14 @@ class JSONRPCRequest:
 @dataclass
 class ContractInteraction:
     contract: str | None = None
-    function: str | None = None
+    function: str = field(default_factory=str)
     args: dict[str, Type] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if not self.function:
+            raise ValueError(
+                "'function' is a required field and cannot be None or empty"
+            )
 
 
 @dataclass
@@ -229,8 +236,8 @@ class BlockchainRequest:
         contract="ParanetsRegistry",
         function="getIncentivesPoolAddress",
         args={
-            "paranetId",
-            "incentivesPoolType",
+            "paranetId": HexStr,
+            "incentivesPoolType": ParanetIncentivizationType,
         },
     )
 

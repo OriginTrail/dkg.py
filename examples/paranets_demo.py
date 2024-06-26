@@ -17,6 +17,8 @@
 
 import json
 
+from hexbytes import HexBytes
+
 from dkg import DKG
 from dkg.providers import BlockchainProvider, NodeHTTPProvider
 
@@ -37,7 +39,19 @@ def divider():
 
 
 def print_json(json_dict: dict):
-    print(json.dumps(json_dict, indent=4))
+    def convert_hexbytes(data):
+        if isinstance(data, dict):
+            return {k: convert_hexbytes(v) for k, v in data.items()}
+        elif isinstance(data, list):
+            return [convert_hexbytes(i) for i in data]
+        elif isinstance(data, HexBytes):
+            return data.hex()
+        else:
+            return data
+
+    serializable_dict = convert_hexbytes(json_dict)
+    print(json.dumps(serializable_dict, indent=4))
+
 
 divider()
 
@@ -78,7 +92,9 @@ paranet_service_data = {
     }
 }
 
-create_paranet_service_knowledge_asset_result = dkg.asset.create(paranet_service_data, 1)
+create_paranet_service_knowledge_asset_result = dkg.asset.create(
+    paranet_service_data, 1
+)
 
 print("======================== PARANET SERVICE KNOWLEDGE ASSET CREATED")
 print_json(create_paranet_service_knowledge_asset_result)
@@ -90,7 +106,7 @@ create_paranet_service_result = dkg.paranet.create_service(
     paranet_service_ual,
     "TestParanetService",
     "TestParanetServiceDescription",
-    ["0x03C094044301E082468876634F0b209E11d98452"]
+    ["0x03C094044301E082468876634F0b209E11d98452"],
 )
 
 print("======================== PARANET SERVICE CREATED")
@@ -111,8 +127,7 @@ incentives_pool_params = dkg.paranet.NeuroWebIncentivesPoolParams(
     voters_percentage=5.5,
 )
 deploy_incentives_contract_result = dkg.paranet.deploy_incentives_contract(
-    paranet_ual,
-    incentives_pool_params
+    paranet_ual, incentives_pool_params
 )
 
 print("======================== PARANET NEURO INCENTIVES POOL DEPLOYED")
@@ -127,6 +142,19 @@ print(incentives_pool_address)
 
 divider()
 
+incentives_amount = blockchain_provider.w3.to_wei(100, "ether")
+tx_hash = blockchain_provider.w3.eth.send_transaction(
+    {
+        "from": blockchain_provider.account.address,
+        "to": incentives_pool_address,
+        "value": incentives_amount,
+    }
+)
+
+print(f"======================== SENT {incentives_amount} TO THE INCENTIVES POOL")
+
+divider()
+
 is_knowledge_miner = dkg.paranet.is_knowledge_miner(paranet_ual)
 is_operator = dkg.paranet.is_operator(paranet_ual)
 is_voter = dkg.paranet.is_voter(paranet_ual)
@@ -137,25 +165,42 @@ print(f"Is Voter? {str(is_voter)}")
 
 divider()
 
-def print_reward_stats():
-    knowledge_miner_reward = dkg.paranet.calculate_claimable_miner_reward_amount(paranet_ual)
-    operator_reward = dkg.paranet.calculate_claimable_operator_reward_amount(paranet_ual)
-    voter_rewards = dkg.paranet.calculate_claimable_voter_reward_amount(paranet_ual)
 
-    print(f"Claimable Knowledge Miner Reward for the Current Wallet: {knowledge_miner_reward}")
-    print(f"Claimable Paranet Operator Reward for the Current Wallet: {operator_reward}")
-    print(f"Claimable Proposal Voter Reward for the Current Wallet: {voter_rewards}")
+def print_reward_stats(is_voter: bool = False):
+    knowledge_miner_reward = dkg.paranet.calculate_claimable_miner_reward_amount(
+        paranet_ual
+    )
+    operator_reward = dkg.paranet.calculate_claimable_operator_reward_amount(
+        paranet_ual
+    )
+
+    print(
+        f"Claimable Knowledge Miner Reward for the Current Wallet: {knowledge_miner_reward}"
+    )
+    print(
+        f"Claimable Paranet Operator Reward for the Current Wallet: {operator_reward}"
+    )
+    if is_voter:
+        voter_rewards = dkg.paranet.calculate_claimable_voter_reward_amount(paranet_ual)
+        print(
+            f"Claimable Proposal Voter Reward for the Current Wallet: {voter_rewards}"
+        )
 
     divider()
 
-    all_knowledge_miners_reward = dkg.paranet.calculate_all_claimable_miner_rewards_amount(paranet_ual)
-    all_voters_reward = dkg.paranet.calculate_all_claimable_voters_reward_amount(paranet_ual)
+    all_knowledge_miners_reward = (
+        dkg.paranet.calculate_all_claimable_miner_rewards_amount(paranet_ual)
+    )
+    all_voters_reward = dkg.paranet.calculate_all_claimable_voters_reward_amount(
+        paranet_ual
+    )
 
     print(f"Claimable All Knowledge Miners Reward: {all_knowledge_miners_reward}")
     print(f"Claimable Paranet Operator Reward: {operator_reward}")
     print(f"Claimable All Proposal Voters Reward: {all_voters_reward}")
 
-print_reward_stats()
+
+print_reward_stats(is_voter)
 
 divider()
 
@@ -163,6 +208,7 @@ ka1 = {
     "public": {
         "@context": ["http://schema.org"],
         "@id": "uuid:3",
+        "test": "testKA1",
     }
 }
 
@@ -173,16 +219,15 @@ create_submit_ka1_result = dkg.asset.create(
     paranet_ual=paranet_ual,
 )
 
-print("======================== KNOWLEDGE ASSET #1 CREATED AND SUBMITTED TO THE PARANET")
+print(
+    "======================== KNOWLEDGE ASSET #1 CREATED AND SUBMITTED TO THE PARANET"
+)
 print_json(create_submit_ka1_result)
 
 divider()
 
 ka2 = {
-    "public": {
-        "@context": ["http://schema.org"],
-        "@id": "uuid:4",
-    }
+    "public": {"@context": ["http://schema.org"], "@id": "uuid:4", "test": "testKA2"}
 }
 
 create_ka2_result = dkg.asset.create(ka2, 1, 20000000000000000000)
@@ -208,7 +253,7 @@ print(f"Is Voter? {str(is_voter)}")
 
 divider()
 
-print_reward_stats()
+print_reward_stats(is_voter)
 
 divider()
 
@@ -226,4 +271,4 @@ print(claim_operator_reward_result)
 
 divider()
 
-print_reward_stats()
+print_reward_stats(is_voter)

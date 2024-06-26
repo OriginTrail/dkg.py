@@ -22,14 +22,23 @@ class AutoStrEnum(str, Enum):
     def _generate_next_value_(name: str, start: int, count: int, last_values: list) -> str:
         return name.lower()
     
+    def __str__(self):
+        return str(self.value)
+    
 
 class AutoStrEnumCapitalize(str, Enum):
     @staticmethod
     def _generate_next_value_(name: str, start: int, count: int, last_values: list) -> str:
         return name.capitalize()
+    
+    def __str__(self):
+        return str(self.value)
 
 
 class AutoStrEnumUpperCase(str, Enum):
     @staticmethod
     def _generate_next_value_(name: str, start: int, count: int, last_values: list) -> str:
         return name
+    
+    def __str__(self):
+        return str(self.value)
