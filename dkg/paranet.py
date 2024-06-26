@@ -51,6 +51,9 @@ class Paranet(Module):
 
     def __init__(self, manager: DefaultRequestManager):
         self.manager = manager
+        self.incentives_pools_deployment_functions = {
+            ParanetIncentivizationType.NEUROWEB: self._deploy_neuro_incentives_pool,
+        }
 
     _register_paranet = Method(BlockchainRequest.register_paranet)
 
@@ -72,9 +75,11 @@ class Paranet(Module):
 
         return {
             "UAL": ual,
-            "paranetId": Web3.solidity_keccak(
-                ["address", "uint256"],
-                [knowledge_asset_storage, knowledge_asset_token_id],
+            "paranetId": Web3.to_hex(
+                Web3.solidity_keccak(
+                    ["address", "uint256"],
+                    [knowledge_asset_storage, knowledge_asset_token_id],
+                )
             ),
             "operation": json.loads(Web3.to_json(receipt)),
         }
@@ -82,10 +87,6 @@ class Paranet(Module):
     _deploy_neuro_incentives_pool = Method(
         BlockchainRequest.deploy_neuro_incentives_pool
     )
-
-    incentives_pools_deployment_functions = {
-        ParanetIncentivizationType.NEUROWEB: _deploy_neuro_incentives_pool,
-    }
 
     def deploy_incentives_contract(
         self,
@@ -110,7 +111,7 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        receipt: TxReceipt = deploy_incentives_pool_fn.__get__(self)(
+        receipt: TxReceipt = deploy_incentives_pool_fn(
             knowledge_asset_storage,
             knowledge_asset_token_id,
             **incentives_pool_parameters.to_contract_args(),
@@ -124,9 +125,11 @@ class Paranet(Module):
 
         return {
             "UAL": ual,
-            "paranetId": Web3.solidity_keccak(
-                ["address", "uint256"],
-                [knowledge_asset_storage, knowledge_asset_token_id],
+            "paranetId": Web3.to_hex(
+                Web3.solidity_keccak(
+                    ["address", "uint256"],
+                    [knowledge_asset_storage, knowledge_asset_token_id],
+                )
             ),
             "incentivesPoolAddress": events[0].args["incentivesPool"]["addr"],
             "operation": json.loads(Web3.to_json(receipt)),
@@ -171,9 +174,11 @@ class Paranet(Module):
 
         return {
             "UAL": ual,
-            "paranetServiceId": Web3.solidity_keccak(
-                ["address", "uint256"],
-                [knowledge_asset_storage, knowledge_asset_token_id],
+            "paranetServiceId": Web3.to_hex(
+                Web3.solidity_keccak(
+                    ["address", "uint256"],
+                    [knowledge_asset_storage, knowledge_asset_token_id],
+                )
             ),
             "operation": json.loads(Web3.to_json(receipt)),
         }
@@ -212,9 +217,11 @@ class Paranet(Module):
 
         return {
             "UAL": ual,
-            "paranetId": Web3.solidity_keccak(
-                ["address", "uint256"],
-                [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
+            "paranetId": Web3.to_hex(
+                Web3.solidity_keccak(
+                    ["address", "uint256"],
+                    [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
+                )
             ),
             "operation": json.loads(Web3.to_json(receipt)),
         }
@@ -307,9 +314,11 @@ class Paranet(Module):
 
         return {
             "UAL": ual,
-            "paranetId": Web3.solidity_keccak(
-                ["address", "uint256"],
-                [knowledge_asset_storage, knowledge_asset_token_id],
+            "paranetId": Web3.to_hex(
+                Web3.solidity_keccak(
+                    ["address", "uint256"],
+                    [knowledge_asset_storage, knowledge_asset_token_id],
+                )
             ),
             "operation": json.loads(Web3.to_json(receipt)),
         }
@@ -348,9 +357,11 @@ class Paranet(Module):
 
         return {
             "UAL": ual,
-            "paranetId": Web3.solidity_keccak(
-                ["address", "uint256"],
-                [knowledge_asset_storage, knowledge_asset_token_id],
+            "paranetId": Web3.to_hex(
+                Web3.solidity_keccak(
+                    ["address", "uint256"],
+                    [knowledge_asset_storage, knowledge_asset_token_id],
+                )
             ),
             "operation": json.loads(Web3.to_json(receipt)),
         }
@@ -402,9 +413,11 @@ class Paranet(Module):
 
         return {
             "UAL": ual,
-            "paranetId": Web3.solidity_keccak(
-                ["address", "uint256"],
-                [knowledge_asset_storage, knowledge_asset_token_id],
+            "paranetId": Web3.to_hex(
+                Web3.solidity_keccak(
+                    ["address", "uint256"],
+                    [knowledge_asset_storage, knowledge_asset_token_id],
+                )
             ),
             "operation": json.loads(Web3.to_json(receipt)),
         }
@@ -435,7 +448,7 @@ class Paranet(Module):
             knowledge_asset_storage,
             knowledge_asset_token_id,
             0,
-            len(updating_states) - 1,
+            len(updating_states),
         )
 
         return {

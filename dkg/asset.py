@@ -265,6 +265,7 @@ class KnowledgeAsset(Module):
                     parsed_paranet_ual["contract_address"],
                     parsed_paranet_ual["token_id"],
                 )
+
                 receipt: TxReceipt = self._mint_paranet_knowledge_asset(
                     paranet_knowledge_asset_storage,
                     paranet_knowledge_asset_token_id,
@@ -280,6 +281,16 @@ class KnowledgeAsset(Module):
                         ][blockchain_id],
                         "immutable_": immutable,
                     },
+                )
+
+                result["paranetId"] = Web3.to_hex(
+                    Web3.solidity_keccak(
+                        ["address", "uint256"],
+                        [
+                            paranet_knowledge_asset_storage,
+                            paranet_knowledge_asset_token_id,
+                        ],
+                    )
                 )
         except ContractLogicError as err:
             if is_allowance_increased:
@@ -377,9 +388,11 @@ class KnowledgeAsset(Module):
         return {
             "UAL": ual,
             "paranetUAL": paranet_ual,
-            "paranetId": Web3.solidity_keccak(
-                ["address", "uint256"],
-                [knowledge_asset_storage, knowledge_asset_token_id],
+            "paranetId": Web3.to_hex(
+                Web3.solidity_keccak(
+                    ["address", "uint256"],
+                    [knowledge_asset_storage, knowledge_asset_token_id],
+                )
             ),
             "operation": json.loads(Web3.to_json(receipt)),
         }

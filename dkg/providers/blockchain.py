@@ -100,6 +100,7 @@ class BlockchainProvider:
             "Hub": self.w3.eth.contract(
                 address=hub_address,
                 abi=self.abi["Hub"],
+                decode_tuples=True,
             )
         }
         self._init_contracts()
@@ -158,6 +159,7 @@ class BlockchainProvider:
             contract_instance = self.w3.eth.contract(
                 address=contract["address"],
                 abi=self.abi[contract_name],
+                decode_tuples=True,
             )
             self.contracts[contract_name] = contract_instance
 
@@ -267,6 +269,7 @@ class BlockchainProvider:
                     .call()
                 ),
                 abi=self.abi[contract],
+                decode_tuples=True,
             )
             return True
         return False
