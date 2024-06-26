@@ -74,7 +74,7 @@ class Paranet(Module):
         )
 
         return {
-            "UAL": ual,
+            "paranetUAL": ual,
             "paranetId": Web3.to_hex(
                 Web3.solidity_keccak(
                     ["address", "uint256"],
@@ -124,7 +124,7 @@ class Paranet(Module):
         )
 
         return {
-            "UAL": ual,
+            "paranetUAL": ual,
             "paranetId": Web3.to_hex(
                 Web3.solidity_keccak(
                     ["address", "uint256"],
@@ -173,7 +173,7 @@ class Paranet(Module):
         )
 
         return {
-            "UAL": ual,
+            "paranetServiceUAL": ual,
             "paranetServiceId": Web3.to_hex(
                 Web3.solidity_keccak(
                     ["address", "uint256"],
@@ -216,7 +216,7 @@ class Paranet(Module):
         )
 
         return {
-            "UAL": ual,
+            "paranetUAL": ual,
             "paranetId": Web3.to_hex(
                 Web3.solidity_keccak(
                     ["address", "uint256"],
@@ -313,7 +313,7 @@ class Paranet(Module):
         )
 
         return {
-            "UAL": ual,
+            "paranetUAL": ual,
             "paranetId": Web3.to_hex(
                 Web3.solidity_keccak(
                     ["address", "uint256"],
@@ -356,7 +356,7 @@ class Paranet(Module):
         )
 
         return {
-            "UAL": ual,
+            "paranetUAL": ual,
             "paranetId": Web3.to_hex(
                 Web3.solidity_keccak(
                     ["address", "uint256"],
@@ -412,7 +412,7 @@ class Paranet(Module):
         )
 
         return {
-            "UAL": ual,
+            "paranetUAL": ual,
             "paranetId": Web3.to_hex(
                 Web3.solidity_keccak(
                     ["address", "uint256"],
@@ -452,7 +452,7 @@ class Paranet(Module):
         )
 
         return {
-            "UAL": ual,
+            "paranetUAL": ual,
             "paranetId": paranet_id,
             "operation": json.loads(Web3.to_json(receipt)),
         }

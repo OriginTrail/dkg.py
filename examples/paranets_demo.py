@@ -209,7 +209,9 @@ ka1 = {
     "public": {
         "@context": ["http://schema.org"],
         "@id": "uuid:3",
-        "test": "testKA1",
+        "company": "KA1-Company",
+        "user": {"@id": "uuid:user:1"},
+        "city": {"@id": "uuid:belgrade"},
     }
 }
 
@@ -228,7 +230,13 @@ print_json(create_submit_ka1_result)
 divider()
 
 ka2 = {
-    "public": {"@context": ["http://schema.org"], "@id": "uuid:4", "test": "testKA2"}
+    "public": {
+        "@context": ["http://schema.org"],
+        "@id": "uuid:4",
+        "company": "KA2-Company",
+        "user": {"@id": "uuid:user:2"},
+        "city": {"@id": "uuid:madrid"},
+    }
 }
 
 create_ka2_result = dkg.asset.create(ka2, 1, 20000000000000000000)
@@ -241,6 +249,32 @@ submit_ka2_result = dkg.asset.submit_to_paranet(ka2_ual, paranet_ual)
 
 print("======================== KNOWLEDGE ASSET #2 SUBMITTED TO THE PARANET")
 print_json(submit_ka2_result)
+
+# divider()
+
+# federated_query = """
+# PREFIX schema: <http://schema.org/>
+# SELECT DISTINCT ?s ?city1 ?user1 ?s2 ?city2 ?user2 ?company1
+# WHERE {{
+#     ?s schema:city ?city1 .
+#     ?s schema:company ?company1 .
+#     ?s schema:user ?user1;
+
+#     SERVICE <{ual}> {{
+#         ?s2 schema:city ?city2 .
+#         ?s2 schema:user ?user2;
+#     }}
+
+#     filter(contains(str(?city2), "belgrade"))
+# }}
+# """
+# query_result = dkg.graph.query(
+#     federated_query.format(ual=ka2_ual),
+#     paranet_ual,
+# )
+
+# print("======================== GOT FEDERATED QUERY RESULT")
+# print(query_result)
 
 divider()
 
