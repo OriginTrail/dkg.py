@@ -34,6 +34,7 @@ class Module:
             processed_args = method.process_args(*args, **kwargs)
             request_params = asdict(method.action)
             request_params.update(processed_args)
+
             return self.manager.blocking_request(type(method.action), request_params)
 
         return caller

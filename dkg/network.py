@@ -38,7 +38,7 @@ class Network(Module):
         public_assertion_id: DataHexStr,
         size_in_bytes: int,
         epochs_number: int,
-        range: BidSuggestionRange = BidSuggestionRange.LOW.value,
+        range: BidSuggestionRange = BidSuggestionRange.LOW,
     ) -> int:
         content_asset_storage_address = self._get_asset_storage_address(
             "ContentAssetStorage"

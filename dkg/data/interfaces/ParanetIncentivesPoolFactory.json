@@ -11,105 +11,104 @@
     "type": "constructor"
   },
   {
-    "anonymous": false,
     "inputs": [
       {
-        "indexed": true,
-        "internalType": "uint72",
-        "name": "identityId",
-        "type": "uint72"
+        "internalType": "address",
+        "name": "knowledgeAssetStorageAddress",
+        "type": "address"
       },
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "operationalKey",
-        "type": "bytes32"
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
       },
       {
-        "indexed": true,
-        "internalType": "bytes32",
-        "name": "adminKey",
-        "type": "bytes32"
+        "internalType": "string",
+        "name": "poolType",
+        "type": "string"
+      },
+      {
+        "internalType": "address",
+        "name": "poolAddress",
+        "type": "address"
       }
     ],
-    "name": "IdentityCreated",
-    "type": "event"
+    "name": "ParanetIncentivesPoolAlreadyExists",
+    "type": "error"
   },
   {
     "anonymous": false,
     "inputs": [
       {
         "indexed": true,
-        "internalType": "uint72",
-        "name": "identityId",
-        "type": "uint72"
+        "internalType": "address",
+        "name": "paranetKAStorageContract",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKATokenId",
+        "type": "uint256"
+      },
+      {
+        "components": [
+          {
+            "internalType": "string",
+            "name": "poolType",
+            "type": "string"
+          },
+          {
+            "internalType": "address",
+            "name": "addr",
+            "type": "address"
+          }
+        ],
+        "indexed": false,
+        "internalType": "struct ParanetStructs.IncentivesPool",
+        "name": "incentivesPool",
+        "type": "tuple"
       }
     ],
-    "name": "IdentityDeleted",
+    "name": "ParanetIncetivesPoolDeployed",
     "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint72",
-        "name": "identityId",
-        "type": "uint72"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "key",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "uint256",
-        "name": "keyPurpose",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "keyType",
-        "type": "uint256"
-      }
-    ],
-    "name": "addKey",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
   },
   {
     "inputs": [
       {
         "internalType": "address",
-        "name": "operational",
+        "name": "paranetKAStorageContract",
         "type": "address"
       },
       {
-        "internalType": "address",
-        "name": "admin",
-        "type": "address"
+        "internalType": "uint256",
+        "name": "paranetKATokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tracToNeuroEmissionMultiplier",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint16",
+        "name": "paranetOperatorRewardPercentage",
+        "type": "uint16"
+      },
+      {
+        "internalType": "uint16",
+        "name": "paranetIncentivizationProposalVotersRewardPercentage",
+        "type": "uint16"
       }
     ],
-    "name": "createIdentity",
+    "name": "deployNeuroIncentivesPool",
     "outputs": [
       {
-        "internalType": "uint72",
+        "internalType": "address",
         "name": "",
-        "type": "uint72"
+        "type": "address"
       }
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint72",
-        "name": "identityId",
-        "type": "uint72"
-      }
-    ],
-    "name": "deleteIdentity",
-    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -118,20 +117,7 @@
     "name": "hub",
     "outputs": [
       {
-        "internalType": "contract Hub",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "identityStorage",
-    "outputs": [
-      {
-        "internalType": "contract IdentityStorage",
+        "internalType": "contract HubV2",
         "name": "",
         "type": "address"
       }
@@ -160,21 +146,16 @@
     "type": "function"
   },
   {
-    "inputs": [
+    "inputs": [],
+    "name": "paranetsRegistry",
+    "outputs": [
       {
-        "internalType": "uint72",
-        "name": "identityId",
-        "type": "uint72"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "key",
-        "type": "bytes32"
+        "internalType": "contract ParanetsRegistry",
+        "name": "",
+        "type": "address"
       }
     ],
-    "name": "removeKey",
-    "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "view",
     "type": "function"
   },
   {

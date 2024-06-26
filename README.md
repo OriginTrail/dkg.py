@@ -23,23 +23,6 @@ ___
   </p>
 </div>
 
-</br>
-
-> **Disclaimer: Beta Version**
->
-> Welcome to the beta version of our client! This software is currently in the beta testing phase, which means it is not the final release version. As a beta version, it may still contain bugs, undergo frequent updates, and have limited features.
-Important Points to Note:
-
-> **Use at Your Own Risk:** While we have made efforts to ensure the stability and reliability of the beta version, there is a possibility of encountering unexpected issues. Please use this software at your own risk.
-
-> **Limited Support:** As this is a beta release, our support resources may be focused on addressing critical bugs and gathering feedback from users. Therefore, support for beta versions may be limited compared to our stable releases.
-
-> **Feedback Appreciated:** Your feedback is invaluable to us. If you encounter any issues, have suggestions, or want to share your experiences with the beta version, please let us know. Your feedback will help us improve the software for the final release.
-
-> **Not for Production Use:** The beta version is intended for testing and evaluation purposes only. It is not recommended for use in a production environment where stability and reliability are crucial.
-
-</br>
-
 <details open>
   <summary>
     <b>Table of Contents</b>
@@ -58,17 +41,6 @@ Important Points to Note:
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
-      </ul>
-    </li>
-    <li>
-      <a href="#📜-roadmap">📜 Roadmap</a>
-      <ul>
-        <li><a href="#1️⃣-pre-development-phase">1️⃣ Pre-development Phase</a></li>
-        <li><a href="#2️⃣-development-phase">2️⃣ Development Phase</a></li>
-        <li><a href="#3️⃣-documentation-phase">3️⃣ Documentation Phase</a></li>
-        <li><a href="#4️⃣-pre-release-phase">4️⃣ Pre-release Phase</a></li>
-        <li><a href="#5️⃣-release">5️⃣ Release</a></li>
-        <li><a href="#6️⃣-post-release">6️⃣ Post-release</a></li>
       </ul>
     </li>
     <li><a href="#📄-license">📄 License</a></li>
@@ -217,117 +189,6 @@ Now you can run a demo example file (you need to have the local DKG network runn
 ```bash
 python3 examples/demo.py
 ```
-
-<br/>
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-## 📜 Roadmap
-
-This roadmap outlines the goals for the first major release of the `dkg.py`. Each section represents a stage in the development process and the features we plan to implement.
-
-<details open>
-<summary>
-
-### 1️⃣ Pre-development Phase
-
-</summary>
-
-- [x] **Requirement Analysis and Planning**
-  - [x] Define the project's scope
-  - [x] Identify the core functionalities
-
-- [x] **Design**
-  - [x] Plan the library's architecture
-  - [x] Establish coding standards
-
-- [ ] **Setup Development Environment**
-  - [x] Setup development, testing and production environments
-  - [ ] Add pytest config
-  - [ ] Add mypy config
-  - [ ] Add tox config ?
-  - [ ] Setup Continuous Integration (CI) and Continuous Deployment (CD) pipeline
-</details>
-
-<details open>
-<summary>
-
-### 2️⃣ Development Phase
-</summary>
-
-| Feature | Status | Tests coverage |
-|:-:|:-:|:-:|
-| Get Allowance | 🟩 Completed | ❌ |
-| Set Allowance | 🟩 Completed | ❌ |
-| Increase Allowance | 🟩 Completed | ❌ |
-| Decrease Allowance | 🟩 Completed | ❌ |
-| Get Bid Suggestion | 🟩 Completed | ❌ |
-| Create | 🟩 Completed | ❌ |
-| Transfer | 🟩 Completed | ❌ |
-| Update | 🟩 Completed | ❌ |
-| Wait for finalization | 🟥 Not Started | ❌ |
-| Cancel update | 🟩 Completed | ❌ |
-| Burn | 🟩 Completed | ❌ |
-| Get | 🟩 Completed | ❌ |
-| Query | 🟩 Completed | ❌ |
-| Extend storing period | 🟩 Completed | ❌ |
-| Add tokens | 🟩 Completed | ❌ |
-| Add update tokens | 🟩 Completed | ❌ |
-| Get owner | 🟩 Completed | ❌ |
-| Experimental | 🟥 Not Started | ❌ |
-</details>
-
-<details open>
-<summary>
-
-### 3️⃣ Documentation Phase
-</summary>
-
-- [ ] Write comprehensive documentation
-- [x] Provide examples and use-cases
-- [ ] Review and finalize documentation
-</details>
-
-<details open>
-<summary>
-
-### 4️⃣ Pre-release Phase
-</summary>
-
-- [ ] **Beta Release**
-  - [X] Release a beta version for testing
-  - [ ] Gather and address feedback
-
-- **Bug Fixes**
-  - Identify and fix bugs
-
-- [ ] **Final Testing and QA**
-  - [ ] Perform comprehensive testing
-  - [ ] Ensure the library meets quality standards
-</details>
-
-<details open>
-<summary>
-
-### 5️⃣ Release
-</summary>
-
-- [ ] Merge the first version into the main branch
-- [ ] Release the v1.0.0 of the `dkg.py` library
-</details>
-
-<details open>
-<summary>
-
-### 6️⃣ Post-release
-</summary>
-
-- Monitor for any issues
-- Plan for next versions based on user feedback and usage
-</details>
-
-<br/>
-
-**Note:** This roadmap is subject to changes. Each step will be accompanied by appropriate documentation, testing and code review to maintain the quality of the library.
 
 <br/>
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

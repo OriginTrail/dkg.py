@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dkg"
-version = "0.1.0-beta.7"
+version = "1.0.0"
 description = "Python library for interacting with the OriginTrail Decentralized Knowledge Graph"
 authors = ["Uladzislau Hubar <hubar.uladzislau@gmail.com>"]
 license = "Apache-2.0"
@@ -9,7 +9,7 @@ readme = "README.md"
 [tool.poetry.dependencies]
 python = "^3.10"
 pyyaml = "^6.0.1"
-web3 = "^6.15.1"
+web3 = "^6.19.0"
 pandas = "^1.5.3"
 eth-account = "^0.11.0"
 rdflib = "^6.3.2"

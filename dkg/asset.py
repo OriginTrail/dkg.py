@@ -69,7 +69,7 @@ from dkg.utils.rdf import format_content, normalize_dataset
 from dkg.utils.ual import format_ual, parse_ual
 
 
-class ContentAsset(Module):
+class KnowledgeAsset(Module):
     def __init__(self, manager: DefaultRequestManager):
         self.manager = manager
 
@@ -196,6 +196,7 @@ class ContentAsset(Module):
 
     _get_asset_storage_address = Method(BlockchainRequest.get_asset_storage_address)
     _create = Method(BlockchainRequest.create_asset)
+    _mint_paranet_knowledge_asset = Method(BlockchainRequest.mint_knowledge_asset)
 
     _get_bid_suggestion = Method(NodeRequest.bid_suggestion)
     _local_store = Method(NodeRequest.local_store)
@@ -208,6 +209,7 @@ class ContentAsset(Module):
         token_amount: Wei | None = None,
         immutable: bool = False,
         content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
+        paranet_ual: UAL | None = None,
     ) -> dict[str, UAL | HexStr | dict[str, dict[str, str] | TxReceipt]]:
         blockchain_id = self.manager.blockchain_provider.blockchain_id
         assertions = format_content(content, content_type)
@@ -242,20 +244,54 @@ class ContentAsset(Module):
         result = {"publicAssertionId": public_assertion_id, "operation": {}}
 
         try:
-            receipt: TxReceipt = self._create(
-                {
-                    "assertionId": Web3.to_bytes(hexstr=public_assertion_id),
-                    "size": public_assertion_metadata["size"],
-                    "triplesNumber": public_assertion_metadata["triples_number"],
-                    "chunksNumber": public_assertion_metadata["chunks_number"],
-                    "tokenAmount": token_amount,
-                    "epochsNumber": epochs_number,
-                    "scoreFunctionId": DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS[
-                        self.manager.blockchain_provider.environment
-                    ][blockchain_id],
-                    "immutable_": immutable,
-                }
-            )
+            if paranet_ual is None:
+                receipt: TxReceipt = self._create(
+                    {
+                        "assertionId": Web3.to_bytes(hexstr=public_assertion_id),
+                        "size": public_assertion_metadata["size"],
+                        "triplesNumber": public_assertion_metadata["triples_number"],
+                        "chunksNumber": public_assertion_metadata["chunks_number"],
+                        "tokenAmount": token_amount,
+                        "epochsNumber": epochs_number,
+                        "scoreFunctionId": DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS[
+                            self.manager.blockchain_provider.environment
+                        ][blockchain_id],
+                        "immutable_": immutable,
+                    }
+                )
+            else:
+                parsed_paranet_ual = parse_ual(paranet_ual)
+                paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id = (
+                    parsed_paranet_ual["contract_address"],
+                    parsed_paranet_ual["token_id"],
+                )
+
+                receipt: TxReceipt = self._mint_paranet_knowledge_asset(
+                    paranet_knowledge_asset_storage,
+                    paranet_knowledge_asset_token_id,
+                    {
+                        "assertionId": Web3.to_bytes(hexstr=public_assertion_id),
+                        "size": public_assertion_metadata["size"],
+                        "triplesNumber": public_assertion_metadata["triples_number"],
+                        "chunksNumber": public_assertion_metadata["chunks_number"],
+                        "tokenAmount": token_amount,
+                        "epochsNumber": epochs_number,
+                        "scoreFunctionId": DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS[
+                            self.manager.blockchain_provider.environment
+                        ][blockchain_id],
+                        "immutable_": immutable,
+                    },
+                )
+
+                result["paranetId"] = Web3.to_hex(
+                    Web3.solidity_keccak(
+                        ["address", "uint256"],
+                        [
+                            paranet_knowledge_asset_storage,
+                            paranet_knowledge_asset_token_id,
+                        ],
+                    )
+                )
         except ContractLogicError as err:
             if is_allowance_increased:
                 self.decrease_allowance(token_amount)
@@ -280,7 +316,7 @@ class ContentAsset(Module):
                 "tokenId": token_id,
                 "assertionId": public_assertion_id,
                 "assertion": assertions["public"],
-                "storeType": StoreTypes.TRIPLE.value,
+                "storeType": StoreTypes.TRIPLE,
             }
         ]
 
@@ -295,7 +331,7 @@ class ContentAsset(Module):
                         sort_pairs=True,
                     ).root,
                     "assertion": assertions["private"],
-                    "storeType": StoreTypes.TRIPLE.value,
+                    "storeType": StoreTypes.TRIPLE,
                 }
             )
 
@@ -324,6 +360,42 @@ class ContentAsset(Module):
             }
 
         return result
+
+    _submit_knowledge_asset = Method(BlockchainRequest.submit_knowledge_asset)
+
+    def submit_to_paranet(
+        self, ual: UAL, paranet_ual: UAL
+    ) -> dict[str, UAL | Address | TxReceipt]:
+        parsed_ual = parse_ual(ual)
+        knowledge_asset_storage, knowledge_asset_token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
+
+        parsed_paranet_ual = parse_ual(paranet_ual)
+        paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id = (
+            parsed_paranet_ual["contract_address"],
+            parsed_paranet_ual["token_id"],
+        )
+
+        receipt: TxReceipt = self._submit_knowledge_asset(
+            paranet_knowledge_asset_storage,
+            paranet_knowledge_asset_token_id,
+            knowledge_asset_storage,
+            knowledge_asset_token_id,
+        )
+
+        return {
+            "UAL": ual,
+            "paranetUAL": paranet_ual,
+            "paranetId": Web3.to_hex(
+                Web3.solidity_keccak(
+                    ["address", "uint256"],
+                    [knowledge_asset_storage, knowledge_asset_token_id],
+                )
+            ),
+            "operation": json.loads(Web3.to_json(receipt)),
+        }
 
     _transfer = Method(BlockchainRequest.transfer_asset)
 
@@ -430,7 +502,7 @@ class ContentAsset(Module):
                 "tokenId": token_id,
                 "assertionId": public_assertion_id,
                 "assertion": assertions["public"],
-                "storeType": StoreTypes.PENDING.value,
+                "storeType": StoreTypes.PENDING,
             }
         ]
 
@@ -445,7 +517,7 @@ class ContentAsset(Module):
                         sort_pairs=True,
                     ).root,
                     "assertion": assertions["private"],
-                    "storeType": StoreTypes.PENDING.value,
+                    "storeType": StoreTypes.PENDING,
                 }
             )
 
@@ -463,7 +535,7 @@ class ContentAsset(Module):
         operation_result = self.get_operation_result(operation_id, "update")
 
         return {
-            "UAL": format_ual(blockchain_id, content_asset_storage_address, token_id),
+            "UAL": ual,
             "publicAssertionId": public_assertion_id,
             "operation": {
                 "operationId": operation_id,

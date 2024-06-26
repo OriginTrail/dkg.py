@@ -18,12 +18,13 @@
 from functools import wraps
 
 from dkg.assertion import Assertion
-from dkg.asset import ContentAsset
+from dkg.asset import KnowledgeAsset
 from dkg.graph import Graph
 from dkg.manager import DefaultRequestManager
 from dkg.module import Module
 from dkg.network import Network
 from dkg.node import Node
+from dkg.paranet import Paranet
 from dkg.providers import BlockchainProvider, NodeHTTPProvider
 from dkg.types import UAL, Address, ChecksumAddress
 from dkg.utils.ual import format_ual, parse_ual
@@ -31,7 +32,8 @@ from dkg.utils.ual import format_ual, parse_ual
 
 class DKG(Module):
     assertion: Assertion
-    asset: ContentAsset
+    asset: KnowledgeAsset
+    paranet: Paranet
     network: Network
     node: Node
     graph: Graph
@@ -56,7 +58,8 @@ class DKG(Module):
         self.manager = DefaultRequestManager(node_provider, blockchain_provider)
         modules = {
             "assertion": Assertion(self.manager),
-            "asset": ContentAsset(self.manager),
+            "asset": KnowledgeAsset(self.manager),
+            "paranet": Paranet(self.manager),
             "network": Network(self.manager),
             "node": Node(self.manager),
             "graph": Graph(self.manager),

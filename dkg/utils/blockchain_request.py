@@ -18,6 +18,7 @@
 from dataclasses import dataclass, field
 from typing import Type
 
+from dkg.dataclasses import ParanetIncentivizationType
 from dkg.types import Address, HexStr, Wei
 
 
@@ -29,9 +30,15 @@ class JSONRPCRequest:
 
 @dataclass
 class ContractInteraction:
-    contract: str
-    function: str
+    contract: str | None = None
+    function: str = field(default_factory=str)
     args: dict[str, Type] = field(default_factory=dict)
+
+    def __post_init__(self):
+        if not self.function:
+            raise ValueError(
+                "'function' is a required field and cannot be None or empty"
+            )
 
 
 @dataclass
@@ -154,11 +161,149 @@ class BlockchainRequest:
     get_service_agreement_data = ContractCall(
         contract="ServiceAgreementStorageProxy",
         function="getAgreementData",
-        args={"agreementId": HexStr},
+        args={"agreementId": bytes | HexStr},
     )
 
     get_assertion_size = ContractCall(
         contract="AssertionStorage",
         function="getAssertionSize",
-        args={"assertionId": HexStr},
+        args={"assertionId": bytes | HexStr},
+    )
+
+    # Paranets
+    register_paranet = ContractTransaction(
+        contract="Paranet",
+        function="registerParanet",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "paranetName": str,
+            "paranetDescription": str,
+        },
+    )
+    add_paranet_services = ContractTransaction(
+        contract="Paranet",
+        function="addParanetServices",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "services": dict[str, Address | int],
+        },
+    )
+    register_paranet_service = ContractTransaction(
+        contract="Paranet",
+        function="registerParanetService",
+        args={
+            "paranetServiceKAStorageContract": Address,
+            "paranetServiceKATokenId": int,
+            "paranetServiceName": str,
+            "paranetServiceDescription": str,
+            "paranetServiceAddresses": list[Address],
+        },
+    )
+    mint_knowledge_asset = ContractTransaction(
+        contract="Paranet",
+        function="mintKnowledgeAsset",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "knowledgeAssetArgs": dict[str, bytes | int | Wei | bool],
+        },
+    )
+    submit_knowledge_asset = ContractTransaction(
+        contract="Paranet",
+        function="submitKnowledgeAsset",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "knowledgeAssetStorageContract": Address,
+            "knowledgeAssetTokenId": int,
+        },
+    )
+
+    deploy_neuro_incentives_pool = ContractTransaction(
+        contract="ParanetIncentivesPoolFactory",
+        function="deployNeuroIncentivesPool",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "tracToNeuroEmissionMultiplier": float,
+            "paranetOperatorRewardPercentage": float,
+            "paranetIncentivizationProposalVotersRewardPercentage": float,
+        },
+    )
+    get_incentives_pool_address = ContractCall(
+        contract="ParanetsRegistry",
+        function="getIncentivesPoolAddress",
+        args={
+            "paranetId": HexStr,
+            "incentivesPoolType": ParanetIncentivizationType,
+        },
+    )
+
+    get_updating_knowledge_asset_states = ContractCall(
+        contract="ParanetKnowledgeMinersRegistry",
+        function="getUpdatingKnowledgeAssetStates",
+        args={
+            "miner": Address,
+            "paranetId": HexStr,
+        },
+    )
+    process_updated_knowledge_asset_states_metadata = ContractTransaction(
+        contract="Paranet",
+        function="processUpdatedKnowledgeAssetStatesMetadata",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "start": int,
+            "end": int,
+        },
+    )
+
+    is_knowledge_miner_registered = ContractCall(
+        contract="ParanetsRegistry",
+        function="isKnowledgeMinerRegistered",
+        args={
+            "paranetId": HexStr,
+            "knowledgeMinerAddress": Address,
+        },
+    )
+    is_proposal_voter = ContractCall(
+        function="isProposalVoter",
+        args={"addr": Address},
+    )
+
+    get_claimable_knowledge_miner_reward_amount = ContractCall(
+        function="getClaimableKnowledgeMinerRewardAmount",
+        args={},
+    )
+    get_claimable_all_knowledge_miners_reward_amount = ContractCall(
+        function="getClaimableAllKnowledgeMinersRewardAmount",
+        args={},
+    )
+    claim_knowledge_miner_reward = ContractTransaction(
+        function="claimKnowledgeMinerReward",
+        args={},
+    )
+
+    get_claimable_paranet_operator_reward_amount = ContractCall(
+        function="getClaimableParanetOperatorRewardAmount",
+        args={},
+    )
+    claim_paranet_operator_reward = ContractTransaction(
+        function="claimParanetOperatorReward",
+        args={},
+    )
+
+    get_claimable_proposal_voter_reward_amount = ContractCall(
+        function="getClaimableProposalVoterRewardAmount",
+        args={},
+    )
+    get_claimable_all_proposal_voters_reward_amount = ContractCall(
+        function="getClaimableAllProposalVotersRewardAmount",
+        args={},
+    )
+    claim_incentivization_proposal_voter_reward = ContractTransaction(
+        function="claimIncentivizationProposalVoterReward",
+        args={},
     )
