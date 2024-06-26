@@ -100,27 +100,27 @@ create_paranet_service_knowledge_asset_result = dkg.asset.create(
 print("======================== PARANET SERVICE KNOWLEDGE ASSET CREATED")
 print_json(create_paranet_service_knowledge_asset_result)
 
-# divider()
+divider()
 
-# paranet_service_ual = create_paranet_service_knowledge_asset_result["UAL"]
-# create_paranet_service_result = dkg.paranet.create_service(
-#     paranet_service_ual,
-#     "TestParanetService",
-#     "TestParanetServiceDescription",
-#     ["0x03C094044301E082468876634F0b209E11d98452"],
-# )
+paranet_service_ual = create_paranet_service_knowledge_asset_result["UAL"]
+create_paranet_service_result = dkg.paranet.create_service(
+    paranet_service_ual,
+    "TestParanetService",
+    "TestParanetServiceDescription",
+    ["0x03C094044301E082468876634F0b209E11d98452"],
+)
 
-# print("======================== PARANET SERVICE CREATED")
-# print_json(create_paranet_service_result)
+print("======================== PARANET SERVICE CREATED")
+print_json(create_paranet_service_result)
 
-# divider()
+divider()
 
-# add_services_result = dkg.paranet.add_services(paranet_ual, [paranet_service_ual])
+add_services_result = dkg.paranet.add_services(paranet_ual, [paranet_service_ual])
 
-# print("======================== ADDED PARANET SERVICES")
-# print_json(add_services_result)
+print("======================== ADDED PARANET SERVICES")
+print_json(add_services_result)
 
-# divider()
+divider()
 
 incentives_pool_params = dkg.paranet.NeuroWebIncentivesPoolParams(
     neuro_emission_multiplier=1.1,
@@ -225,24 +225,24 @@ print(
 )
 print_json(create_submit_ka1_result)
 
-# divider()
+divider()
 
-# ka2 = {
-#     "public": {"@context": ["http://schema.org"], "@id": "uuid:4", "test": "testKA2"}
-# }
+ka2 = {
+    "public": {"@context": ["http://schema.org"], "@id": "uuid:4", "test": "testKA2"}
+}
 
-# create_ka2_result = dkg.asset.create(ka2, 1, 20000000000000000000)
+create_ka2_result = dkg.asset.create(ka2, 1, 20000000000000000000)
 
-# print("======================== KNOWLEDGE ASSET #2 CREATED")
-# print_json(create_ka2_result)
+print("======================== KNOWLEDGE ASSET #2 CREATED")
+print_json(create_ka2_result)
 
-# ka2_ual = create_ka2_result["UAL"]
-# submit_ka2_result = dkg.asset.submit_to_paranet(ka2_ual, paranet_ual)
+ka2_ual = create_ka2_result["UAL"]
+submit_ka2_result = dkg.asset.submit_to_paranet(ka2_ual, paranet_ual)
 
-# print("======================== KNOWLEDGE ASSET #2 SUBMITTED TO THE PARANET")
-# print_json(submit_ka2_result)
+print("======================== KNOWLEDGE ASSET #2 SUBMITTED TO THE PARANET")
+print_json(submit_ka2_result)
 
-# divider()
+divider()
 
 is_knowledge_miner = dkg.paranet.is_knowledge_miner(paranet_ual)
 is_operator = dkg.paranet.is_operator(paranet_ual)
