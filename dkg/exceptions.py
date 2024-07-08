@@ -95,7 +95,7 @@ class HTTPRequestMethodNotSupported(DKGException):
 
 class NodeRequestError(DKGException):
     """
-    Raised by Node HTTP Provider if error occured during request.
+    Raised by Node HTTP Provider if error occurred during request.
     """
 
     pass
