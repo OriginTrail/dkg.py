@@ -72,7 +72,11 @@ BLOCKCHAINS = {
                 "https://api.gnosisscan.io/api?module=proxy&action=eth_gasPrice",
                 "https://blockscout.com/xdai/mainnet/api/v1/gas-price-oracle",
             ],
-        }
+        },
+        "base:8453": {
+            "hub": "0xaBfcf2ad1718828E7D3ec20435b0d0b5EAfbDf2c",
+            "rpc": "https://mainnet.base.org",
+        },
     },
 }
 

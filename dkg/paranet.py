@@ -19,7 +19,6 @@ import json
 
 from dataclasses import dataclass
 from web3 import Web3
-from web3.contract import Contract
 from web3.types import TxReceipt
 
 from dkg.dataclasses import BaseIncentivesPoolParams, ParanetIncentivizationType
