@@ -81,8 +81,9 @@ BLOCKCHAINS = {
 }
 
 DEFAULT_GAS_PRICE_GWEI = {
-    "gnosis": 20,
     "otp": 1,
+    "gnosis": 20,
+    "base": 20,
 }
 
 DEFAULT_HASH_FUNCTION_ID = 1
@@ -95,14 +96,17 @@ DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS = {
     "devnet": {
         "otp:2160": 2,
         "gnosis:10200": 2,
+        "base:84532": 2,
     },
     "testnet": {
         "otp:20430": 2,
         "gnosis:10200": 2,
+        "base:84532": 2,
     },
     "mainnet": {
         "otp:2043": 2,
         "gnosis:100": 2,
+        "base:8453": 2,
     },
 }
 
