@@ -93,23 +93,6 @@ class BlockchainRequest:
         function="burnAsset",
         args={"tokenId": int},
     )
-    update_asset_state = ContractTransaction(
-        contract="ContentAsset",
-        function="updateAssetState",
-        args={
-            "tokenId": int,
-            "assertionId": bytes | HexStr,
-            "size": int,
-            "triplesNumber": int,
-            "chunksNumber": int,
-            "updateTokenAmount": int,
-        },
-    )
-    cancel_asset_state_update = ContractTransaction(
-        contract="ContentAsset",
-        function="cancelAssetStateUpdate",
-        args={"tokenId": int},
-    )
     extend_asset_storing_period = ContractTransaction(
         contract="ContentAsset",
         function="extendAssetStoringPeriod",
@@ -118,11 +101,6 @@ class BlockchainRequest:
     increase_asset_token_amount = ContractTransaction(
         contract="ContentAsset",
         function="increaseAssetTokenAmount",
-        args={"tokenId": int, "tokenAmount": int},
-    )
-    increase_asset_update_token_amount = ContractTransaction(
-        contract="ContentAsset",
-        function="increaseAssetUpdateTokenAmount",
         args={"tokenId": int, "tokenAmount": int},
     )
 
@@ -247,16 +225,6 @@ class BlockchainRequest:
         args={
             "miner": Address,
             "paranetId": HexStr,
-        },
-    )
-    process_updated_knowledge_asset_states_metadata = ContractTransaction(
-        contract="Paranet",
-        function="processUpdatedKnowledgeAssetStatesMetadata",
-        args={
-            "paranetKAStorageContract": Address,
-            "paranetKATokenId": int,
-            "start": int,
-            "end": int,
         },
     )
 

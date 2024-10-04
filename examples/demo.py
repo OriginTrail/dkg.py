@@ -154,26 +154,6 @@ print("======================== ASSET RESOLVED")
 print_json(get_asset_result)
 divider()
 
-update_asset_result = dkg.asset.update(
-    create_asset_result["UAL"],
-    {
-        "private": {
-            "@context": ["https://schema.org"],
-            "@graph": [
-                {
-                    "@id": "uuid:user:1",
-                    "name": "Adam",
-                    "lastname": "Smith",
-                    "identifier": f"{math.floor(random.random() * 1e10)}",
-                },
-            ],
-        },
-    },
-)
-print("======================== ASSET UPDATED")
-print_json(update_asset_result)
-divider()
-
 get_latest_asset_result = dkg.asset.get(create_asset_result["UAL"], "latest", "all")
 print("======================== ASSET LATEST RESOLVED")
 print_json(get_latest_asset_result)
@@ -204,13 +184,6 @@ get_first_state_by_hash = dkg.asset.get(
 )
 print("======================== ASSET FIRST STATE (GET BY STATE HASH) RESOLVED")
 print_json(get_first_state_by_hash)
-divider()
-
-get_second_state_by_hash = dkg.asset.get(
-    create_asset_result["UAL"], update_asset_result["publicAssertionId"], "all"
-)
-print("======================== ASSET SECOND STATE (GET BY STATE HASH) RESOLVED")
-print_json(get_second_state_by_hash)
 divider()
 
 query_result = dkg.graph.query(

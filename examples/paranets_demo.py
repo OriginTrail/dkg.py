@@ -307,39 +307,3 @@ print(claim_operator_reward_result)
 divider()
 
 print_reward_stats()
-
-divider()
-
-update_asset_result = dkg.asset.update(
-    create_submit_ka1_result["UAL"],
-    {
-        "private": {
-            "@context": ["https://schema.org"],
-            "@graph": [
-                {
-                    "@id": "uuid:user:1",
-                    "name": "Adam",
-                    "lastname": "Smith",
-                },
-            ],
-        },
-    },
-    100000000000000000000
-)
-
-print("======================== KA1 UPDATED")
-print_json(update_asset_result)
-
-print("Waiting 30 seconds for the update finalization...")
-time.sleep(30)
-
-divider()
-
-update_claimable_rewards_result = dkg.paranet.update_claimable_rewards(paranet_ual)
-
-print("======================== UPDATED CLAIMABLE REWARDS")
-print_json(update_claimable_rewards_result)
-
-divider()
-
-print_reward_stats()

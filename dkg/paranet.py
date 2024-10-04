@@ -424,37 +424,6 @@ class Paranet(Module):
     _get_updating_knowledge_asset_states = Method(
         BlockchainRequest.get_updating_knowledge_asset_states
     )
-    _process_updated_knowledge_asset_states_metadata = Method(
-        BlockchainRequest.process_updated_knowledge_asset_states_metadata
-    )
-
-    def update_claimable_rewards(self, ual: UAL) -> dict[str, str | HexStr | TxReceipt]:
-        parsed_ual = parse_ual(ual)
-        knowledge_asset_storage, knowledge_asset_token_id = (
-            parsed_ual["contract_address"],
-            parsed_ual["token_id"],
-        )
-
-        paranet_id = Web3.solidity_keccak(
-            ["address", "uint256"], [knowledge_asset_storage, knowledge_asset_token_id]
-        )
-
-        updating_states = self._get_updating_knowledge_asset_states(
-            self.manager.blockchain_provider.account.address,
-            paranet_id,
-        )
-        receipt: TxReceipt = self._process_updated_knowledge_asset_states_metadata(
-            knowledge_asset_storage,
-            knowledge_asset_token_id,
-            0,
-            len(updating_states),
-        )
-
-        return {
-            "paranetUAL": ual,
-            "paranetId": paranet_id,
-            "operation": json.loads(Web3.to_json(receipt)),
-        }
 
     def _get_incentives_pool_contract(
         self,
