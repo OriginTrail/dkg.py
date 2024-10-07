@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any, Type
 
 import requests
-from dkg.constants import BLOCKCHAINS, DEFAULT_GAS_PRICE_GWEI
+from dkg.constants import BLOCKCHAINS
 from dkg.exceptions import (
     AccountMissing,
     EnvironmentNotSupported,
@@ -181,12 +181,14 @@ class BlockchainProvider:
                     "account."
                 )
 
-            gas_price = self.gas_price or gas_price or self._get_network_gas_price()
-
             options = {
-                "gasPrice": gas_price,
                 "gas": gas_limit or contract_function(**args).estimate_gas(),
             }
+
+            gas_price = self.gas_price or gas_price or self._get_network_gas_price()
+
+            if gas_price is not None:
+                options["gasPrice"] = gas_price
 
             tx_hash = contract_function(**args).transact(options)
             tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
@@ -213,12 +215,6 @@ class BlockchainProvider:
         if self.environment == "development":
             return None
 
-        blockchain_name, _ = self.blockchain_id.split(":")
-
-        default_gas_price = self.w3.to_wei(
-            DEFAULT_GAS_PRICE_GWEI[blockchain_name], "gwei"
-        )
-
         def fetch_gas_price(oracle_url: str) -> Wei | None:
             try:
                 response = requests.get(oracle_url)
@@ -244,7 +240,7 @@ class BlockchainProvider:
                 if gas_price is not None:
                     return gas_price
 
-        return default_gas_price
+        return None
 
     def _init_contracts(self):
         for contract in self.abi.keys():

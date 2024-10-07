@@ -45,12 +45,6 @@ BLOCKCHAINS = {
     "mainnet": {},
 }
 
-DEFAULT_GAS_PRICE_GWEI = {
-    "otp": 1,
-    "gnosis": 20,
-    "base": 20,
-}
-
 DEFAULT_HASH_FUNCTION_ID = 1
 DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS = {
     "development": {
