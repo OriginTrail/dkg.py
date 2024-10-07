@@ -57,7 +57,7 @@ class Paranet(Module):
     _register_paranet = Method(BlockchainRequest.register_paranet)
 
     def create(
-        self, ual: UAL, name: str, description: str
+        self, ual: UAL, name: str, description: str, nodes_access_policy: int, miners_access_policy: int
     ) -> dict[str, str | HexStr | TxReceipt]:
         parsed_ual = parse_ual(ual)
         knowledge_asset_storage, knowledge_asset_token_id = (
@@ -70,6 +70,8 @@ class Paranet(Module):
             knowledge_asset_token_id,
             name,
             description,
+            nodes_access_policy,
+            miners_access_policy
         )
 
         return {

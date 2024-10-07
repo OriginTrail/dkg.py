@@ -157,6 +157,8 @@ class BlockchainRequest:
             "paranetKATokenId": int,
             "paranetName": str,
             "paranetDescription": str,
+            "nodesAccessPolicy": int,
+            "minersAccessPolicy": int,
         },
     )
     add_paranet_services = ContractTransaction(

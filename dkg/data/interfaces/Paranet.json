@@ -625,6 +625,16 @@
         "internalType": "string",
         "name": "paranetDescription",
         "type": "string"
+      },
+      {
+        "internalType": "ParanetStructs.NodesAccessPolicy",
+        "name": "nodesAccessPolicy",
+        "type": "uint8"
+      },
+      {
+        "internalType": "ParanetStructs.MinersAccessPolicy",
+        "name": "minersAccessPolicy",
+        "type": "uint8"
       }
     ],
     "name": "registerParanet",
