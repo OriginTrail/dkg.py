@@ -161,6 +161,105 @@ class BlockchainRequest:
             "minersAccessPolicy": int,
         },
     )
+
+    add_paranet_curated_nodes = ContractTransaction(
+        contract="Paranet",
+        function="addParanetCuratedNodes",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "identityIds": list[int]
+        },
+    )
+
+    remove_paranet_curated_nodes = ContractTransaction(
+        contract="Paranet",
+        function="removeParanetCuratedNodes",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "identityIds": list[int]
+        },
+    )
+
+    request_paranet_curated_node_access = ContractTransaction(
+        contract="Paranet",
+        function="requestParanetCuratedNodeAccess",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+        },
+    )
+
+    approve_curated_node = ContractTransaction(
+        contract="Paranet",
+        function="approveCuratedNode",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "identityId": int,
+        },
+    )
+
+    reject_curated_node = ContractTransaction(
+        contract="Paranet",
+        function="rejectCuratedNode",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "identityId": int,
+        },
+    )
+
+    add_paranet_curated_miners = ContractTransaction(
+        contract="Paranet",
+        function="addParanetCuratedMiners",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "minerAddresses": list[Address]
+        },
+    )
+
+    remove_paranet_curated_miners = ContractTransaction(
+        contract="Paranet",
+        function="removeParanetCuratedMiners",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "minerAddresses": list[Address]
+        },
+    )
+
+    request_paranet_curated_miner_access = ContractTransaction(
+        contract="Paranet",
+        function="requestParanetCuratedMinerAccess",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+        },
+    )
+
+    approve_curated_miner = ContractTransaction(
+        contract="Paranet",
+        function="approveCuratedMiner",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "minerAddress": Address,
+        },
+    )
+
+    reject_curated_miner = ContractTransaction(
+        contract="Paranet",
+        function="rejectCuratedMiner",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "minerAddress": Address,
+        },
+    )
+
     add_paranet_services = ContractTransaction(
         contract="Paranet",
         function="addParanetServices",
