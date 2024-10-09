@@ -211,6 +211,12 @@ class BlockchainRequest:
         },
     )
 
+    get_curated_nodes = ContractCall(
+        contract="ParanetsRegistry",
+        function="getCuratedNodes",
+        args={ "paranetId": HexStr },
+    )
+
     add_paranet_curated_miners = ContractTransaction(
         contract="Paranet",
         function="addParanetCuratedMiners",
@@ -258,6 +264,12 @@ class BlockchainRequest:
             "paranetKATokenId": int,
             "minerAddress": Address,
         },
+    )
+
+    get_knowledge_miners = ContractCall(
+        contract="ParanetsRegistry",
+        function="getKnowledgeMiners",
+        args={ "paranetId": HexStr },
     )
 
     add_paranet_services = ContractTransaction(

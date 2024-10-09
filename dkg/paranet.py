@@ -218,6 +218,24 @@ class Paranet(Module):
             "operation": "Approve node's curated paranet access request"
         }
     
+    _get_curated_nodes = Method(BlockchainRequest.get_curated_nodes)
+    
+    def get_curated_nodes(self, ual: UAL) -> dict[str, str | HexStr | TxReceipt]:
+        parsed_ual = parse_ual(ual)
+        knowledge_asset_storage, knowledge_asset_token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
+
+        paranet_id = Web3.to_hex(
+            Web3.solidity_keccak(
+                ["address", "uint256"],
+                [knowledge_asset_storage, knowledge_asset_token_id],
+            )
+        ),
+
+        return self._get_curated_nodes(paranet_id)
+    
     _add_paranet_curated_miners = Method(BlockchainRequest.add_paranet_curated_miners)
 
     def add_curated_miners(
@@ -350,6 +368,24 @@ class Paranet(Module):
             ),
             "operation": "Reject miner's curated paranet access request"
         }
+    
+    _get_knowledge_miners = Method(BlockchainRequest.get_knowledge_miners)
+    
+    def get_knowledge_miners(self, ual: UAL) -> dict[str, str | HexStr | TxReceipt]:
+        parsed_ual = parse_ual(ual)
+        knowledge_asset_storage, knowledge_asset_token_id = (
+            parsed_ual["contract_address"],
+            parsed_ual["token_id"],
+        )
+
+        paranet_id = Web3.to_hex(
+            Web3.solidity_keccak(
+                ["address", "uint256"],
+                [knowledge_asset_storage, knowledge_asset_token_id],
+            )
+        ),
+
+        return self._get_knowledge_miners(paranet_id)
 
     _deploy_neuro_incentives_pool = Method(
         BlockchainRequest.deploy_neuro_incentives_pool
