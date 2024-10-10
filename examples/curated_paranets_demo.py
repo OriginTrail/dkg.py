@@ -16,7 +16,6 @@
 # under the License.
 
 import json
-import time
 
 from hexbytes import HexBytes
 
@@ -29,8 +28,36 @@ blockchain_provider = BlockchainProvider(
     "hardhat2:31337",
     private_key="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
 )
+blockchain_provider2 = BlockchainProvider(
+    "development",
+    "hardhat2:31337",
+    private_key="0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a",
+)
+blockchain_provider3 = BlockchainProvider(
+    "development",
+    "hardhat2:31337",
+    private_key="0x7c852118294e51e653712a81e05800f419141751be58f605c371e15141b007a6",
+)
+blockchain_provider4 = BlockchainProvider(
+    "development",
+    "hardhat2:31337",
+    private_key="0x9904da7fe786e5d1f8629b565b688425d78053d4325e746c5ad8ac4328248037",
+)
+blockchain_provider5 = BlockchainProvider(
+    "development",
+    "hardhat2:31337",
+    private_key="0xfb07091daf99c1d493820ae8dcbc439b48b13ca844684bb1dcae27c9e680e62b",
+)
 
 dkg = DKG(node_provider, blockchain_provider)
+dkg2 = DKG(node_provider, blockchain_provider2)
+dkg3 = DKG(node_provider, blockchain_provider3)
+dkg4 = DKG(node_provider, blockchain_provider4)
+dkg5 = DKG(node_provider, blockchain_provider5)
+
+PUBLIC_KEY3 = '0x90F79bf6EB2c4f870365E785982E1f101E93b906'
+PUBLIC_KEY4 = '0xe5beaB7853A22f054Ef287EA62aCe7A32528b3eE'
+PUBLIC_KEY5 = '0x8A4673B00B04b59CaC44926ABeDa85ed181fA436'
 
 class NODES_ACCESS_POLICY:
     OPEN: int = 0
@@ -85,235 +112,115 @@ create_paranet_result = dkg.paranet.create(
     paranet_ual,
     "TestParanet",
     "TestParanetDescription",
-    NODES_ACCESS_POLICY.OPEN,
-    MINERS_ACCESS_POLICY.OPEN
+    NODES_ACCESS_POLICY.CURATED,
+    MINERS_ACCESS_POLICY.CURATED
 )
 
-print("======================== PARANET CREATED")
+print("======================== A CURATED PARANET REGISTERED")
 print_json(create_paranet_result)
 
-# divider()
+divider()
 
-# paranet_service_data = {
-#     "public": {
-#         "@context": ["http://schema.org"],
-#         "@id": "uuid:2",
-#         "service": "AI Agent Bob",
-#         "model": {"@id": "uuid:gpt4"},
-#     }
-# }
+dkg.paranet.add_curated_nodes(paranet_ual, [1, 2, 3])
+curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
+print("======================== ADDED NODES TO A CURATED PARANET")
+print_json(curated_nodes)
 
-# create_paranet_service_knowledge_asset_result = dkg.asset.create(
-#     paranet_service_data, 1
-# )
+divider()
 
-# print("======================== PARANET SERVICE KNOWLEDGE ASSET CREATED")
-# print_json(create_paranet_service_knowledge_asset_result)
+dkg.paranet.remove_curated_nodes(paranet_ual, [2, 3])
+curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
+print("======================== REMOVED NODES FROM A CURATED PARANET")
+print_json({
+    "paranetUAL": paranet_ual,
+    "curatedNodes": curated_nodes
+})
 
-# divider()
+divider()
 
-# paranet_service_ual = create_paranet_service_knowledge_asset_result["UAL"]
-# create_paranet_service_result = dkg.paranet.create_service(
-#     paranet_service_ual,
-#     "TestParanetService",
-#     "TestParanetServiceDescription",
-#     ["0x03C094044301E082468876634F0b209E11d98452"],
-# )
-
-# print("======================== PARANET SERVICE CREATED")
-# print_json(create_paranet_service_result)
+# dkg2.paranet.request_curated_node_access(paranet_ual)
+# dkg.paranet.reject_curated_node(paranet_ual, 2)
+# print("======================== REJECT A NODE'S ACCESS REQUEST TO A CURATED PARANET")
+# curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
+# print_json({
+#     "paranetUAL": paranet_ual,
+#     "curatedNodes": curated_nodes
+# })
 
 # divider()
 
-# add_services_result = dkg.paranet.add_services(paranet_ual, [paranet_service_ual])
-
-# print("======================== ADDED PARANET SERVICES")
-# print_json(add_services_result)
-
-# divider()
-
-# incentives_pool_params = dkg.paranet.NeuroWebIncentivesPoolParams(
-#     neuro_emission_multiplier=1.1,
-#     operator_percentage=10.5,
-#     voters_percentage=5.5,
-# )
-# deploy_incentives_contract_result = dkg.paranet.deploy_incentives_contract(
-#     paranet_ual, incentives_pool_params
-# )
-
-# print("======================== PARANET NEURO INCENTIVES POOL DEPLOYED")
-# print_json(deploy_incentives_contract_result)
+# dkg2.paranet.request_curated_node_access(paranet_ual)
+# dkg.paranet.approve_curated_node(paranet_ual, 2)
+# print("======================== APPROVE A NODE'S ACCESS REQUEST TO A CURATED PARANET")
+# curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
+# print_json({
+#     "paranetUAL": paranet_ual,
+#     "curatedNodes": curated_nodes
+# })
 
 # divider()
 
-# incentives_pool_address = dkg.paranet.get_incentives_pool_address(paranet_ual)
+dkg.paranet.add_curated_miners(paranet_ual, [PUBLIC_KEY3, PUBLIC_KEY4, PUBLIC_KEY5])
+knowledge_miners = dkg.paranet.get_knowledge_miners(paranet_ual)
+print("======================== ADDED KNOWLEDGE MINERS TO A CURATED PARANET")
+print_json(knowledge_miners)
 
-# print("======================== GOT PARANET NEURO INCENTIVES POOL ADDRESS")
-# print(incentives_pool_address)
+divider()
 
-# divider()
+dkg.paranet.remove_curated_miners(paranet_ual, [PUBLIC_KEY4, PUBLIC_KEY5])
+knowledge_miners = dkg.paranet.get_knowledge_miners(paranet_ual)
+print("======================== REMOVED KNOWLEDGE MINERS FROM A CURATED PARANET")
+print_json({
+    "paranetUAL": paranet_ual,
+    "curatedNodes": knowledge_miners
+})
 
-# incentives_amount = blockchain_provider.w3.to_wei(100, "ether")
-# tx_hash = blockchain_provider.w3.eth.send_transaction(
-#     {
-#         "from": blockchain_provider.account.address,
-#         "to": incentives_pool_address,
-#         "value": incentives_amount,
-#     }
-# )
+divider()
 
-# print(f"======================== SENT {incentives_amount} TO THE INCENTIVES POOL")
-
-# divider()
-
-# is_knowledge_miner = dkg.paranet.is_knowledge_miner(paranet_ual)
-# is_operator = dkg.paranet.is_operator(paranet_ual)
-# is_voter = dkg.paranet.is_voter(paranet_ual)
-
-# print(f"Is Knowledge Miner? {str(is_knowledge_miner)}")
-# print(f"Is Operator? {str(is_operator)}")
-# print(f"Is Voter? {str(is_voter)}")
+# dkg4.paranet.request_curated_miner_access(paranet_ual)
+# dkg.paranet.reject_curated_miner(paranet_ual, PUBLIC_KEY4)
+# print("======================== REJECT A MINER'S ACCESS REQUEST TO A CURATED PARANET")
+# knowledge_miners = dkg.paranet.get_knowledge_miners(paranet_ual)
+# print_json({
+#     "paranetUAL": paranet_ual,
+#     "curatedNodes": knowledge_miners
+# })
 
 # divider()
 
-
-# def print_reward_stats(is_voter: bool = False):
-#     knowledge_miner_reward = dkg.paranet.calculate_claimable_miner_reward_amount(
-#         paranet_ual
-#     )
-#     operator_reward = dkg.paranet.calculate_claimable_operator_reward_amount(
-#         paranet_ual
-#     )
-
-#     print(
-#         f"Claimable Knowledge Miner Reward for the Current Wallet: {knowledge_miner_reward}"
-#     )
-#     print(
-#         f"Claimable Paranet Operator Reward for the Current Wallet: {operator_reward}"
-#     )
-#     if is_voter:
-#         voter_rewards = dkg.paranet.calculate_claimable_voter_reward_amount(paranet_ual)
-#         print(
-#             f"Claimable Proposal Voter Reward for the Current Wallet: {voter_rewards}"
-#         )
-
-#     divider()
-
-#     all_knowledge_miners_reward = (
-#         dkg.paranet.calculate_all_claimable_miner_rewards_amount(paranet_ual)
-#     )
-#     all_voters_reward = dkg.paranet.calculate_all_claimable_voters_reward_amount(
-#         paranet_ual
-#     )
-
-#     print(f"Claimable All Knowledge Miners Reward: {all_knowledge_miners_reward}")
-#     print(f"Claimable Paranet Operator Reward: {operator_reward}")
-#     print(f"Claimable All Proposal Voters Reward: {all_voters_reward}")
-
-
-# print_reward_stats(is_voter)
+# dkg4.paranet.request_curated_miner_access(paranet_ual)
+# dkg.paranet.approve_curated_miner(paranet_ual, PUBLIC_KEY4)
+# print("======================== APPROVE A MINER'S ACCESS REQUEST TO A CURATED PARANET")
+# knowledge_miners = dkg.paranet.get_knowledge_miners(paranet_ual)
+# print_json({
+#     "paranetUAL": paranet_ual,
+#     "curatedNodes": knowledge_miners
+# })
 
 # divider()
 
-# ka1 = {
-#     "public": {
-#         "@context": ["http://schema.org"],
-#         "@id": "uuid:3",
-#         "company": "KA1-Company",
-#         "user": {"@id": "uuid:user:1"},
-#         "city": {"@id": "uuid:belgrade"},
-#     }
-# }
+create_first_asset_result = dkg3.asset.create(paranet_data, 1)
+approved_submit_result = dkg3.asset.submit_to_paranet(create_first_asset_result.get("UAL"), paranet_ual)
+print('======================== CREATE A KA AND SUBMIT IT TO A CURATED PARANET - KNOWLEDGE MINER IS APPROVED')
+print_json({
+    "paranetUAL": paranet_ual,
+    "assetUAL": create_first_asset_result.get("UAL"),
+    "submitResult": approved_submit_result
+})
 
-# create_submit_ka1_result = dkg.asset.create(
-#     ka1,
-#     1,
-#     100000000000000000000,
-#     paranet_ual=paranet_ual,
-# )
+divider()
 
-# print(
-#     "======================== KNOWLEDGE ASSET #1 CREATED AND SUBMITTED TO THE PARANET"
-# )
-# print_json(create_submit_ka1_result)
+create_second_asset_result = dkg5.asset.create(paranet_data, 1)
+not_approved_submit_result = None
+try:
+    not_approved_submit_result = dkg5.asset.submit_to_paranet(create_second_asset_result.get("UAL"), paranet_ual)
+except Exception as e:
+    not_approved_submit_result = e.args[0]
+print('======================== CREATE A KA AND SUBMIT IT TO A CURATED PARANET - KNOWLEDGE MINER IS NOT APPROVED')
+print_json({
+    "paranetUAL": paranet_ual,
+    "assetUAL": create_second_asset_result.get("UAL"),
+    "submitResult": not_approved_submit_result
+})
 
-# divider()
-
-# ka2 = {
-#     "public": {
-#         "@context": ["http://schema.org"],
-#         "@id": "uuid:4",
-#         "company": "KA2-Company",
-#         "user": {"@id": "uuid:user:2"},
-#         "city": {"@id": "uuid:madrid"},
-#     }
-# }
-
-# create_ka2_result = dkg.asset.create(ka2, 1, 20000000000000000000)
-
-# print("======================== KNOWLEDGE ASSET #2 CREATED")
-# print_json(create_ka2_result)
-
-# ka2_ual = create_ka2_result["UAL"]
-# submit_ka2_result = dkg.asset.submit_to_paranet(ka2_ual, paranet_ual)
-
-# print("======================== KNOWLEDGE ASSET #2 SUBMITTED TO THE PARANET")
-# print_json(submit_ka2_result)
-
-# # divider()
-
-# # federated_query = """
-# # PREFIX schema: <http://schema.org/>
-# # SELECT DISTINCT ?s ?city1 ?user1 ?s2 ?city2 ?user2 ?company1
-# # WHERE {{
-# #     ?s schema:city ?city1 .
-# #     ?s schema:company ?company1 .
-# #     ?s schema:user ?user1;
-
-# #     SERVICE <{ual}> {{
-# #         ?s2 schema:city ?city2 .
-# #         ?s2 schema:user ?user2;
-# #     }}
-
-# #     filter(contains(str(?city2), "belgrade"))
-# # }}
-# # """
-# # query_result = dkg.graph.query(
-# #     federated_query.format(ual=ka2_ual),
-# #     paranet_ual,
-# # )
-
-# # print("======================== GOT FEDERATED QUERY RESULT")
-# # print(query_result)
-
-# divider()
-
-# is_knowledge_miner = dkg.paranet.is_knowledge_miner(paranet_ual)
-# is_operator = dkg.paranet.is_operator(paranet_ual)
-# is_voter = dkg.paranet.is_voter(paranet_ual)
-
-# print(f"Is Knowledge Miner? {str(is_knowledge_miner)}")
-# print(f"Is Operator? {str(is_operator)}")
-# print(f"Is Voter? {str(is_voter)}")
-
-# divider()
-
-# print_reward_stats(is_voter)
-
-# divider()
-
-# claim_miner_reward_result = dkg.paranet.claim_miner_reward(paranet_ual)
-
-# print("======================== KNOWLEDGE MINER REWARD CLAIMED")
-# print_json(claim_miner_reward_result)
-
-# divider()
-
-# claim_operator_reward_result = dkg.paranet.claim_operator_reward(paranet_ual)
-
-# print("======================== PARANET OPERATOR REWARD CLAIMED")
-# print(claim_operator_reward_result)
-
-# divider()
-
-# print_reward_stats()
+divider()

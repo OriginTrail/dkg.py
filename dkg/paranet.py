@@ -227,14 +227,27 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        paranet_id = Web3.to_hex(
-            Web3.solidity_keccak(
-                ["address", "uint256"],
-                [knowledge_asset_storage, knowledge_asset_token_id],
-            )
-        ),
+        paranet_id = Web3.solidity_keccak(
+            ["address", "uint256"], [knowledge_asset_storage, knowledge_asset_token_id]
+        )
 
-        return self._get_curated_nodes(paranet_id)
+        curated_nodes = self._get_curated_nodes(paranet_id)
+
+        # curated_nodes is a list of ABIDecodedNamedTuple type so it needs to be converted to a dictionary
+        converted_results = []
+        for curated_node in curated_nodes:
+            curated_node_dict = {}
+            for i, v in enumerate(curated_node):
+                if isinstance(v, bytes):
+                    v = Web3.to_hex(v)
+                curated_node_dict[str(i)] = v
+            for k, v in curated_node._asdict().items():
+                if isinstance(v, bytes):
+                    v = Web3.to_hex(v)
+                curated_node_dict[k] = v
+            converted_results.append(curated_node_dict)
+        
+        return converted_results
     
     _add_paranet_curated_miners = Method(BlockchainRequest.add_paranet_curated_miners)
 
@@ -378,12 +391,9 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        paranet_id = Web3.to_hex(
-            Web3.solidity_keccak(
-                ["address", "uint256"],
-                [knowledge_asset_storage, knowledge_asset_token_id],
-            )
-        ),
+        paranet_id = Web3.solidity_keccak(
+            ["address", "uint256"], [knowledge_asset_storage, knowledge_asset_token_id]
+        )
 
         return self._get_knowledge_miners(paranet_id)
 
