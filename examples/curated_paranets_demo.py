@@ -21,6 +21,7 @@ from hexbytes import HexBytes
 
 from dkg import DKG
 from dkg.providers import BlockchainProvider, NodeHTTPProvider
+from dkg.dataclasses import ParanetNodesAccessPolicy, ParanetMinersAccessPolicy
 
 node_provider = NodeHTTPProvider("http://localhost:8900")
 blockchain_provider = BlockchainProvider(
@@ -58,15 +59,6 @@ dkg5 = DKG(node_provider, blockchain_provider5)
 PUBLIC_KEY3 = '0x90F79bf6EB2c4f870365E785982E1f101E93b906'
 PUBLIC_KEY4 = '0xe5beaB7853A22f054Ef287EA62aCe7A32528b3eE'
 PUBLIC_KEY5 = '0x8A4673B00B04b59CaC44926ABeDa85ed181fA436'
-
-class NODES_ACCESS_POLICY:
-    OPEN: int = 0
-    CURATED: int = 1
-
-class MINERS_ACCESS_POLICY:
-    OPEN: int = 0
-    CURATED: int = 1
-
 
 def divider():
     print("==================================================")
@@ -112,8 +104,8 @@ create_paranet_result = dkg.paranet.create(
     paranet_ual,
     "TestParanet",
     "TestParanetDescription",
-    NODES_ACCESS_POLICY.CURATED,
-    MINERS_ACCESS_POLICY.CURATED
+    ParanetNodesAccessPolicy.CURATED,
+    ParanetMinersAccessPolicy.CURATED
 )
 
 print("======================== A CURATED PARANET REGISTERED")
