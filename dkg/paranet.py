@@ -61,8 +61,8 @@ class Paranet(Module):
         ual: UAL,
         name: str,
         description: str,
-        nodes_access_policy: ParanetNodesAccessPolicy,
-        miners_access_policy: ParanetMinersAccessPolicy
+        paranet_nodes_access_policy: ParanetNodesAccessPolicy,
+        paranet_miners_access_policy: ParanetMinersAccessPolicy
     ) -> dict[str, str | HexStr | TxReceipt]:
         parsed_ual = parse_ual(ual)
         knowledge_asset_storage, knowledge_asset_token_id = (
@@ -75,8 +75,8 @@ class Paranet(Module):
             knowledge_asset_token_id,
             name,
             description,
-            nodes_access_policy,
-            miners_access_policy
+            paranet_nodes_access_policy,
+            paranet_miners_access_policy
         )
 
         return {
