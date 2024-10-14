@@ -121,14 +121,16 @@ print_json(create_paranet_result)
 
 divider()
 
-dkg.paranet.add_curated_nodes(paranet_ual, [1, 2, 3])
+identity_ids = [1, 2, 3]
+dkg.paranet.add_curated_nodes(paranet_ual, identity_ids)
 curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
 print("======================== ADDED NODES TO A CURATED PARANET")
 print_json(curated_nodes)
 
 divider()
 
-dkg.paranet.remove_curated_nodes(paranet_ual, [2, 3])
+identity_ids = [2, 3]
+dkg.paranet.remove_curated_nodes(paranet_ual, identity_ids)
 curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
 print("======================== REMOVED NODES FROM A CURATED PARANET")
 print_json({
@@ -160,14 +162,16 @@ divider()
 
 # divider()
 
-dkg.paranet.add_curated_miners(paranet_ual, [PUBLIC_KEY3, PUBLIC_KEY4, PUBLIC_KEY5])
+miner_addresses = [PUBLIC_KEY3, PUBLIC_KEY4, PUBLIC_KEY5]
+dkg.paranet.add_curated_miners(paranet_ual, miner_addresses)
 knowledge_miners = dkg.paranet.get_knowledge_miners(paranet_ual)
 print("======================== ADDED KNOWLEDGE MINERS TO A CURATED PARANET")
 print_json(knowledge_miners)
 
 divider()
 
-dkg.paranet.remove_curated_miners(paranet_ual, [PUBLIC_KEY4, PUBLIC_KEY5])
+miner_addresses = [PUBLIC_KEY4, PUBLIC_KEY5]
+dkg.paranet.remove_curated_miners(paranet_ual, miner_addresses)
 knowledge_miners = dkg.paranet.get_knowledge_miners(paranet_ual)
 print("======================== REMOVED KNOWLEDGE MINERS FROM A CURATED PARANET")
 print_json({
