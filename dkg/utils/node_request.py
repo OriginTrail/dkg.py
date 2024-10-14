@@ -21,7 +21,7 @@ from typing import Any, Type
 
 from dkg.dataclasses import BidSuggestionRange, HTTPRequestMethod
 from dkg.exceptions import OperationFailed, OperationNotFinished
-from dkg.types import  AutoStrEnumUpperCase, UAL, Address, DataHexStr, NQuads
+from dkg.types import AutoStrEnumUpperCase, UAL, Address, DataHexStr, NQuads
 
 
 @dataclass

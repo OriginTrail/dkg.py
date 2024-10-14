@@ -58,9 +58,11 @@ class KnowledgeAssetContentVisibility(AutoStrEnumUpperCase):
 class ParanetIncentivizationType(AutoStrEnumCapitalize):
     NEUROWEB = auto()
 
+
 class ParanetNodesAccessPolicy(IntEnum):
     OPEN = 0
     CURATED = 1
+
 
 class ParanetMinersAccessPolicy(IntEnum):
     OPEN = 0

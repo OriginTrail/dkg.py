@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+
 class DKGException(Exception):
     """
     Exception mixin inherited by all exceptions of dkg.py

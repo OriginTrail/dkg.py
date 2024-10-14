@@ -701,7 +701,7 @@ class KnowledgeAsset(Module):
             "UAL": ual,
             "operation": json.loads(Web3.to_json(receipt)),
         }
-    
+
     _get_block = Method(BlockchainRequest.get_block)
 
     _get_service_agreement_data = Method(BlockchainRequest.get_service_agreement_data)
