@@ -73,6 +73,10 @@ def print_json(json_dict: dict):
             return {k: convert_hexbytes(v) for k, v in data.items()}
         elif isinstance(data, list):
             return [convert_hexbytes(i) for i in data]
+        elif isinstance(data, tuple) and hasattr(data, '_asdict'):
+            return convert_hexbytes(data._asdict())
+        elif isinstance(data, bytes):
+            return data.decode("utf-8")
         elif isinstance(data, HexBytes):
             return data.to_0x_hex()
         else:

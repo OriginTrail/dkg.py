@@ -105,7 +105,6 @@ class PublishOperationStatus(Enum):
 
 class StoreTypes(AutoStrEnumUpperCase):
     TRIPLE = auto()
-    TRIPLE_PARANET = auto()
     PENDING = auto()
 
 

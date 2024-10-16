@@ -254,23 +254,7 @@ class Paranet(Module):
             [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
         )
 
-        curated_nodes = self._get_curated_nodes(paranet_id)
-
-        # curated_nodes is a list of ABIDecodedNamedTuple type so it needs to be converted to a dictionary
-        converted_results = []
-        for curated_node in curated_nodes:
-            curated_node_dict = {}
-            for i, v in enumerate(curated_node):
-                if isinstance(v, bytes):
-                    v = Web3.to_hex(v)
-                curated_node_dict[str(i)] = v
-            for k, v in curated_node._asdict().items():
-                if isinstance(v, bytes):
-                    v = Web3.to_hex(v)
-                curated_node_dict[k] = v
-            converted_results.append(curated_node_dict)
-
-        return converted_results
+        return self._get_curated_nodes(paranet_id)
 
     _add_paranet_curated_miners = Method(BlockchainRequest.add_paranet_curated_miners)
 
