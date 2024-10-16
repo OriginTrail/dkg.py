@@ -148,6 +148,13 @@ class BlockchainRequest:
         args={"assertionId": bytes | HexStr},
     )
 
+    # Identity
+    get_identity_id = ContractCall(
+        contract="IdentityStorage",
+        function="getIdentityId",
+        args={"operational": Address},
+    )
+
     # Paranets
     register_paranet = ContractTransaction(
         contract="Paranet",

@@ -56,9 +56,15 @@ dkg3 = DKG(node_provider, blockchain_provider3)
 dkg4 = DKG(node_provider, blockchain_provider4)
 dkg5 = DKG(node_provider, blockchain_provider5)
 
+PUBLIC_KEY1 = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8'
+PUBLIC_KEY2 = '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC'
 PUBLIC_KEY3 = '0x90F79bf6EB2c4f870365E785982E1f101E93b906'
 PUBLIC_KEY4 = '0xe5beaB7853A22f054Ef287EA62aCe7A32528b3eE'
 PUBLIC_KEY5 = '0x8A4673B00B04b59CaC44926ABeDa85ed181fA436'
+
+node1_identity_id = dkg.node.get_identity_id(PUBLIC_KEY1)
+node2_identity_id = dkg.node.get_identity_id(PUBLIC_KEY2)
+node3_identity_id = dkg.node.get_identity_id(PUBLIC_KEY3)
 
 def divider():
     print("==================================================")
@@ -113,7 +119,7 @@ print_json(create_paranet_result)
 
 divider()
 
-identity_ids = [1, 2, 3]
+identity_ids = [node1_identity_id, node2_identity_id, node3_identity_id]
 dkg.paranet.add_curated_nodes(paranet_ual, identity_ids)
 curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
 print("======================== ADDED NODES TO A CURATED PARANET")
@@ -121,7 +127,7 @@ print_json(curated_nodes)
 
 divider()
 
-identity_ids = [2, 3]
+identity_ids = [node2_identity_id, node3_identity_id]
 dkg.paranet.remove_curated_nodes(paranet_ual, identity_ids)
 curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
 print("======================== REMOVED NODES FROM A CURATED PARANET")
@@ -133,7 +139,7 @@ print_json({
 divider()
 
 # dkg2.paranet.request_curated_node_access(paranet_ual)
-# dkg.paranet.reject_curated_node(paranet_ual, 2)
+# dkg.paranet.reject_curated_node(paranet_ual, node2_identity_id)
 # print("======================== REJECT A NODE'S ACCESS REQUEST TO A CURATED PARANET")
 # curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
 # print_json({
@@ -144,7 +150,7 @@ divider()
 # divider()
 
 # dkg2.paranet.request_curated_node_access(paranet_ual)
-# dkg.paranet.approve_curated_node(paranet_ual, 2)
+# dkg.paranet.approve_curated_node(paranet_ual, node2_identity_id)
 # print("======================== APPROVE A NODE'S ACCESS REQUEST TO A CURATED PARANET")
 # curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
 # print_json({
