@@ -16,7 +16,7 @@
 # under the License.
 
 from dataclasses import dataclass
-from enum import auto, Enum
+from enum import auto, Enum, IntEnum
 
 import pandas as pd
 
@@ -57,6 +57,16 @@ class KnowledgeAssetContentVisibility(AutoStrEnumUpperCase):
 
 class ParanetIncentivizationType(AutoStrEnumCapitalize):
     NEUROWEB = auto()
+
+
+class ParanetNodesAccessPolicy(IntEnum):
+    OPEN = 0
+    CURATED = 1
+
+
+class ParanetMinersAccessPolicy(IntEnum):
+    OPEN = 0
+    CURATED = 1
 
 
 @dataclass

@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any, Type
 
 import requests
-from dkg.constants import BLOCKCHAINS, DEFAULT_GAS_PRICE_GWEI
+from dkg.constants import BLOCKCHAINS
 from dkg.exceptions import (
     AccountMissing,
     EnvironmentNotSupported,
@@ -32,12 +32,13 @@ from dkg.exceptions import (
 )
 from dkg.types import URI, Address, DataHexStr, Environment, Wei
 from eth_account.signers.local import LocalAccount
+from eth_typing import ABI, ABIFunction
 from web3 import Web3
 from web3.contract import Contract
 from web3.contract.contract import ContractFunction
 from web3.logs import DISCARD
-from web3.middleware import construct_sign_and_send_raw_middleware
-from web3.types import ABI, ABIFunction, TxReceipt
+from web3.middleware import SignAndSendRawMiddlewareBuilder
+from web3.types import TxReceipt
 
 
 class BlockchainProvider:
@@ -181,12 +182,14 @@ class BlockchainProvider:
                     "account."
                 )
 
-            gas_price = self.gas_price or gas_price or self._get_network_gas_price()
-
             options = {
-                "gasPrice": gas_price,
                 "gas": gas_limit or contract_function(**args).estimate_gas(),
             }
+
+            gas_price = self.gas_price or gas_price or self._get_network_gas_price()
+
+            if gas_price is not None:
+                options["gasPrice"] = gas_price
 
             tx_hash = contract_function(**args).transact(options)
             tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
@@ -204,20 +207,15 @@ class BlockchainProvider:
 
     def set_account(self, private_key: DataHexStr):
         self.account: LocalAccount = self.w3.eth.account.from_key(private_key)
-        self.w3.middleware_onion.add(
-            construct_sign_and_send_raw_middleware(self.account)
+        self.w3.middleware_onion.inject(
+            SignAndSendRawMiddlewareBuilder.build(private_key),
+            layer=0,
         )
         self.w3.eth.default_account = self.account.address
 
     def _get_network_gas_price(self) -> Wei | None:
         if self.environment == "development":
             return None
-
-        blockchain_name, _ = self.blockchain_id.split(":")
-
-        default_gas_price = self.w3.to_wei(
-            DEFAULT_GAS_PRICE_GWEI[blockchain_name], "gwei"
-        )
 
         def fetch_gas_price(oracle_url: str) -> Wei | None:
             try:
@@ -244,7 +242,7 @@ class BlockchainProvider:
                 if gas_price is not None:
                     return gas_price
 
-        return default_gas_price
+        return None
 
     def _init_contracts(self):
         for contract in self.abi.keys():

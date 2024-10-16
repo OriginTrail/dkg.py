@@ -70,7 +70,7 @@ class BlockchainRequest:
     allowance = ContractCall(
         contract="Token",
         function="allowance",
-        args={"owner": Address, "spender": Address}
+        args={"owner": Address, "spender": Address},
     )
     increase_allowance = ContractTransaction(
         contract="Token",
@@ -93,23 +93,6 @@ class BlockchainRequest:
         function="burnAsset",
         args={"tokenId": int},
     )
-    update_asset_state = ContractTransaction(
-        contract="ContentAsset",
-        function="updateAssetState",
-        args={
-            "tokenId": int,
-            "assertionId": bytes | HexStr,
-            "size": int,
-            "triplesNumber": int,
-            "chunksNumber": int,
-            "updateTokenAmount": int,
-        },
-    )
-    cancel_asset_state_update = ContractTransaction(
-        contract="ContentAsset",
-        function="cancelAssetStateUpdate",
-        args={"tokenId": int},
-    )
     extend_asset_storing_period = ContractTransaction(
         contract="ContentAsset",
         function="extendAssetStoringPeriod",
@@ -118,11 +101,6 @@ class BlockchainRequest:
     increase_asset_token_amount = ContractTransaction(
         contract="ContentAsset",
         function="increaseAssetTokenAmount",
-        args={"tokenId": int, "tokenAmount": int},
-    )
-    increase_asset_update_token_amount = ContractTransaction(
-        contract="ContentAsset",
-        function="increaseAssetUpdateTokenAmount",
         args={"tokenId": int, "tokenAmount": int},
     )
 
@@ -170,6 +148,13 @@ class BlockchainRequest:
         args={"assertionId": bytes | HexStr},
     )
 
+    # Identity
+    get_identity_id = ContractCall(
+        contract="IdentityStorage",
+        function="getIdentityId",
+        args={"operational": Address},
+    )
+
     # Paranets
     register_paranet = ContractTransaction(
         contract="Paranet",
@@ -179,8 +164,121 @@ class BlockchainRequest:
             "paranetKATokenId": int,
             "paranetName": str,
             "paranetDescription": str,
+            "nodesAccessPolicy": int,
+            "minersAccessPolicy": int,
         },
     )
+
+    add_paranet_curated_nodes = ContractTransaction(
+        contract="Paranet",
+        function="addParanetCuratedNodes",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "identityIds": list[int],
+        },
+    )
+
+    remove_paranet_curated_nodes = ContractTransaction(
+        contract="Paranet",
+        function="removeParanetCuratedNodes",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "identityIds": list[int],
+        },
+    )
+
+    request_paranet_curated_node_access = ContractTransaction(
+        contract="Paranet",
+        function="requestParanetCuratedNodeAccess",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+        },
+    )
+
+    approve_curated_node = ContractTransaction(
+        contract="Paranet",
+        function="approveCuratedNode",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "identityId": int,
+        },
+    )
+
+    reject_curated_node = ContractTransaction(
+        contract="Paranet",
+        function="rejectCuratedNode",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "identityId": int,
+        },
+    )
+
+    get_curated_nodes = ContractCall(
+        contract="ParanetsRegistry",
+        function="getCuratedNodes",
+        args={"paranetId": HexStr},
+    )
+
+    add_paranet_curated_miners = ContractTransaction(
+        contract="Paranet",
+        function="addParanetCuratedMiners",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "minerAddresses": list[Address],
+        },
+    )
+
+    remove_paranet_curated_miners = ContractTransaction(
+        contract="Paranet",
+        function="removeParanetCuratedMiners",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "minerAddresses": list[Address],
+        },
+    )
+
+    request_paranet_curated_miner_access = ContractTransaction(
+        contract="Paranet",
+        function="requestParanetCuratedMinerAccess",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+        },
+    )
+
+    approve_curated_miner = ContractTransaction(
+        contract="Paranet",
+        function="approveCuratedMiner",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "minerAddress": Address,
+        },
+    )
+
+    reject_curated_miner = ContractTransaction(
+        contract="Paranet",
+        function="rejectCuratedMiner",
+        args={
+            "paranetKAStorageContract": Address,
+            "paranetKATokenId": int,
+            "minerAddress": Address,
+        },
+    )
+
+    get_knowledge_miners = ContractCall(
+        contract="ParanetsRegistry",
+        function="getKnowledgeMiners",
+        args={"paranetId": HexStr},
+    )
+
     add_paranet_services = ContractTransaction(
         contract="Paranet",
         function="addParanetServices",
@@ -247,16 +345,6 @@ class BlockchainRequest:
         args={
             "miner": Address,
             "paranetId": HexStr,
-        },
-    )
-    process_updated_knowledge_asset_states_metadata = ContractTransaction(
-        contract="Paranet",
-        function="processUpdatedKnowledgeAssetStatesMetadata",
-        args={
-            "paranetKAStorageContract": Address,
-            "paranetKATokenId": int,
-            "start": int,
-            "end": int,
         },
     )
 

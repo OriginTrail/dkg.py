@@ -77,7 +77,5 @@ def format_content(
 
     return {
         "public": public_assertion,
-        "private": private_assertion
-        if content.get("private", None)
-        else {},
+        "private": private_assertion if content.get("private", None) else {},
     }
