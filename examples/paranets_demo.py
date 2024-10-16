@@ -45,7 +45,7 @@ def print_json(json_dict: dict):
         elif isinstance(data, list):
             return [convert_hexbytes(i) for i in data]
         elif isinstance(data, HexBytes):
-            return data.hex()
+            return data.to_0x_hex()
         else:
             return data
 

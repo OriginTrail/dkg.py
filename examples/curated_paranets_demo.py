@@ -16,6 +16,7 @@
 # under the License.
 
 import json
+import time
 
 from hexbytes import HexBytes
 
@@ -27,7 +28,7 @@ node_provider = NodeHTTPProvider("http://localhost:8900")
 blockchain_provider = BlockchainProvider(
     "development",
     "hardhat2:31337",
-    private_key="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+    private_key="0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d",
 )
 blockchain_provider2 = BlockchainProvider(
     "development",
@@ -56,9 +57,9 @@ dkg3 = DKG(node_provider, blockchain_provider3)
 dkg4 = DKG(node_provider, blockchain_provider4)
 dkg5 = DKG(node_provider, blockchain_provider5)
 
-PUBLIC_KEY3 = "0x90F79bf6EB2c4f870365E785982E1f101E93b906"
-PUBLIC_KEY4 = "0xe5beaB7853A22f054Ef287EA62aCe7A32528b3eE"
-PUBLIC_KEY5 = "0x8A4673B00B04b59CaC44926ABeDa85ed181fA436"
+node1_identity_id = dkg.node.get_identity_id(dkg.blockchain_provider.account.address)
+node2_identity_id = dkg.node.get_identity_id(dkg2.blockchain_provider.account.address)
+node3_identity_id = dkg.node.get_identity_id(dkg3.blockchain_provider.account.address)
 
 def divider():
     print("==================================================")
@@ -73,7 +74,7 @@ def print_json(json_dict: dict):
         elif isinstance(data, list):
             return [convert_hexbytes(i) for i in data]
         elif isinstance(data, HexBytes):
-            return data.hex()
+            return data.to_0x_hex()
         else:
             return data
 
@@ -113,7 +114,7 @@ print_json(create_paranet_result)
 
 divider()
 
-identity_ids = [1, 2, 3]
+identity_ids = [node1_identity_id, node2_identity_id, node3_identity_id]
 dkg.paranet.add_curated_nodes(paranet_ual, identity_ids)
 curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
 print("======================== ADDED NODES TO A CURATED PARANET")
@@ -121,7 +122,7 @@ print_json(curated_nodes)
 
 divider()
 
-identity_ids = [2, 3]
+identity_ids = [node2_identity_id, node3_identity_id]
 dkg.paranet.remove_curated_nodes(paranet_ual, identity_ids)
 curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
 print("======================== REMOVED NODES FROM A CURATED PARANET")
@@ -133,7 +134,8 @@ print_json({
 divider()
 
 dkg2.paranet.request_curated_node_access(paranet_ual)
-dkg.paranet.reject_curated_node(paranet_ual, 2)
+time.sleep(5)
+dkg.paranet.reject_curated_node(paranet_ual, node2_identity_id)
 print("======================== REJECT A NODE'S ACCESS REQUEST TO A CURATED PARANET")
 curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
 print_json({
@@ -144,7 +146,8 @@ print_json({
 divider()
 
 dkg2.paranet.request_curated_node_access(paranet_ual)
-dkg.paranet.approve_curated_node(paranet_ual, 2)
+time.sleep(5)
+dkg.paranet.approve_curated_node(paranet_ual, node2_identity_id)
 print("======================== APPROVE A NODE'S ACCESS REQUEST TO A CURATED PARANET")
 curated_nodes = dkg.paranet.get_curated_nodes(paranet_ual)
 print_json({
@@ -154,7 +157,11 @@ print_json({
 
 divider()
 
-miner_addresses = [PUBLIC_KEY3, PUBLIC_KEY4, PUBLIC_KEY5]
+miner_addresses = [
+    dkg3.blockchain_provider.account.address,
+    dkg4.blockchain_provider.account.address,
+    dkg5.blockchain_provider.account.address,
+]
 dkg.paranet.add_curated_miners(paranet_ual, miner_addresses)
 knowledge_miners = dkg.paranet.get_knowledge_miners(paranet_ual)
 print("======================== ADDED KNOWLEDGE MINERS TO A CURATED PARANET")
@@ -162,7 +169,10 @@ print_json(knowledge_miners)
 
 divider()
 
-miner_addresses = [PUBLIC_KEY4, PUBLIC_KEY5]
+miner_addresses = [
+    dkg4.blockchain_provider.account.address,
+    dkg5.blockchain_provider.account.address,
+]
 dkg.paranet.remove_curated_miners(paranet_ual, miner_addresses)
 knowledge_miners = dkg.paranet.get_knowledge_miners(paranet_ual)
 print("======================== REMOVED KNOWLEDGE MINERS FROM A CURATED PARANET")
@@ -174,7 +184,8 @@ print_json({
 divider()
 
 dkg4.paranet.request_curated_miner_access(paranet_ual)
-dkg.paranet.reject_curated_miner(paranet_ual, PUBLIC_KEY4)
+time.sleep(5)
+dkg.paranet.reject_curated_miner(paranet_ual, dkg4.blockchain_provider.account.address)
 print("======================== REJECT A MINER'S ACCESS REQUEST TO A CURATED PARANET")
 knowledge_miners = dkg.paranet.get_knowledge_miners(paranet_ual)
 print_json({
@@ -185,7 +196,8 @@ print_json({
 divider()
 
 dkg4.paranet.request_curated_miner_access(paranet_ual)
-dkg.paranet.approve_curated_miner(paranet_ual, PUBLIC_KEY4)
+time.sleep(5)
+dkg.paranet.approve_curated_miner(paranet_ual, dkg4.blockchain_provider.account.address)
 print("======================== APPROVE A MINER'S ACCESS REQUEST TO A CURATED PARANET")
 knowledge_miners = dkg.paranet.get_knowledge_miners(paranet_ual)
 print_json({

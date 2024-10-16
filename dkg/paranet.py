@@ -106,7 +106,7 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        self._add_paranet_curated_nodes(
+        receipt = self._add_paranet_curated_nodes(
             paranet_knowledge_asset_storage,
             paranet_knowledge_asset_token_id,
             identity_ids,
@@ -120,7 +120,7 @@ class Paranet(Module):
                     [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
                 )
             ),
-            "operation": "Add curated nodes",
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _remove_paranet_curated_nodes = Method(
@@ -136,7 +136,7 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        self._remove_paranet_curated_nodes(
+        receipt = self._remove_paranet_curated_nodes(
             paranet_knowledge_asset_storage,
             paranet_knowledge_asset_token_id,
             identity_ids,
@@ -150,7 +150,7 @@ class Paranet(Module):
                     [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
                 )
             ),
-            "operation": "Remove curated nodes",
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _request_paranet_curated_node_access = Method(
@@ -166,7 +166,7 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        self._request_paranet_curated_node_access(
+        receipt = self._request_paranet_curated_node_access(
             paranet_knowledge_asset_storage,
             paranet_knowledge_asset_token_id,
         )
@@ -179,7 +179,7 @@ class Paranet(Module):
                     [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
                 )
             ),
-            "operation": "Request to be included in curated paranet nodes",
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _approve_curated_node = Method(BlockchainRequest.approve_curated_node)
@@ -193,7 +193,7 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        self._approve_curated_node(
+        receipt = self._approve_curated_node(
             paranet_knowledge_asset_storage,
             paranet_knowledge_asset_token_id,
             identity_id,
@@ -207,7 +207,7 @@ class Paranet(Module):
                     [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
                 )
             ),
-            "operation": "Approve node's curated paranet access request",
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _reject_curated_node = Method(BlockchainRequest.reject_curated_node)
@@ -221,7 +221,7 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        self._reject_curated_node(
+        receipt = self._reject_curated_node(
             paranet_knowledge_asset_storage,
             paranet_knowledge_asset_token_id,
             identity_id,
@@ -235,7 +235,7 @@ class Paranet(Module):
                     [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
                 )
             ),
-            "operation": "Approve node's curated paranet access request",
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _get_curated_nodes = Method(BlockchainRequest.get_curated_nodes)
@@ -283,7 +283,7 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        self._add_paranet_curated_miners(
+        receipt = self._add_paranet_curated_miners(
             paranet_knowledge_asset_storage,
             paranet_knowledge_asset_token_id,
             miner_addresses,
@@ -297,7 +297,7 @@ class Paranet(Module):
                     [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
                 )
             ),
-            "operation": "Add curated miners",
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _remove_paranet_curated_miners = Method(
@@ -313,7 +313,7 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        self._remove_paranet_curated_miners(
+        receipt = self._remove_paranet_curated_miners(
             paranet_knowledge_asset_storage,
             paranet_knowledge_asset_token_id,
             miner_addresses,
@@ -327,7 +327,7 @@ class Paranet(Module):
                     [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
                 )
             ),
-            "operation": "Remove curated miners",
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _request_paranet_curated_miner_access = Method(
@@ -343,7 +343,7 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        self._request_paranet_curated_miner_access(
+        receipt = self._request_paranet_curated_miner_access(
             paranet_knowledge_asset_storage,
             paranet_knowledge_asset_token_id,
         )
@@ -356,7 +356,7 @@ class Paranet(Module):
                     [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
                 )
             ),
-            "operation": "Request to be included in curated paranet miners",
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _approve_curated_miner = Method(BlockchainRequest.approve_curated_miner)
@@ -370,7 +370,7 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        self._approve_curated_miner(
+        receipt = self._approve_curated_miner(
             paranet_knowledge_asset_storage,
             paranet_knowledge_asset_token_id,
             miner_address,
@@ -384,7 +384,7 @@ class Paranet(Module):
                     [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
                 )
             ),
-            "operation": "Approve miner's curated paranet access request",
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _reject_curated_miner = Method(BlockchainRequest.reject_curated_miner)
@@ -398,7 +398,7 @@ class Paranet(Module):
             parsed_ual["token_id"],
         )
 
-        self._reject_curated_miner(
+        receipt = self._reject_curated_miner(
             paranet_knowledge_asset_storage,
             paranet_knowledge_asset_token_id,
             miner_address,
@@ -412,7 +412,7 @@ class Paranet(Module):
                     [paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id],
                 )
             ),
-            "operation": "Reject miner's curated paranet access request",
+            "operation": json.loads(Web3.to_json(receipt)),
         }
 
     _get_knowledge_miners = Method(BlockchainRequest.get_knowledge_miners)
