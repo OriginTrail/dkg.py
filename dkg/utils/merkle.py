@@ -34,6 +34,7 @@ def solidity_keccak256(data: HexStr) -> HexStr:
 
     return bytes_hash.to_0x_hex()
 
+
 def hash_assertion_with_indexes(
     leaves: list[str],
     hash_function: str | Callable[[str], HexStr] = solidity_keccak256,

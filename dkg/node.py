@@ -33,7 +33,7 @@ class Node(Module):
     @property
     def info(self) -> NodeResponseDict:
         return self._info()
-    
+
     _get_identity_id = Method(BlockchainRequest.get_identity_id)
 
     def get_identity_id(self, operational: Address) -> int:

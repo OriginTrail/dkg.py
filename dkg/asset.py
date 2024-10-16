@@ -360,7 +360,7 @@ class KnowledgeAsset(Module):
             }
 
         return result
-    
+
     def mint_ownership_token(
         self,
         content: dict[Literal["public", "private"], JSONLD],
@@ -469,7 +469,7 @@ class KnowledgeAsset(Module):
         result["operation"] = json.loads(Web3.to_json(receipt))
 
         return result
-    
+
     def publish(
         self,
         ual: UAL,
@@ -538,7 +538,7 @@ class KnowledgeAsset(Module):
         }
 
         return result
-    
+
     def local_store(
         self,
         ual: UAL,
