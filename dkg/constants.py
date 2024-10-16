@@ -21,11 +21,11 @@ PRIVATE_ASSERTION_PREDICATE = (
 
 BLOCKCHAINS = {
     "development": {
-        "hardhat1:31337":  {
+        "hardhat1:31337": {
             "hub": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
             "rpc": "http://localhost:8545",
         },
-        "hardhat2:31337":  {
+        "hardhat2:31337": {
             "hub": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
             "rpc": "http://localhost:9545",
         },
@@ -47,11 +47,7 @@ BLOCKCHAINS = {
 
 DEFAULT_HASH_FUNCTION_ID = 1
 DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS = {
-    "development": {
-        "hardhat1:31337": 2,
-        "hardhat2:31337": 2,
-        "otp:2043": 2
-    },
+    "development": {"hardhat1:31337": 2, "hardhat2:31337": 2, "otp:2043": 2},
     "devnet": {
         "otp:2160": 2,
         "gnosis:10200": 2,

@@ -16,9 +16,6 @@
 # under the License.
 
 import json
-import math
-import random
-import time
 
 from dkg import DKG
 from dkg.providers import BlockchainProvider, NodeHTTPProvider
@@ -169,14 +166,6 @@ divider()
 get_first_state_by_index = dkg.asset.get(create_asset_result["UAL"], 0, "all")
 print("======================== ASSET FIRST STATE (GET BY STATE INDEX) RESOLVED")
 print_json(get_first_state_by_index)
-divider()
-
-# TODO: Remove when wait_for_finalization is implemented
-time.sleep(60)
-
-get_second_state_by_index = dkg.asset.get(create_asset_result["UAL"], 1, "all")
-print("======================== ASSET SECOND STATE (GET BY STATE INDEX) RESOLVED")
-print_json(get_second_state_by_index)
 divider()
 
 get_first_state_by_hash = dkg.asset.get(

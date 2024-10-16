@@ -361,6 +361,7 @@ class KnowledgeAsset(Module):
 
         return result
 
+
     _submit_knowledge_asset = Method(BlockchainRequest.submit_knowledge_asset)
 
     def submit_to_paranet(
@@ -452,24 +453,13 @@ class KnowledgeAsset(Module):
 
         token_id = parse_ual(ual)["token_id"]
 
-        def handle_latest_state(token_id: int) -> tuple[HexStr, bool]:
-            unfinalized_state = Web3.to_hex(self._get_unfinalized_state(token_id))
-
-            if unfinalized_state and unfinalized_state != HASH_ZERO:
-                return unfinalized_state, False
-            else:
-                return handle_latest_finalized_state(token_id)
-
         def handle_latest_finalized_state(token_id: int) -> tuple[HexStr, bool]:
             return Web3.to_hex(self._get_latest_assertion_id(token_id)), True
 
         is_state_finalized = False
 
         match state:
-            case KnowledgeAssetEnumStates.LATEST:
-                public_assertion_id, is_state_finalized = handle_latest_state(token_id)
-
-            case KnowledgeAssetEnumStates.LATEST_FINALIZED:
+            case KnowledgeAssetEnumStates.LATEST | KnowledgeAssetEnumStates.LATEST_FINALIZED:
                 public_assertion_id, is_state_finalized = handle_latest_finalized_state(
                     token_id
                 )
@@ -701,7 +691,7 @@ class KnowledgeAsset(Module):
             "UAL": ual,
             "operation": json.loads(Web3.to_json(receipt)),
         }
-    
+
     _get_block = Method(BlockchainRequest.get_block)
 
     _get_service_agreement_data = Method(BlockchainRequest.get_service_agreement_data)

@@ -20,6 +20,8 @@ from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.module import Module
 from dkg.utils.node_request import NodeRequest
+from dkg.utils.blockchain_request import BlockchainRequest
+from dkg.types import Address
 
 
 class Node(Module):
@@ -31,3 +33,8 @@ class Node(Module):
     @property
     def info(self) -> NodeResponseDict:
         return self._info()
+
+    _get_identity_id = Method(BlockchainRequest.get_identity_id)
+
+    def get_identity_id(self, operational: Address) -> int:
+        return self._get_identity_id(operational)

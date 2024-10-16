@@ -32,12 +32,13 @@ from dkg.exceptions import (
 )
 from dkg.types import URI, Address, DataHexStr, Environment, Wei
 from eth_account.signers.local import LocalAccount
+from eth_typing import ABI, ABIFunction
 from web3 import Web3
 from web3.contract import Contract
 from web3.contract.contract import ContractFunction
 from web3.logs import DISCARD
-from web3.middleware import construct_sign_and_send_raw_middleware
-from web3.types import ABI, ABIFunction, TxReceipt
+from web3.middleware import SignAndSendRawMiddlewareBuilder
+from web3.types import TxReceipt
 
 
 class BlockchainProvider:
@@ -206,8 +207,9 @@ class BlockchainProvider:
 
     def set_account(self, private_key: DataHexStr):
         self.account: LocalAccount = self.w3.eth.account.from_key(private_key)
-        self.w3.middleware_onion.add(
-            construct_sign_and_send_raw_middleware(self.account)
+        self.w3.middleware_onion.inject(
+            SignAndSendRawMiddlewareBuilder.build(private_key),
+            layer=0,
         )
         self.w3.eth.default_account = self.account.address
 
