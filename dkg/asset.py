@@ -360,6 +360,134 @@ class KnowledgeAsset(Module):
             }
 
         return result
+    
+
+    def local_store(
+        self,
+        content: dict[Literal["public", "private"], JSONLD],
+        epochs_number: int,
+        token_amount: Wei | None = None,
+        immutable: bool = False,
+        content_type: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
+        paranet_ual: UAL | None = None,
+    ) -> dict[str, UAL | HexStr | dict[str, dict[str, str] | TxReceipt]]:
+        blockchain_id = self.manager.blockchain_provider.blockchain_id
+        assertions = format_content(content, content_type)
+
+        public_assertion_id = MerkleTree(
+            hash_assertion_with_indexes(assertions["public"]),
+            sort_pairs=True,
+        ).root
+        public_assertion_metadata = generate_assertion_metadata(assertions["public"])
+
+        content_asset_storage_address = self._get_asset_storage_address(
+            "ContentAssetStorage"
+        )
+
+        if token_amount is None:
+            token_amount = int(
+                self._get_bid_suggestion(
+                    blockchain_id,
+                    epochs_number,
+                    public_assertion_metadata["size"],
+                    content_asset_storage_address,
+                    public_assertion_id,
+                    DEFAULT_HASH_FUNCTION_ID,
+                    token_amount or BidSuggestionRange.LOW,
+                )["bidSuggestion"]
+            )
+
+        current_allowance = self.get_current_allowance()
+        if is_allowance_increased := current_allowance < token_amount:
+            self.increase_allowance(token_amount)
+
+        result = {"publicAssertionId": public_assertion_id, "operation": {}}
+
+        try:
+            receipt: TxReceipt = self._create(
+                {
+                    "assertionId": Web3.to_bytes(hexstr=public_assertion_id),
+                    "size": public_assertion_metadata["size"],
+                    "triplesNumber": public_assertion_metadata["triples_number"],
+                    "chunksNumber": public_assertion_metadata["chunks_number"],
+                    "tokenAmount": token_amount,
+                    "epochsNumber": epochs_number,
+                    "scoreFunctionId": DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS[
+                        self.manager.blockchain_provider.environment
+                    ][blockchain_id],
+                    "immutable_": immutable,
+                }
+            )
+        except ContractLogicError as err:
+            if is_allowance_increased:
+                self.decrease_allowance(token_amount)
+            raise err
+
+        events = self.manager.blockchain_provider.decode_logs_event(
+            receipt,
+            "ContentAsset",
+            "AssetMinted",
+        )
+        token_id = events[0].args["tokenId"]
+
+        result["UAL"] = format_ual(
+            blockchain_id, content_asset_storage_address, token_id
+        )
+        result["operation"]["mintKnowledgeAsset"] = json.loads(Web3.to_json(receipt))
+
+        assertions_list = [
+            {
+                "blockchain": blockchain_id,
+                "contract": content_asset_storage_address,
+                "tokenId": token_id,
+                "assertionId": public_assertion_id,
+                "assertion": assertions["public"],
+                "storeType": StoreTypes.TRIPLE_PARANET,
+                "paranetUAL": paranet_ual,
+            }
+        ]
+
+        if content.get("private", None):
+            assertions_list.append(
+                {
+                    "blockchain": blockchain_id,
+                    "contract": content_asset_storage_address,
+                    "tokenId": token_id,
+                    "assertionId": MerkleTree(
+                        hash_assertion_with_indexes(assertions["private"]),
+                        sort_pairs=True,
+                    ).root,
+                    "assertion": assertions["private"],
+                    "storeType": StoreTypes.TRIPLE_PARANET,
+                    "paranetUAL": paranet_ual,
+                }
+            )
+
+        operation_id = self._local_store(assertions_list)["operationId"]
+        operation_result = self.get_operation_result(operation_id, "local-store")
+
+        result["operation"]["localStore"] = {
+            "operationId": operation_id,
+            "status": operation_result["status"],
+        }
+
+        if operation_result["status"] == OperationStatus.COMPLETED:
+            parsed_paranet_ual = parse_ual(paranet_ual)
+            paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id = (
+                parsed_paranet_ual["contract_address"],
+                parsed_paranet_ual["token_id"],
+            )
+
+            receipt: TxReceipt = self._submit_knowledge_asset(
+                paranet_knowledge_asset_storage,
+                paranet_knowledge_asset_token_id,
+                content_asset_storage_address,
+                token_id,
+            )
+
+            result["operation"]["submitToParanet"] = json.loads(Web3.to_json(receipt))
+
+        return result
 
 
     _submit_knowledge_asset = Method(BlockchainRequest.submit_knowledge_asset)
