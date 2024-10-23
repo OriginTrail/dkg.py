@@ -32,7 +32,7 @@ def solidity_keccak256(data: HexStr) -> HexStr:
         [data],
     )
 
-    return bytes_hash.hex()
+    return bytes_hash.to_0x_hex()
 
 
 def hash_assertion_with_indexes(

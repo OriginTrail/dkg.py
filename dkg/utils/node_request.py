@@ -21,7 +21,7 @@ from typing import Any, Type
 
 from dkg.dataclasses import BidSuggestionRange, HTTPRequestMethod
 from dkg.exceptions import OperationFailed, OperationNotFinished
-from dkg.types import  AutoStrEnumUpperCase, UAL, Address, DataHexStr, NQuads
+from dkg.types import AutoStrEnumUpperCase, UAL, Address, DataHexStr, NQuads
 
 
 @dataclass
@@ -69,18 +69,6 @@ class NodeRequest:
             "hashFunctionId": int,
         },
     )
-    update = NodeCall(
-        method=HTTPRequestMethod.POST,
-        path="update",
-        data={
-            "assertionId": str,
-            "assertion": NQuads,
-            "blockchain": str,
-            "contract": Address,
-            "tokenId": int,
-            "hashFunctionId": int,
-        },
-    )
     get = NodeCall(
         method=HTTPRequestMethod.POST,
         path="get",
@@ -115,19 +103,9 @@ class PublishOperationStatus(Enum):
     PUBLISH_END = auto()
 
 
-class UpdateOperationStatus(AutoStrEnumUpperCase):
-    UPDATE_START = auto()
-    UPDATE_INIT_START = auto()
-    UPDATE_INIT_END = auto()
-    UPDATE_REPLICATE_START = auto()
-    UPDATE_REPLICATE_END = auto()
-    VALIDATING_UPDATE_ASSERTION_REMOTE_START = auto()
-    VALIDATING_UPDATE_ASSERTION_REMOTE_END = auto()
-    UPDATE_END = auto()
-
-
 class StoreTypes(AutoStrEnumUpperCase):
     TRIPLE = auto()
+    TRIPLE_PARANET = auto()
     PENDING = auto()
 
 
@@ -171,7 +149,6 @@ class OperationStatus(AutoStrEnumUpperCase):
     DIAL_PROTOCOL_END = auto()
     LOCAL_STORE = LocalStoreOperationStatus
     PUBLISH = PublishOperationStatus
-    UPDATE = UpdateOperationStatus
     GET = GetOperationStatus
     QUERY = QueryOperationStatus
 

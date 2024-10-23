@@ -16,12 +16,12 @@
 # under the License.
 
 import json
-import time
 
 from hexbytes import HexBytes
 
 from dkg import DKG
 from dkg.providers import BlockchainProvider, NodeHTTPProvider
+from dkg.dataclasses import ParanetNodesAccessPolicy, ParanetMinersAccessPolicy
 
 node_provider = NodeHTTPProvider("http://localhost:8900")
 blockchain_provider = BlockchainProvider(
@@ -31,7 +31,6 @@ blockchain_provider = BlockchainProvider(
 )
 
 dkg = DKG(node_provider, blockchain_provider)
-
 
 def divider():
     print("==================================================")
@@ -46,7 +45,7 @@ def print_json(json_dict: dict):
         elif isinstance(data, list):
             return [convert_hexbytes(i) for i in data]
         elif isinstance(data, HexBytes):
-            return data.hex()
+            return data.to_0x_hex()
         else:
             return data
 
@@ -77,6 +76,8 @@ create_paranet_result = dkg.paranet.create(
     paranet_ual,
     "TestParanet",
     "TestParanetDescription",
+    ParanetNodesAccessPolicy.OPEN,
+    ParanetMinersAccessPolicy.OPEN
 )
 
 print("======================== PARANET CREATED")
@@ -303,42 +304,6 @@ claim_operator_reward_result = dkg.paranet.claim_operator_reward(paranet_ual)
 
 print("======================== PARANET OPERATOR REWARD CLAIMED")
 print(claim_operator_reward_result)
-
-divider()
-
-print_reward_stats()
-
-divider()
-
-update_asset_result = dkg.asset.update(
-    create_submit_ka1_result["UAL"],
-    {
-        "private": {
-            "@context": ["https://schema.org"],
-            "@graph": [
-                {
-                    "@id": "uuid:user:1",
-                    "name": "Adam",
-                    "lastname": "Smith",
-                },
-            ],
-        },
-    },
-    100000000000000000000
-)
-
-print("======================== KA1 UPDATED")
-print_json(update_asset_result)
-
-print("Waiting 30 seconds for the update finalization...")
-time.sleep(30)
-
-divider()
-
-update_claimable_rewards_result = dkg.paranet.update_claimable_rewards(paranet_ual)
-
-print("======================== UPDATED CLAIMABLE REWARDS")
-print_json(update_claimable_rewards_result)
 
 divider()
 
