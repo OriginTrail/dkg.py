@@ -70,7 +70,7 @@ class BlockchainRequest:
     allowance = ContractCall(
         contract="Token",
         function="allowance",
-        args={"owner": Address, "spender": Address}
+        args={"owner": Address, "spender": Address},
     )
     increase_allowance = ContractTransaction(
         contract="Token",
@@ -225,6 +225,7 @@ class BlockchainRequest:
         contract="ParanetIncentivesPoolFactory",
         function="deployNeuroIncentivesPool",
         args={
+            "isNativeReward": bool,
             "paranetKAStorageContract": Address,
             "paranetKATokenId": int,
             "tracToNeuroEmissionMultiplier": float,

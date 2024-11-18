@@ -21,11 +21,11 @@ PRIVATE_ASSERTION_PREDICATE = (
 
 BLOCKCHAINS = {
     "development": {
-        "hardhat1:31337":  {
+        "hardhat1:31337": {
             "hub": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
             "rpc": "http://localhost:8545",
         },
-        "hardhat2:31337":  {
+        "hardhat2:31337": {
             "hub": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
             "rpc": "http://localhost:9545",
         },
@@ -43,7 +43,7 @@ BLOCKCHAINS = {
         "base:84532": {
             "hub": "0x6C861Cb69300C34DfeF674F7C00E734e840C29C0",
             "rpc": "https://sepolia.base.org",
-        }
+        },
     },
     "testnet": {
         "otp:20430": {
@@ -58,7 +58,7 @@ BLOCKCHAINS = {
         "base:84532": {
             "hub": "0x144eDa5cbf8926327cb2cceef168A121F0E4A299",
             "rpc": "https://sepolia.base.org",
-        }
+        },
     },
     "mainnet": {
         "otp:2043": {
@@ -88,11 +88,7 @@ DEFAULT_GAS_PRICE_GWEI = {
 
 DEFAULT_HASH_FUNCTION_ID = 1
 DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS = {
-    "development": {
-        "hardhat1:31337": 2,
-        "hardhat2:31337": 2,
-        "otp:2043": 2
-    },
+    "development": {"hardhat1:31337": 2, "hardhat2:31337": 2, "otp:2043": 2},
     "devnet": {
         "otp:2160": 2,
         "gnosis:10200": 2,
@@ -112,3 +108,5 @@ DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS = {
 
 PRIVATE_HISTORICAL_REPOSITORY = "privateHistory"
 PRIVATE_CURRENT_REPOSITORY = "privateCurrent"
+
+NEUROWEB_BLOCKCHAIN_PREFIX = "otp"

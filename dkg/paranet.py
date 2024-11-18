@@ -28,6 +28,7 @@ from dkg.module import Module
 from dkg.types import Address, UAL, HexStr
 from dkg.utils.blockchain_request import BlockchainRequest
 from dkg.utils.ual import parse_ual
+from dkg.constants import NEUROWEB_BLOCKCHAIN_PREFIX
 
 
 class Paranet(Module):
@@ -37,10 +38,15 @@ class Paranet(Module):
         operator_percentage: float
         voters_percentage: float
 
-        def to_contract_args(self) -> dict:
+        def to_contract_args(self, incentive_type: ParanetIncentivizationType) -> dict:
             return {
                 "tracToNeuroEmissionMultiplier": int(
-                    self.neuro_emission_multiplier * (10**12)
+                    self.neuro_emission_multiplier
+                    * (
+                        10**12
+                        if incentive_type == ParanetIncentivizationType.NEUROWEB
+                        else 10**18
+                    )
                 ),
                 "paranetOperatorRewardPercentage": int(self.operator_percentage * 100),
                 "paranetIncentivizationProposalVotersRewardPercentage": int(
@@ -52,6 +58,7 @@ class Paranet(Module):
         self.manager = manager
         self.incentives_pools_deployment_functions = {
             ParanetIncentivizationType.NEUROWEB: self._deploy_neuro_incentives_pool,
+            ParanetIncentivizationType.ERC20: self._deploy_neuro_incentives_pool,
         }
 
     _register_paranet = Method(BlockchainRequest.register_paranet)
@@ -91,7 +98,7 @@ class Paranet(Module):
         self,
         ual: UAL,
         incentives_pool_parameters: NeuroWebIncentivesPoolParams,
-        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+        incentives_type: ParanetIncentivizationType,
     ) -> dict[str, str | HexStr | TxReceipt]:
         deploy_incentives_pool_fn = self.incentives_pools_deployment_functions.get(
             incentives_type,
@@ -111,9 +118,10 @@ class Paranet(Module):
         )
 
         receipt: TxReceipt = deploy_incentives_pool_fn(
+            incentives_type == ParanetIncentivizationType.NEUROWEB,
             knowledge_asset_storage,
             knowledge_asset_token_id,
-            **incentives_pool_parameters.to_contract_args(),
+            **incentives_pool_parameters.to_contract_args(incentives_type),
         )
 
         events = self.manager.blockchain_provider.decode_logs_event(
@@ -137,9 +145,7 @@ class Paranet(Module):
     _get_incentives_pool_address = Method(BlockchainRequest.get_incentives_pool_address)
 
     def get_incentives_pool_address(
-        self,
-        ual: UAL,
-        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+        self, ual: UAL, incentives_type: ParanetIncentivizationType
     ) -> Address:
         parsed_ual = parse_ual(ual)
         knowledge_asset_storage, knowledge_asset_token_id = (
@@ -259,8 +265,13 @@ class Paranet(Module):
         self,
         ual: UAL,
         address: Address | None = None,
-        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
     ) -> bool:
+        incentives_type = (
+            ParanetIncentivizationType.NEUROWEB.value
+            if NEUROWEB_BLOCKCHAIN_PREFIX in ual
+            else ParanetIncentivizationType.ERC20.value
+        )
+
         return self._is_proposal_voter(
             contract=self._get_incentives_pool_contract(ual, incentives_type),
             addr=address or self.manager.blockchain_provider.account.address,
@@ -273,8 +284,13 @@ class Paranet(Module):
     def calculate_claimable_miner_reward_amount(
         self,
         ual: UAL,
-        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
     ) -> int:
+        incentives_type = (
+            ParanetIncentivizationType.NEUROWEB.value
+            if NEUROWEB_BLOCKCHAIN_PREFIX in ual
+            else ParanetIncentivizationType.ERC20.value
+        )
+
         return self._get_claimable_knowledge_miner_reward_amount(
             contract=self._get_incentives_pool_contract(ual, incentives_type)
         )
@@ -286,8 +302,13 @@ class Paranet(Module):
     def calculate_all_claimable_miner_rewards_amount(
         self,
         ual: UAL,
-        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
     ) -> int:
+        incentives_type = (
+            ParanetIncentivizationType.NEUROWEB.value
+            if NEUROWEB_BLOCKCHAIN_PREFIX in ual
+            else ParanetIncentivizationType.ERC20.value
+        )
+
         return self._get_claimable_all_knowledge_miners_reward_amount(
             contract=self._get_incentives_pool_contract(ual, incentives_type)
         )
@@ -299,8 +320,13 @@ class Paranet(Module):
     def claim_miner_reward(
         self,
         ual: UAL,
-        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
     ) -> dict[str, str | HexStr | TxReceipt]:
+        incentives_type = (
+            ParanetIncentivizationType.NEUROWEB.value
+            if NEUROWEB_BLOCKCHAIN_PREFIX in ual
+            else ParanetIncentivizationType.ERC20.value
+        )
+
         receipt: TxReceipt = self._claim_knowledge_miner_reward(
             contract=self._get_incentives_pool_contract(ual, incentives_type)
         )
@@ -329,8 +355,13 @@ class Paranet(Module):
     def calculate_claimable_operator_reward_amount(
         self,
         ual: UAL,
-        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
     ) -> int:
+        incentives_type = (
+            ParanetIncentivizationType.NEUROWEB.value
+            if NEUROWEB_BLOCKCHAIN_PREFIX in ual
+            else ParanetIncentivizationType.ERC20.value
+        )
+
         return self._get_claimable_paranet_operator_reward_amount(
             contract=self._get_incentives_pool_contract(ual, incentives_type)
         )
@@ -342,8 +373,13 @@ class Paranet(Module):
     def claim_operator_reward(
         self,
         ual: UAL,
-        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
     ) -> dict[str, str | HexStr | TxReceipt]:
+        incentives_type = (
+            ParanetIncentivizationType.NEUROWEB.value
+            if NEUROWEB_BLOCKCHAIN_PREFIX in ual
+            else ParanetIncentivizationType.ERC20.value
+        )
+
         receipt: TxReceipt = self._claim_paranet_operator_reward(
             contract=self._get_incentives_pool_contract(ual, incentives_type)
         )
@@ -372,8 +408,13 @@ class Paranet(Module):
     def calculate_claimable_voter_reward_amount(
         self,
         ual: UAL,
-        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
     ) -> int:
+        incentives_type = (
+            ParanetIncentivizationType.NEUROWEB.value
+            if NEUROWEB_BLOCKCHAIN_PREFIX in ual
+            else ParanetIncentivizationType.ERC20.value
+        )
+
         return self._get_claimable_proposal_voter_reward_amount(
             contract=self._get_incentives_pool_contract(ual, incentives_type)
         )
@@ -385,8 +426,13 @@ class Paranet(Module):
     def calculate_all_claimable_voters_reward_amount(
         self,
         ual: UAL,
-        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
     ) -> int:
+        incentives_type = (
+            ParanetIncentivizationType.NEUROWEB.value
+            if NEUROWEB_BLOCKCHAIN_PREFIX in ual
+            else ParanetIncentivizationType.ERC20.value
+        )
+
         return self._get_claimable_all_proposal_voters_reward_amount(
             contract=self._get_incentives_pool_contract(ual, incentives_type)
         )
@@ -398,8 +444,13 @@ class Paranet(Module):
     def claim_voter_reward(
         self,
         ual: UAL,
-        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
     ) -> dict[str, str | HexStr | TxReceipt]:
+        incentives_type = (
+            ParanetIncentivizationType.NEUROWEB.value
+            if NEUROWEB_BLOCKCHAIN_PREFIX in ual
+            else ParanetIncentivizationType.ERC20.value
+        )
+
         receipt: TxReceipt = self._claim_incentivization_proposal_voter_reward(
             contract=self._get_incentives_pool_contract(ual, incentives_type)
         )
@@ -457,11 +508,9 @@ class Paranet(Module):
         }
 
     def _get_incentives_pool_contract(
-        self,
-        ual: UAL,
-        incentives_type: ParanetIncentivizationType = ParanetIncentivizationType.NEUROWEB,
+        self, ual: UAL, incentives_type: ParanetIncentivizationType
     ) -> str | dict[str, str]:
-        incentives_pool_name = f"Paranet{str(incentives_type)}IncentivesPool"
+        incentives_pool_name = f"ParanetNeurowebIncentivesPool"
         is_incentives_pool_cached = (
             incentives_pool_name in self.manager.blockchain_provider.contracts.keys()
         )
