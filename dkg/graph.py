@@ -48,13 +48,18 @@ class Graph(Module):
         content_visibility: str = KnowledgeAssetContentVisibility.ALL,
         output_format: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
         validate: bool = True,
+        include_metadata: bool = False,
         paranetUAL = None,
     ) -> dict[str, UAL | list[JSONLD] | dict[str, str]]:
         content_visibility = content_visibility.upper()
         output_format = output_format.upper()
 
         get_public_operation_id: NodeResponseDict = self._get(
-            ual + ':' + state, content_visibility, paranetUAL, hashFunctionId=1
+            ual + ':' + state,
+            content_visibility,
+            paranetUAL,
+            hashFunctionId=1,
+            includeMetadata=include_metadata,
         )["operationId"]
 
         get_public_operation_result = self.get_operation_result(
