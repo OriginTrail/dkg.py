@@ -13,7 +13,7 @@ from .blockchain import (
     AgreementData,
     Environment,
 )
-from .dkg_node import UAL  # NOQA: F401
+from .dkg_node import UAL, GraphState, GraphLocation  # NOQA: F401
 from .encoding import BytesLike, DataHexStr, HexStr  # NOQA: F401
 from .evm import Address, ChecksumAddress, Wei  # NOQA: F401
 from .generics import TFunc, TReturn  # NOQA: F401

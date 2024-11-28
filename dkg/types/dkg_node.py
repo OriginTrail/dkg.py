@@ -16,5 +16,20 @@
 # under the License.
 
 from typing import NewType
+from enum import Enum
 
 UAL = NewType("UAL", str)
+
+class GraphLocation(str, Enum):
+    PUBLIC = 'PUBLIC_KG'
+    PRIVATE = 'LOCAL_KG'
+
+    def __str__(self) -> str:
+        return self.value
+
+class GraphState(str, Enum):
+    CURRENT = 'CURRENT'
+    HISTORICAL = 'HISTORICAL'
+
+    def __str__(self) -> str:
+        return self.value

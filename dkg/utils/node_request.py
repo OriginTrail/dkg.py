@@ -21,7 +21,7 @@ from typing import Any, Type
 
 from dkg.dataclasses import BidSuggestionRange, HTTPRequestMethod
 from dkg.exceptions import OperationFailed, OperationNotFinished
-from dkg.types import AutoStrEnumUpperCase, UAL, Address, DataHexStr, NQuads
+from dkg.types import AutoStrEnumUpperCase, UAL, Address, DataHexStr, NQuads, GraphState, GraphLocation
 
 
 @dataclass
@@ -77,7 +77,13 @@ class NodeRequest:
     query = NodeCall(
         method=HTTPRequestMethod.POST,
         path="query",
-        data={"query": str, "type": str, "repository": str},
+        data={
+            "query": str,
+            "type": str,
+            "graphState": GraphState,
+            "graphLocation": GraphLocation,
+            "paranetUAL": UAL,
+        },
     )
 
 
