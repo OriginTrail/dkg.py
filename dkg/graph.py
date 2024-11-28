@@ -22,7 +22,7 @@ from dkg.exceptions import OperationNotFinished
 from dkg.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.module import Module
-from dkg.types import NQuads
+from dkg.types import NQuads, GraphState, GraphLocation, UAL
 from dkg.utils.decorators import retry
 from dkg.utils.node_request import NodeRequest, validate_operation_status
 
@@ -37,14 +37,20 @@ class Graph(Module):
     def query(
         self,
         query: str,
-        repository: str,
+        graphState: GraphState = GraphState.CURRENT,
+        graphLocation: GraphLocation = GraphLocation.PUBLIC,
+        paranetUAL: UAL = "",
     ) -> NQuads:
         parsed_query = parseQuery(query)
         query_type = parsed_query[1].name.replace("Query", "").upper()
 
-        operation_id: NodeResponseDict = self._query(query, query_type, repository)[
-            "operationId"
-        ]
+        operation_id: NodeResponseDict = self._query(
+            query,
+            query_type,
+            graphState,
+            graphLocation,
+            paranetUAL,
+        )["operationId"]
         operation_result = self.get_operation_result(operation_id, "query")
 
         return operation_result["data"]
