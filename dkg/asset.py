@@ -20,7 +20,6 @@ import math
 import re
 from typing import Literal, Type
 
-from pyld import jsonld
 from web3 import Web3
 from web3.constants import ADDRESS_ZERO, HASH_ZERO
 from web3.exceptions import ContractLogicError
@@ -40,11 +39,8 @@ from dkg.dataclasses import (
     NodeResponseDict,
 )
 from dkg.exceptions import (
-    DatasetOutputFormatNotSupported,
-    InvalidKnowledgeAsset,
     InvalidStateOption,
     InvalidTokenAmount,
-    MissingKnowledgeAssetState,
     OperationNotFinished,
 )
 from dkg.manager import DefaultRequestManager
@@ -556,227 +552,8 @@ class KnowledgeAsset(Module):
 
         return {"UAL": ual, "operation": json.loads(Web3.to_json(receipt))}
 
-    _get_assertion_ids = Method(BlockchainRequest.get_assertion_ids)
     _get_latest_assertion_id = Method(BlockchainRequest.get_latest_assertion_id)
     _get_unfinalized_state = Method(BlockchainRequest.get_unfinalized_state)
-
-    _get = Method(NodeRequest.get)
-    _query = Method(NodeRequest.query)
-
-    def get(
-        self,
-        ual: UAL,
-        state: str | HexStr | int = KnowledgeAssetEnumStates.LATEST,
-        content_visibility: str = KnowledgeAssetContentVisibility.ALL,
-        output_format: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
-        validate: bool = True,
-    ) -> dict[str, UAL | HexStr | list[JSONLD] | dict[str, str]]:
-        state = (
-            state.upper()
-            if (isinstance(state, str) and not re.match(r"^0x[a-fA-F0-9]{64}$", state))
-            else state
-        )
-        content_visibility = content_visibility.upper()
-        output_format = output_format.upper()
-
-        token_id = parse_ual(ual)["token_id"]
-
-        def handle_latest_finalized_state(token_id: int) -> tuple[HexStr, bool]:
-            return Web3.to_hex(self._get_latest_assertion_id(token_id)), True
-
-        is_state_finalized = False
-
-        match state:
-            case KnowledgeAssetEnumStates.LATEST | KnowledgeAssetEnumStates.LATEST_FINALIZED:
-                public_assertion_id, is_state_finalized = handle_latest_finalized_state(
-                    token_id
-                )
-
-            case _ if isinstance(state, int):
-                assertion_ids = [
-                    Web3.to_hex(assertion_id)
-                    for assertion_id in self._get_assertion_ids(token_id)
-                ]
-                if 0 <= state < (states_number := len(assertion_ids)):
-                    public_assertion_id = assertion_ids[state]
-
-                    if state == states_number - 1:
-                        is_state_finalized = True
-                else:
-                    raise InvalidStateOption(f"State index {state} is out of range.")
-
-            case _ if isinstance(state, str) and re.match(
-                r"^0x[a-fA-F0-9]{64}$", state
-            ):
-                assertion_ids = [
-                    Web3.to_hex(assertion_id)
-                    for assertion_id in self._get_assertion_ids(token_id)
-                ]
-
-                if state in assertion_ids:
-                    public_assertion_id = state
-
-                    if state == assertion_ids[-1]:
-                        is_state_finalized = True
-                else:
-                    raise InvalidStateOption(
-                        f"Given state hash: {state} is not a part of the KA."
-                    )
-
-            case _:
-                raise InvalidStateOption(f"Invalid state option: {state}.")
-
-        get_public_operation_id: NodeResponseDict = self._get(
-            ual, public_assertion_id, hashFunctionId=1
-        )["operationId"]
-
-        get_public_operation_result = self.get_operation_result(
-            get_public_operation_id, "get"
-        )
-        public_assertion = get_public_operation_result["data"].get("assertion", None)
-
-        if public_assertion is None:
-            raise MissingKnowledgeAssetState("Unable to find state on the network!")
-
-        if validate:
-            root = MerkleTree(
-                hash_assertion_with_indexes(public_assertion), sort_pairs=True
-            ).root
-            if root != public_assertion_id:
-                raise InvalidKnowledgeAsset(
-                    f"State: {public_assertion_id}. " f"Merkle Tree Root: {root}"
-                )
-
-        result = {"operation": {}}
-        if content_visibility != KnowledgeAssetContentVisibility.PRIVATE:
-            formatted_public_assertion = public_assertion
-
-            match output_format:
-                case "NQUADS" | "N-QUADS":
-                    formatted_public_assertion: list[JSONLD] = jsonld.from_rdf(
-                        "\n".join(public_assertion),
-                        {"algorithm": "URDNA2015", "format": "application/n-quads"},
-                    )
-                case "JSONLD" | "JSON-LD":
-                    formatted_public_assertion = "\n".join(public_assertion)
-
-                case _:
-                    raise DatasetOutputFormatNotSupported(
-                        f"{output_format} isn't supported!"
-                    )
-
-            if content_visibility == KnowledgeAssetContentVisibility.PUBLIC:
-                result = {
-                    **result,
-                    "asertion": formatted_public_assertion,
-                    "assertionId": public_assertion_id,
-                }
-            else:
-                result["public"] = {
-                    "assertion": formatted_public_assertion,
-                    "assertionId": public_assertion_id,
-                }
-
-            result["operation"]["publicGet"] = {
-                "operationId": get_public_operation_id,
-                "status": get_public_operation_result["status"],
-            }
-
-        if content_visibility != KnowledgeAssetContentVisibility.PUBLIC:
-            private_assertion_link_triples = list(
-                filter(
-                    lambda element: PRIVATE_ASSERTION_PREDICATE in element,
-                    public_assertion,
-                )
-            )
-
-            if private_assertion_link_triples:
-                private_assertion_id = re.search(
-                    r'"(.*?)"', private_assertion_link_triples[0]
-                ).group(1)
-
-                private_assertion = get_public_operation_result["data"].get(
-                    "privateAssertion", None
-                )
-
-                query_private_operation_id: NodeResponseDict | None = None
-                if private_assertion is None:
-                    query = f"""
-                    CONSTRUCT {{ ?s ?p ?o }}
-                    WHERE {{
-                        {{
-                            GRAPH <assertion:{private_assertion_id}>
-                            {{
-                                ?s ?p ?o .
-                            }}
-                        }}
-                    }}
-                    """
-
-                    query_private_operation_id = self._query(
-                        query,
-                        "CONSTRUCT",
-                        PRIVATE_CURRENT_REPOSITORY
-                        if is_state_finalized
-                        else PRIVATE_HISTORICAL_REPOSITORY,
-                    )["operationId"]
-
-                    query_private_operation_result = self.get_operation_result(
-                        query_private_operation_id, "query"
-                    )
-
-                    private_assertion = normalize_dataset(
-                        query_private_operation_result["data"],
-                        "N-Quads",
-                    )
-
-                    if validate:
-                        root = MerkleTree(
-                            hash_assertion_with_indexes(private_assertion),
-                            sort_pairs=True,
-                        ).root
-                        if root != private_assertion_id:
-                            raise InvalidKnowledgeAsset(
-                                f"State: {private_assertion_id}. "
-                                f"Merkle Tree Root: {root}"
-                            )
-
-                    match output_format:
-                        case "NQUADS" | "N-QUADS":
-                            formatted_private_assertion: list[JSONLD] = jsonld.from_rdf(
-                                "\n".join(private_assertion),
-                                {
-                                    "algorithm": "URDNA2015",
-                                    "format": "application/n-quads",
-                                },
-                            )
-                        case "JSONLD" | "JSON-LD":
-                            formatted_private_assertion = "\n".join(private_assertion)
-
-                        case _:
-                            raise DatasetOutputFormatNotSupported(
-                                f"{output_format} isn't supported!"
-                            )
-
-                    if content_visibility == KnowledgeAssetContentVisibility:
-                        result = {
-                            **result,
-                            "assertion": formatted_private_assertion,
-                            "assertionId": private_assertion_id,
-                        }
-                    else:
-                        result["private"] = {
-                            "assertion": formatted_private_assertion,
-                            "assertionId": private_assertion_id,
-                        }
-
-                    if query_private_operation_id is not None:
-                        result["operation"]["queryPrivate"] = {
-                            "operationId": query_private_operation_id,
-                            "status": query_private_operation_result["status"],
-                        }
-
-        return result
 
     _extend_storing_period = Method(BlockchainRequest.extend_asset_storing_period)
 
