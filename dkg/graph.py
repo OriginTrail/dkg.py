@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-from typing import Literal, Type
+from typing import Literal, Type, Optional
 
 from pyld import jsonld
 from rdflib.plugins.sparql.parser import parseQuery
@@ -44,7 +44,7 @@ class Graph(Module):
     def get(
         self,
         ual: UAL,
-        state: int = 0,
+        state: Optional[int] = None,
         content_visibility: str = KnowledgeAssetContentVisibility.ALL,
         output_format: Literal["JSON-LD", "N-Quads"] = "JSON-LD",
         validate: bool = True,
@@ -54,8 +54,11 @@ class Graph(Module):
         content_visibility = content_visibility.upper()
         output_format = output_format.upper()
 
+        if state is not None:
+            ual = ual + ':' + state
+
         get_public_operation_id: NodeResponseDict = self._get(
-            ual + ':' + state,
+            ual,
             content_visibility,
             paranetUAL,
             hashFunctionId=1,
