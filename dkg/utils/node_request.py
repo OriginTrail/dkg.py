@@ -72,7 +72,7 @@ class NodeRequest:
     get = NodeCall(
         method=HTTPRequestMethod.POST,
         path="get",
-        data={"id": UAL, "state": str, "hashFunctionId": int},
+        data={"id": UAL, "contentType": str, "paranetUAL": str, "hashFunctionId": int},
     )
     query = NodeCall(
         method=HTTPRequestMethod.POST,
