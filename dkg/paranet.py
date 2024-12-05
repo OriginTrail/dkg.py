@@ -38,7 +38,7 @@ class Paranet(Module):
         operator_percentage: float
         voters_percentage: float
 
-        def to_contract_args(self, incentive_type: ParanetIncentivizationType) -> dict:
+        def to_contract_args(self, incentive_type: ParanetIncentivizationType | None) -> dict:
             return {
                 "tracToNeuroEmissionMultiplier": int(
                     self.neuro_emission_multiplier
@@ -98,7 +98,7 @@ class Paranet(Module):
         self,
         ual: UAL,
         incentives_pool_parameters: NeuroWebIncentivesPoolParams,
-        incentives_type: ParanetIncentivizationType,
+        incentives_type: ParanetIncentivizationType | None = None,
     ) -> dict[str, str | HexStr | TxReceipt]:
         deploy_incentives_pool_fn = self.incentives_pools_deployment_functions.get(
             incentives_type,
@@ -145,7 +145,7 @@ class Paranet(Module):
     _get_incentives_pool_address = Method(BlockchainRequest.get_incentives_pool_address)
 
     def get_incentives_pool_address(
-        self, ual: UAL, incentives_type: ParanetIncentivizationType
+        self, ual: UAL, incentives_type: ParanetIncentivizationType | None = None
     ) -> Address:
         parsed_ual = parse_ual(ual)
         knowledge_asset_storage, knowledge_asset_token_id = (
@@ -265,7 +265,7 @@ class Paranet(Module):
         self,
         ual: UAL,
         address: Address | None = None,
-        incentives_type: ParanetIncentivizationType = None,
+        incentives_type: ParanetIncentivizationType | None = None,
     ) -> bool:
         incentives_type = incentives_type or (
             ParanetIncentivizationType.NEUROWEB.value
@@ -285,7 +285,7 @@ class Paranet(Module):
     def calculate_claimable_miner_reward_amount(
         self,
         ual: UAL,
-        incentives_type: ParanetIncentivizationType = None,
+        incentives_type: ParanetIncentivizationType | None = None,
     ) -> int:
         incentives_type = incentives_type or (
             ParanetIncentivizationType.NEUROWEB.value
@@ -304,7 +304,7 @@ class Paranet(Module):
     def calculate_all_claimable_miner_rewards_amount(
         self,
         ual: UAL,
-        incentives_type: ParanetIncentivizationType = None,
+        incentives_type: ParanetIncentivizationType | None = None,
     ) -> int:
         incentives_type = incentives_type or (
             ParanetIncentivizationType.NEUROWEB.value
@@ -359,7 +359,7 @@ class Paranet(Module):
     def calculate_claimable_operator_reward_amount(
         self,
         ual: UAL,
-        incentives_type: ParanetIncentivizationType = None,
+        incentives_type: ParanetIncentivizationType | None = None,
     ) -> int:
         incentives_type = incentives_type or (
             ParanetIncentivizationType.NEUROWEB.value
@@ -378,7 +378,7 @@ class Paranet(Module):
     def claim_operator_reward(
         self,
         ual: UAL,
-        incentives_type: ParanetIncentivizationType = None,
+        incentives_type: ParanetIncentivizationType | None = None,
     ) -> dict[str, str | HexStr | TxReceipt]:
         incentives_type = incentives_type or (
             ParanetIncentivizationType.NEUROWEB.value
