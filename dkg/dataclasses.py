@@ -55,8 +55,9 @@ class KnowledgeAssetContentVisibility(AutoStrEnumUpperCase):
     PRIVATE = auto()
 
 
-class ParanetIncentivizationType(AutoStrEnumCapitalize):
-    NEUROWEB = auto()
+class ParanetIncentivizationType(Enum):
+    NEUROWEB = "Neuroweb"
+    NEUROWEB_ERC20 = "NeurowebERC20"
 
 
 @dataclass

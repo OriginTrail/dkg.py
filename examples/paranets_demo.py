@@ -22,6 +22,7 @@ from hexbytes import HexBytes
 
 from dkg import DKG
 from dkg.providers import BlockchainProvider, NodeHTTPProvider
+from dkg.dataclasses import ParanetIncentivizationType
 
 node_provider = NodeHTTPProvider("http://localhost:8900")
 blockchain_provider = BlockchainProvider(
@@ -128,7 +129,7 @@ incentives_pool_params = dkg.paranet.NeuroWebIncentivesPoolParams(
     voters_percentage=5.5,
 )
 deploy_incentives_contract_result = dkg.paranet.deploy_incentives_contract(
-    paranet_ual, incentives_pool_params
+    paranet_ual, incentives_pool_params, ParanetIncentivizationType.ERC20
 )
 
 print("======================== PARANET NEURO INCENTIVES POOL DEPLOYED")
@@ -324,7 +325,7 @@ update_asset_result = dkg.asset.update(
             ],
         },
     },
-    100000000000000000000
+    100000000000000000000,
 )
 
 print("======================== KA1 UPDATED")

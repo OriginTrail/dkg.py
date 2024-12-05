@@ -76,6 +76,11 @@
   {
     "inputs": [
       {
+        "internalType": "bool",
+        "name": "isNativeReward",
+        "type": "bool"
+      },
+      {
         "internalType": "address",
         "name": "paranetKAStorageContract",
         "type": "address"
