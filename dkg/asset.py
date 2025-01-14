@@ -28,6 +28,7 @@ from eth_abi.packed import encode_packed
 from eth_account.messages import encode_defunct
 from eth_account import Account
 from hexbytes import HexBytes
+import httpx
 
 from dkg.constants import (
     PRIVATE_ASSERTION_PREDICATE,
@@ -212,6 +213,23 @@ class KnowledgeAsset(Module):
 
         return finality
 
+
+    def finality(endpoint, port, auth_token, blockchain, ual, minimum_number_of_finalization_confirmations):
+        try:
+            url = f"{endpoint}:{port}/ask"
+            headers = {"Authorization": f"Bearer {auth_token}"}
+            data = {
+                "ual": ual,
+                "blockchain": blockchain,
+                "minimumNumberOfNodeReplications": minimum_number_of_finalization_confirmations,
+            }
+            with httpx.AsyncClient() as client:
+                response = client.post(url, json=data, headers=headers)
+                response.raise_for_status()  # Raise an exception for HTTP errors
+                return response.json().get("operationId")
+        except httpx.RequestError as error:
+            raise Exception(f"Unable to query: {error}")
+        
     def decrease_knowledge_collection_allowance(
         self,
         allowance_gap: int,

@@ -49,12 +49,23 @@ class InputService:
             "paranet_ual": self.get_paranet_ual(options),
             "repository": self.get_repository(options),
         }
+    
+    def get_publish_finality_arguments(self, options):
+        return {
+            "port": self.get_port(options),
+            "maxNumberOfRetries": self.get_max_number_of_retries(options),
+            "frequency": self.get_frequency(options),
+            "minimumNumberOfFinalizationConfirmations": self.get_minimum_number_of_finalization_confirmations(options) or 3,
+        }
 
     def get_max_number_of_retries(self, options):
         return (
             options.get("max_number_of_retries")
             or DefaultParameters.MAX_NUMBER_OF_RETRIES.value
         )
+
+    def get_port(self, options):
+        return options.get('port') or DefaultParameters.PORT.value
 
     def get_frequency(self, options):
         return options.get("frequency") or DefaultParameters.FREQUENCY.value

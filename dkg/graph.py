@@ -25,13 +25,15 @@ from dkg.module import Module
 from dkg.types import NQuads
 from dkg.utils.decorators import retry
 from dkg.utils.node_request import NodeRequest, validate_operation_status
+from dkg.services.input_service import InputService
 from dkg.constants import Operations
-
+from dkg.asset import KnowledgeAsset
 
 class Graph(Module):
-    def __init__(self, manager: DefaultRequestManager, input_service):
+    def __init__(self, manager: DefaultRequestManager, input_service: InputService, asset: KnowledgeAsset):
         self.manager = manager
         self.input_service = input_service
+        self.asset = asset
 
     _query = Method(NodeRequest.query)
     _get_operation_result = Method(NodeRequest.get_operation_result)
@@ -60,6 +62,7 @@ class Graph(Module):
 
         return operation_result["data"]
 
+    @retry(catch=OperationNotFinished, max_retries=5, base_delay=1, backoff=2)
     def get_operation_result(
         self, operation_id: str, operation: str, max_retries: int, frequency: int
     ):
@@ -69,6 +72,7 @@ class Graph(Module):
             base_delay=frequency,
             backoff=2,
         )
+
         def retry_get_operation_result():
             operation_result = self._get_operation_result(
                 operation_id=operation_id,
@@ -79,3 +83,45 @@ class Graph(Module):
             return operation_result
 
         return retry_get_operation_result()
+
+    def publish_finality(self, UAL, options=None):
+        if options is None:
+            options = {}
+
+        blockchain = self.manager.blockchain_provider.blockchain_id
+        port, max_number_of_retries, frequency, minimum_number_of_finalization_confirmations = self.input_service.get_publish_finality_arguments(options)
+        auth_token = self.manager.node_provider.auth_token
+        endpoint = self.manager.node_provider.endpoint_uri
+
+        #Probably needs some validation but its not implemented
+
+        try:
+            finality_status_result = self.asset.finality_status(UAL, minimum_number_of_finalization_confirmations, max_number_of_retries, frequency)
+        except Exception as e:
+            return {"status": "ERROR", "error": str(e)}
+
+        if finality_status_result == 0:
+            try:
+                finality_operation_id = self.asset.finality(endpoint, port, auth_token, blockchain, UAL, minimum_number_of_finalization_confirmations)
+            except Exception as e:
+                return {"status": "ERROR", "error": str(e)}
+            
+            try:
+                return self.get_operation_result(finality_operation_id, 'finality', max_number_of_retries, frequency)
+            except Exception as e:
+                return {"status": "NOT FINALIZED", "error": str(e)}
+
+
+        elif finality_status_result >= minimum_number_of_finalization_confirmations:
+            return {
+                "status": "FINALIZED",
+                "numberOfConfirmations": finality_status_result,
+                "requiredConfirmations": minimum_number_of_finalization_confirmations
+            }
+        else:
+            return {
+                "status": "NOT FINALIZED",
+                "numberOfConfirmations": finality_status_result,
+                "requiredConfirmations": minimum_number_of_finalization_confirmations
+            }
+
