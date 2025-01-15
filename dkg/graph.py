@@ -61,7 +61,6 @@ class Graph(Module):
 
         return operation_result["data"]
 
-    @retry(catch=OperationNotFinished, max_retries=5, base_delay=1, backoff=2)
     def get_operation_result(
         self, operation_id: str, operation: str, max_retries: int, frequency: int
     ):
@@ -87,12 +86,7 @@ class Graph(Module):
         if options is None:
             options = {}
 
-        blockchain = self.manager.blockchain_provider.blockchain_id
         max_number_of_retries, frequency, minimum_number_of_finalization_confirmations = self.input_service.get_publish_finality_arguments(options)
-        #auth_token = self.manager.node_provider.auth_token
-        #endpoint = self.manager.node_provider.endpoint_uri
-
-        #Probably needs some validation but its not implemented
 
         try:
             finality_status_result = finality_status(UAL, minimum_number_of_finalization_confirmations, max_number_of_retries, frequency)

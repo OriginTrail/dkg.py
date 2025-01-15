@@ -154,8 +154,6 @@ class KnowledgeAsset(Module):
     )
     _get_bid_suggestion = Method(NodeRequest.bid_suggestion)
     _publish = Method(NodeRequest.publish)
-    _finality_status = Method(NodeRequest.finality_status)
-    _finality = Method(NodeRequest.finality)
     _create_knowledge_collection = Method(BlockchainRequest.create_knowledge_collection)
     _mint_knowledge_asset = Method(BlockchainRequest.mint_knowledge_asset)
 
@@ -597,7 +595,6 @@ class KnowledgeAsset(Module):
         finality_status_result = 0
         if minimum_number_of_finalization_confirmations > 0:
             finality_status_result = finality_status(
-                self._finality_status,
                 ual,
                 minimum_number_of_finalization_confirmations,
                 max_number_of_retries,
