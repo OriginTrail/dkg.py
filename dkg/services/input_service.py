@@ -63,9 +63,6 @@ class InputService:
             or DefaultParameters.MAX_NUMBER_OF_RETRIES.value
         )
 
-    def get_port(self, options):
-        return options.get('port') or DefaultParameters.PORT.value
-
     def get_frequency(self, options):
         return options.get("frequency") or DefaultParameters.FREQUENCY.value
 

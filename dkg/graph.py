@@ -24,10 +24,9 @@ from dkg.method import Method
 from dkg.module import Module
 from dkg.types import NQuads
 from dkg.utils.decorators import retry
-from dkg.utils.node_request import NodeRequest, validate_operation_status
+from dkg.utils.node_request import NodeRequest, validate_operation_status, finality_status, finality
 from dkg.services.input_service import InputService
 from dkg.constants import Operations
-from utils.finality import finality_status, finality
 
 class Graph(Module):
     def __init__(self, manager: DefaultRequestManager, input_service: InputService):
@@ -68,7 +67,7 @@ class Graph(Module):
             catch=OperationNotFinished,
             max_retries=max_retries,
             base_delay=frequency,
-            backoff=2,
+            backoff=1,
         )
 
         def retry_get_operation_result():
@@ -82,7 +81,7 @@ class Graph(Module):
 
         return retry_get_operation_result()
 
-    def publish_finality(self, UAL, options=None):
+    def publish_finality(self, UAL, options: dict = {}):
         if options is None:
             options = {}
 
