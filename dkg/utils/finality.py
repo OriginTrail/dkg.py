@@ -16,16 +16,6 @@ def finality_status(
         finality = 0
 
         while finality < required_confirmations and retries <= max_number_of_retries:
-            try:
-                response = _finality_status(ual)
-                finality = response.get("finality", 0)
-                if finality >= required_confirmations:
-                    break
-            except Exception:
-                finality = 0
-
-            retries += 1
-
             if retries > max_number_of_retries:
                 raise Exception(
                     f"Unable to achieve required confirmations. "
@@ -33,8 +23,18 @@ def finality_status(
                 )
 
             # Sleep between attempts (except for first try)
-            if retries > 1:
+            if retries > 0:
                 time.sleep(frequency)
+            
+            retries += 1
+
+            try:
+                response = _finality_status(ual)
+                finality = response.get("finality", 0)
+                if finality >= required_confirmations:
+                    break
+            except Exception:
+                finality = 0
 
         return finality
 
@@ -44,20 +44,30 @@ def finality(
         max_number_of_retries, 
         frequency
     ):
-        finality = 0
+        finality_id = 0
         retries = 0
 
-        while finality < required_confirmations and retries < max_number_of_retries:
-            try:
-                response = _finality(ual) 
-                operation_id = response.json().get("operationId")
-                return operation_id 
-                
-            except Exception as e:
-                finality = 0 
-                print(f"Retry {retries + 1}/{max_number_of_retries} failed: {e}")
+        while finality_id < required_confirmations and retries < max_number_of_retries:
+            
+            if retries > max_number_of_retries:
+                raise Exception(
+                    f"Unable to achieve required confirmations. "
+                    f"Max number of retries ({max_number_of_retries}) reached."
+                )
+
+            if retries > 0:
+                time.sleep(frequency)
             
             retries += 1
-            time.sleep(frequency)  
-        
-        raise Exception(f"Finality not reached within {max_number_of_retries} retries.")
+
+            try:
+                response = _finality(ual) 
+                operation_id = response.json().get("operationId", 0)
+                if operation_id >= required_confirmations:
+                    finality_id = operation_id 
+                
+            except Exception as e:
+                finality_id = 0 
+                print(f"Retry {retries + 1}/{max_number_of_retries} failed: {e}")
+            
+            return finality_id
