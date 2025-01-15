@@ -52,9 +52,9 @@ class InputService:
     
     def get_publish_finality_arguments(self, options):
         return {
-            "maxNumberOfRetries": self.get_max_number_of_retries(options),
+            "max_number_of_retries": self.get_max_number_of_retries(options),
             "frequency": self.get_frequency(options),
-            "minimumNumberOfFinalizationConfirmations": self.get_minimum_number_of_finalization_confirmations(options) or 3,
+            "minimum_number_of_finalization_confirmations": self.get_minimum_number_of_finalization_confirmations(options) or 3,
         }
 
     def get_max_number_of_retries(self, options):
