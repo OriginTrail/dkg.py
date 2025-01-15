@@ -52,7 +52,6 @@ class InputService:
     
     def get_publish_finality_arguments(self, options):
         return {
-            "port": self.get_port(options),
             "maxNumberOfRetries": self.get_max_number_of_retries(options),
             "frequency": self.get_frequency(options),
             "minimumNumberOfFinalizationConfirmations": self.get_minimum_number_of_finalization_confirmations(options) or 3,

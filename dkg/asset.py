@@ -28,7 +28,7 @@ from eth_abi.packed import encode_packed
 from eth_account.messages import encode_defunct
 from eth_account import Account
 from hexbytes import HexBytes
-import httpx
+from utils.finality import finality_status
 
 from dkg.constants import (
     PRIVATE_ASSERTION_PREDICATE,
@@ -155,6 +155,7 @@ class KnowledgeAsset(Module):
     _get_bid_suggestion = Method(NodeRequest.bid_suggestion)
     _publish = Method(NodeRequest.publish)
     _finality_status = Method(NodeRequest.finality_status)
+    _finality = Method(NodeRequest.finality)
     _create_knowledge_collection = Method(BlockchainRequest.create_knowledge_collection)
     _mint_knowledge_asset = Method(BlockchainRequest.mint_knowledge_asset)
 
@@ -180,55 +181,7 @@ class KnowledgeAsset(Module):
 
         return {"operationId": operation_id, **operation_data}
 
-    def finality_status(
-        self,
-        ual: str,
-        required_confirmations: int,
-        max_number_of_retries: int,
-        frequency: int,
-    ):
-        retries = 0
-        finality = 0
 
-        while finality < required_confirmations and retries <= max_number_of_retries:
-            try:
-                response = self._finality_status(ual)
-                finality = response.get("finality", 0)
-                if finality >= required_confirmations:
-                    break
-            except Exception:
-                finality = 0
-
-            retries += 1
-
-            if retries > max_number_of_retries:
-                raise Exception(
-                    f"Unable to achieve required confirmations. "
-                    f"Max number of retries ({max_number_of_retries}) reached."
-                )
-
-            # Sleep between attempts (except for first try)
-            if retries > 1:
-                time.sleep(frequency)
-
-        return finality
-
-
-    def finality(endpoint, port, auth_token, blockchain, ual, minimum_number_of_finalization_confirmations):
-        try:
-            url = f"{endpoint}:{port}/ask"
-            headers = {"Authorization": f"Bearer {auth_token}"}
-            data = {
-                "ual": ual,
-                "blockchain": blockchain,
-                "minimumNumberOfNodeReplications": minimum_number_of_finalization_confirmations,
-            }
-            with httpx.AsyncClient() as client:
-                response = client.post(url, json=data, headers=headers)
-                response.raise_for_status()  # Raise an exception for HTTP errors
-                return response.json().get("operationId")
-        except httpx.RequestError as error:
-            raise Exception(f"Unable to query: {error}")
         
     def decrease_knowledge_collection_allowance(
         self,
@@ -643,7 +596,8 @@ class KnowledgeAsset(Module):
 
         finality_status_result = 0
         if minimum_number_of_finalization_confirmations > 0:
-            finality_status_result = self.finality_status(
+            finality_status_result = finality_status(
+                self._finality_status,
                 ual,
                 minimum_number_of_finalization_confirmations,
                 300,

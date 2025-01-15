@@ -27,13 +27,12 @@ from dkg.utils.decorators import retry
 from dkg.utils.node_request import NodeRequest, validate_operation_status
 from dkg.services.input_service import InputService
 from dkg.constants import Operations
-from dkg.asset import KnowledgeAsset
+from utils.finality import finality_status, finality
 
 class Graph(Module):
-    def __init__(self, manager: DefaultRequestManager, input_service: InputService, asset: KnowledgeAsset):
+    def __init__(self, manager: DefaultRequestManager, input_service: InputService):
         self.manager = manager
         self.input_service = input_service
-        self.asset = asset
 
     _query = Method(NodeRequest.query)
     _get_operation_result = Method(NodeRequest.get_operation_result)
@@ -89,20 +88,20 @@ class Graph(Module):
             options = {}
 
         blockchain = self.manager.blockchain_provider.blockchain_id
-        port, max_number_of_retries, frequency, minimum_number_of_finalization_confirmations = self.input_service.get_publish_finality_arguments(options)
-        auth_token = self.manager.node_provider.auth_token
-        endpoint = self.manager.node_provider.endpoint_uri
+        max_number_of_retries, frequency, minimum_number_of_finalization_confirmations = self.input_service.get_publish_finality_arguments(options)
+        #auth_token = self.manager.node_provider.auth_token
+        #endpoint = self.manager.node_provider.endpoint_uri
 
         #Probably needs some validation but its not implemented
 
         try:
-            finality_status_result = self.asset.finality_status(UAL, minimum_number_of_finalization_confirmations, max_number_of_retries, frequency)
+            finality_status_result = finality_status(UAL, minimum_number_of_finalization_confirmations, max_number_of_retries, frequency)
         except Exception as e:
             return {"status": "ERROR", "error": str(e)}
 
         if finality_status_result == 0:
             try:
-                finality_operation_id = self.asset.finality(endpoint, port, auth_token, blockchain, UAL, minimum_number_of_finalization_confirmations)
+                finality_operation_id = finality(UAL, minimum_number_of_finalization_confirmations, max_number_of_retries, frequency)
             except Exception as e:
                 return {"status": "ERROR", "error": str(e)}
             

@@ -70,6 +70,12 @@ class NodeRequest:
         params={"ual": UAL},
     )
 
+    finality = NodeCall(
+        method=HTTPRequestMethod.GET,
+        path="ask",
+        params={"ual": UAL},
+    )
+
     get = NodeCall(
         method=HTTPRequestMethod.POST,
         path="get",
