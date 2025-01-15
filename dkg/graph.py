@@ -81,7 +81,7 @@ class Graph(Module):
 
         return retry_get_operation_result()
 
-    def publish_finality(self, UAL, options: dict = {}):
+    def publish_finality(self, UAL, options=None):
         if options is None:
             options = {}
 
