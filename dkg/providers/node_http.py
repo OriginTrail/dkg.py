@@ -31,9 +31,8 @@ class NodeHTTPProvider:
         api_version: str = "v1",
         auth_token: str | None = None,
     ):
-        self.endpoint_uri = URI(endpoint_uri)
-        self.api_version = api_version
-        self.auth_token = auth_token
+        self.url = f"{URI(endpoint_uri)}/{api_version}"
+        self.headers = {"Authorization": f"Bearer {auth_token}"} if auth_token else {}
 
     def make_request(
         self,
@@ -42,16 +41,13 @@ class NodeHTTPProvider:
         params: dict[str, Any] = {},
         data: dict[str, Any] = {},
     ) -> NodeResponseDict:
-        url = f"{self.endpoint_uri}/{self.api_version}/{path}"
-        headers = (
-            {"Authorization": f"Bearer {self.auth_token}"} if self.auth_token else {}
-        )
+        url = f"{self.url}/{path}"
 
         try:
             if method == HTTPRequestMethod.GET:
-                response = requests.get(url, params=params, headers=headers)
+                response = requests.get(url, params=params, headers=self.headers)
             elif method == HTTPRequestMethod.POST:
-                response = requests.post(url, json=data, headers=headers)
+                response = requests.post(url, json=data, headers=self.headers)
             else:
                 raise HTTPRequestMethodNotSupported(
                     f"{method.name} method isn't supported"

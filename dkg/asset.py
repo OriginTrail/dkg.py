@@ -600,8 +600,8 @@ class KnowledgeAsset(Module):
                 self._finality_status,
                 ual,
                 minimum_number_of_finalization_confirmations,
-                300,
-                2,
+                max_number_of_retries,
+                frequency,
             )
 
         return json.loads(
@@ -884,7 +884,7 @@ class KnowledgeAsset(Module):
             catch=OperationNotFinished,
             max_retries=max_retries,
             base_delay=frequency,
-            backoff=2,
+            backoff=1,
         )
         def retry_get_operation_result():
             operation_result = self._get_operation_result(
