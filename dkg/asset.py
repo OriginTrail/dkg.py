@@ -28,7 +28,6 @@ from eth_abi.packed import encode_packed
 from eth_account.messages import encode_defunct
 from eth_account import Account
 from hexbytes import HexBytes
-from utils.node_request import finality_status
 
 from dkg.constants import (
     PRIVATE_ASSERTION_PREDICATE,
@@ -63,6 +62,7 @@ from dkg.utils.node_request import (
     NodeRequest,
     OperationStatus,
     validate_operation_status,
+    finality_status
 )
 from dkg.utils.ual import format_ual, parse_ual
 import dkg.utils.knowledge_collection_tools as kc_tools
