@@ -35,8 +35,7 @@ class InputService:
             "payer": self.get_payer(options),
             "minimum_number_of_finalization_confirmations": self.get_minimum_number_of_finalization_confirmations(
                 options
-            )
-            or 3,
+            ),
             "minimum_number_of_node_replications": self.get_minimum_number_of_node_replications(
                 options
             ),
@@ -54,7 +53,7 @@ class InputService:
         return {
             "max_number_of_retries": self.get_max_number_of_retries(options),
             "frequency": self.get_frequency(options),
-            "minimum_number_of_finalization_confirmations": self.get_minimum_number_of_finalization_confirmations(options) or 3,
+            "minimum_number_of_finalization_confirmations": self.get_minimum_number_of_finalization_confirmations(options),
         }
 
     def get_max_number_of_retries(self, options):

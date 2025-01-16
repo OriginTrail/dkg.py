@@ -215,10 +215,16 @@ def finality_status(
             retries += 1
 
             try:
-                response = NodeRequest.finality_status(ual)
-                finality = response.get("finality", 0)
-                if finality >= required_confirmations:
-                    break
+                try:
+                    response = NodeRequest.finality_status(ual)
+                except Exception as e:
+                    response = None
+
+                if response is not None:
+                    finality = response.get("finality", 0)
+                    if finality >= required_confirmations:
+                        break
+
             except Exception:
                 finality = 0
 
@@ -247,10 +253,15 @@ def finality(
             retries += 1
 
             try:
-                response = NodeRequest.finality(ual) 
-                operation_id = response.json().get("operationId", 0)
-                if operation_id >= required_confirmations:
-                    finality_id = operation_id 
+                try:
+                    response = NodeRequest.finality(ual)
+                except Exception as e:
+                    response = None
+
+                if response is not None:
+                    operation_id = response.json().get("operationId", 0)
+                    if operation_id >= required_confirmations:
+                        finality_id = operation_id
                 
             except Exception as e:
                 finality_id = 0 
