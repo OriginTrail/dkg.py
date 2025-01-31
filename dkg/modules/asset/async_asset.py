@@ -18,14 +18,9 @@
 import json
 import asyncio
 from typing import Literal
-from pyld import jsonld
 from web3 import Web3
-from web3.constants import ADDRESS_ZERO
 from web3.types import TxReceipt
 from itertools import chain
-from eth_account.messages import encode_defunct
-from eth_account import Account
-from hexbytes import HexBytes
 
 from dkg.constants import (
     PRIVATE_ASSERTION_PREDICATE,
@@ -38,24 +33,20 @@ from dkg.constants import (
     OutputTypes,
 )
 from dkg.managers.async_manager import AsyncRequestManager
-from dkg.method import Method
 from dkg.modules.async_module import AsyncModule
 from dkg.types import JSONLD, UAL, Address, HexStr
-from dkg.utils.blockchain_request import (
-    BlockchainRequest,
-)
-from dkg.utils.node_request import (
+from dkg.request_managers.node_request import (
     OperationStatus,
+    get_operation_status_object,
 )
-from dkg.utils.ual import format_ual, parse_ual
+from dkg.utils.ual import format_ual, parse_ual, get_paranet_ual_details, get_paranet_id
 import dkg.utils.knowledge_collection_tools as kc_tools
-import dkg.utils.knowledge_asset_tools as ka_tools
 from dkg.services.input_service import InputService
 from dkg.services.node_services.async_node_service import AsyncNodeService
 from dkg.services.blockchain_services.async_blockchain_service import (
     AsyncBlockchainService,
 )
-from dkg.utils.node_request import get_operation_status_object
+from dkg.utils.common import get_operation_status_dict, get_message_signer_address
 
 
 class AsyncKnowledgeAsset(AsyncModule):
@@ -71,73 +62,71 @@ class AsyncKnowledgeAsset(AsyncModule):
         self.node_service = node_service
         self.blockchain_service = blockchain_service
 
-    async def is_valid_ual(self, ual: UAL) -> bool:
-        if not ual or not isinstance(ual, str):
-            raise ValueError("UAL must be a non-empty string.")
+    # async def is_valid_ual(self, ual: UAL) -> bool:
+    #     if not ual or not isinstance(ual, str):
+    #         raise ValueError("UAL must be a non-empty string.")
 
-        parts = ual.split("/")
-        if len(parts) != 3:
-            raise ValueError("UAL format is incorrect.")
+    #     parts = ual.split("/")
+    #     if len(parts) != 3:
+    #         raise ValueError("UAL format is incorrect.")
 
-        prefixes = parts[0].split(":")
-        prefixes_number = len(prefixes)
-        if prefixes_number != 3 and prefixes_number != 4:
-            raise ValueError("Prefix format in UAL is incorrect.")
+    #     prefixes = parts[0].split(":")
+    #     prefixes_number = len(prefixes)
+    #     if prefixes_number != 3 and prefixes_number != 4:
+    #         raise ValueError("Prefix format in UAL is incorrect.")
 
-        if prefixes[0] != "did":
-            raise ValueError(
-                f"Invalid DID prefix. Expected: 'did'. Received: '{prefixes[0]}'."
-            )
+    #     if prefixes[0] != "did":
+    #         raise ValueError(
+    #             f"Invalid DID prefix. Expected: 'did'. Received: '{prefixes[0]}'."
+    #         )
 
-        if prefixes[1] != "dkg":
-            raise ValueError(
-                f"Invalid DKG prefix. Expected: 'dkg'. Received: '{prefixes[1]}'."
-            )
+    #     if prefixes[1] != "dkg":
+    #         raise ValueError(
+    #             f"Invalid DKG prefix. Expected: 'dkg'. Received: '{prefixes[1]}'."
+    #         )
 
-        if prefixes[2] != (
-            blockchain_name := (
-                self.manager.blockchain_provider.blockchain_id.split(":")[0]
-            )
-        ):
-            raise ValueError(
-                "Invalid blockchain name in the UAL prefix. "
-                f"Expected: '{blockchain_name}'. Received: '${prefixes[2]}'."
-            )
+    #     if prefixes[2] != (
+    #         blockchain_name := (
+    #             self.manager.blockchain_provider.blockchain_id.split(":")[0]
+    #         )
+    #     ):
+    #         raise ValueError(
+    #             "Invalid blockchain name in the UAL prefix. "
+    #             f"Expected: '{blockchain_name}'. Received: '${prefixes[2]}'."
+    #         )
 
-        if prefixes_number == 4:
-            chain_id = self.manager.blockchain_provider.blockchain_id.split(":")[1]
+    #     if prefixes_number == 4:
+    #         chain_id = self.manager.blockchain_provider.blockchain_id.split(":")[1]
 
-            if int(prefixes[3]) != int(chain_id):
-                raise ValueError(
-                    "Chain ID in UAL does not match the blockchain. "
-                    f"Expected: '${chain_id}'. Received: '${prefixes[3]}'."
-                )
+    #         if int(prefixes[3]) != int(chain_id):
+    #             raise ValueError(
+    #                 "Chain ID in UAL does not match the blockchain. "
+    #                 f"Expected: '${chain_id}'. Received: '${prefixes[3]}'."
+    #             )
 
-        contract_address = self.manager.blockchain_provider.contracts[
-            "ContentAssetStorage"
-        ].address
+    #     contract_address = self.manager.blockchain_provider.contracts[
+    #         "ContentAssetStorage"
+    #     ].address
 
-        if parts[1].lower() != contract_address.lower():
-            raise ValueError(
-                "Contract address in UAL does not match. "
-                f"Expected: '${contract_address.lower()}'. "
-                f"Received: '${parts[1].lower()}'."
-            )
+    #     if parts[1].lower() != contract_address.lower():
+    #         raise ValueError(
+    #             "Contract address in UAL does not match. "
+    #             f"Expected: '${contract_address.lower()}'. "
+    #             f"Received: '${parts[1].lower()}'."
+    #         )
 
-        try:
-            owner = await self.blockchain_service.get_owner(int(parts[2]))
+    #     try:
+    #         owner = await self.blockchain_service.get_owner(int(parts[2]))
 
-            if not owner or owner == ADDRESS_ZERO:
-                raise ValueError("Token does not exist or has no owner.")
+    #         if not owner or owner == ADDRESS_ZERO:
+    #             raise ValueError("Token does not exist or has no owner.")
 
-            return True
-        except Exception as err:
-            raise ValueError(f"Error fetching asset owner: {err}")
+    #         return True
+    #     except Exception as err:
+    #         raise ValueError(f"Error fetching asset owner: {err}")
 
-    def process_content(self, content: str) -> list:
-        return [line.strip() for line in content.split("\n") if line.strip() != ""]
-
-    def insert_triple_sorted(self, triples_list: list, new_triple: str) -> int:
+    # TODO: Rewrite this
+    def _insert_triple_sorted(self, triples_list: list, new_triple: str) -> int:
         # Assuming triples_list is already sorted
         left = 0
         right = len(triples_list)
@@ -153,33 +142,10 @@ class AsyncKnowledgeAsset(AsyncModule):
         triples_list.insert(left, new_triple)
         return left
 
-    def get_operation_status_dict(self, operation_result, operation_id):
-        # Check if data exists and has errorType
-        operation_data = (
-            {"status": operation_result.get("status"), **operation_result.get("data")}
-            if operation_result.get("data")
-            and operation_result.get("data", {}).get("errorType")
-            else {"status": operation_result.get("status")}
-        )
-
-        return {"operationId": operation_id, **operation_data}
-
-    def get_message_signer_address(self, dataset_root: str, signature: dict):
-        message = encode_defunct(HexBytes(dataset_root))
-        r, s, v = signature.get("r"), signature.get("s"), signature.get("v")
-        r = r[2:] if r.startswith("0x") else r
-        s = s[2:] if s.startswith("0x") else s
-
-        sig = "0x" + r + s + hex(v)[2:].zfill(2)
-
-        return Account.recover_message(message, signature=sig)
-
-    async def process_signatures(self, signatures, dataset_root):
+    async def _process_signatures(self, signatures, dataset_root):
         async def process_signature(signature):
             try:
-                signer_address = self.get_message_signer_address(
-                    dataset_root, signature
-                )
+                signer_address = get_message_signer_address(dataset_root, signature)
 
                 key_is_operational_wallet = (
                     await self.blockchain_service.key_is_operational_wallet(
@@ -243,17 +209,17 @@ class AsyncKnowledgeAsset(AsyncModule):
         public_content = dataset.get("public")
         private_content = dataset.get("private")
         if isinstance(content, str):
-            dataset["public"] = self.process_content(content)
+            dataset["public"] = kc_tools.process_content(content)
         elif isinstance(public_content, str) or (
             not public_content and private_content and isinstance(private_content, str)
         ):
             if public_content:
-                dataset["public"] = self.process_content(public_content)
+                dataset["public"] = kc_tools.process_content(public_content)
             else:
                 dataset["public"] = []
 
             if private_content and isinstance(private_content, str):
-                dataset["private"] = self.process_content(private_content)
+                dataset["private"] = kc_tools.process_content(private_content)
         else:
             dataset = kc_tools.format_dataset(content)
 
@@ -278,7 +244,7 @@ class AsyncKnowledgeAsset(AsyncModule):
             # Compute private root and add to public
             private_root = kc_tools.calculate_merkle_root(dataset.get("private"))
             dataset["public"].append(
-                f'<{ka_tools.generate_named_node()}> <{PRIVATE_ASSERTION_PREDICATE}> "{private_root}" .'
+                f'<{kc_tools.generate_named_node()}> <{PRIVATE_ASSERTION_PREDICATE}> "{private_root}" .'
             )
 
             # Compute private root and add to public
@@ -310,15 +276,15 @@ class AsyncKnowledgeAsset(AsyncModule):
                 ):  # Check if there's a public pair
                     # If there's a public pair, insert a representation in that group
                     public_index = public_subject_dict.get(private_subject)
-                    self.insert_triple_sorted(
+                    self._insert_triple_sorted(
                         public_triples_grouped[public_index],
-                        f"{private_subject} <{PRIVATE_RESOURCE_PREDICATE}> <{ka_tools.generate_named_node()}> .",
+                        f"{private_subject} <{PRIVATE_RESOURCE_PREDICATE}> <{kc_tools.generate_named_node()}> .",
                     )
                 else:
                     # If no public pair, maintain separate list, inserting sorted by hash
-                    self.insert_triple_sorted(
+                    self._insert_triple_sorted(
                         private_triple_subject_hashes_grouped_without_public_pair,
-                        f"<{PRIVATE_HASH_SUBJECT_PREFIX}{private_subject_hash}> <{PRIVATE_RESOURCE_PREDICATE}> <{ka_tools.generate_named_node()}> .",
+                        f"<{PRIVATE_HASH_SUBJECT_PREFIX}{private_subject_hash}> <{PRIVATE_RESOURCE_PREDICATE}> <{kc_tools.generate_named_node()}> .",
                     )
 
             for triple in private_triple_subject_hashes_grouped_without_public_pair:
@@ -375,7 +341,7 @@ class AsyncKnowledgeAsset(AsyncModule):
             return {
                 "datasetRoot": dataset_root,
                 "operation": {
-                    "publish": self.get_operation_status_dict(
+                    "publish": get_operation_status_dict(
                         publish_operation_result, publish_operation_id
                     )
                 },
@@ -389,7 +355,7 @@ class AsyncKnowledgeAsset(AsyncModule):
         publisher_node_r = publisher_node_signature.get("r")
         publisher_node_vs = publisher_node_signature.get("vs")
 
-        results = await self.process_signatures(signatures, dataset_root)
+        results = await self._process_signatures(signatures, dataset_root)
         identity_ids = results["identity_ids"]
         r = results["r"]
         vs = results["vs"]
@@ -488,55 +454,51 @@ class AsyncKnowledgeAsset(AsyncModule):
             )
         )
 
-    _submit_knowledge_asset = Method(BlockchainRequest.submit_knowledge_asset)
-
-    def submit_to_paranet(
+    async def submit_to_paranet(
         self, ual: UAL, paranet_ual: UAL
     ) -> dict[str, UAL | Address | TxReceipt]:
         parsed_ual = parse_ual(ual)
-        knowledge_asset_storage, knowledge_asset_token_id = (
+        knowledge_collection_storage, knowledge_collection_token_id = (
             parsed_ual["contract_address"],
-            parsed_ual["token_id"],
+            parsed_ual["knowledge_collection_token_id"],
         )
 
-        parsed_paranet_ual = parse_ual(paranet_ual)
-        paranet_knowledge_asset_storage, paranet_knowledge_asset_token_id = (
-            parsed_paranet_ual["contract_address"],
-            parsed_paranet_ual["token_id"],
-        )
-
-        receipt: TxReceipt = self._submit_knowledge_asset(
-            paranet_knowledge_asset_storage,
+        (
+            paranet_knowledge_collection_storage,
+            paranet_knowledge_collection_token_id,
             paranet_knowledge_asset_token_id,
-            knowledge_asset_storage,
-            knowledge_asset_token_id,
+        ) = get_paranet_ual_details(paranet_ual)
+
+        receipt: TxReceipt = await self.blockchain_service.submit_knowledge_collection(
+            paranet_knowledge_collection_storage,
+            paranet_knowledge_collection_token_id,
+            paranet_knowledge_asset_token_id,
+            knowledge_collection_storage,
+            knowledge_collection_token_id,
         )
 
         return {
             "UAL": ual,
             "paranetUAL": paranet_ual,
-            "paranetId": Web3.to_hex(
-                Web3.solidity_keccak(
-                    ["address", "uint256"],
-                    [knowledge_asset_storage, knowledge_asset_token_id],
-                )
-            ),
+            "paranetId": Web3.to_hex(get_paranet_id(paranet_ual)),
             "operation": json.loads(Web3.to_json(receipt)),
         }
 
-    _transfer = Method(BlockchainRequest.transfer_asset)
-
-    def transfer(
+    async def transfer(
         self,
         ual: UAL,
         new_owner: Address,
     ) -> dict[str, UAL | Address | TxReceipt]:
-        token_id = parse_ual(ual)["token_id"]
+        knowledge_collection_token_id = parse_ual(ual)["knowledge_collection_token_id"]
 
-        receipt: TxReceipt = self._transfer(
-            self.manager.blockchain_provider.account,
-            new_owner,
-            token_id,
+        asset_id = (
+            knowledge_collection_token_id - 1
+        ) * 1_000_000 + knowledge_collection_token_id
+
+        receipt: TxReceipt = await self.blockchain_service.transfer_asset(
+            from_=self.manager.blockchain_provider.account.address,
+            to=new_owner,
+            token_id=asset_id,
         )
 
         return {
@@ -545,16 +507,19 @@ class AsyncKnowledgeAsset(AsyncModule):
             "operation": json.loads(Web3.to_json(receipt)),
         }
 
-    _burn_asset = Method(BlockchainRequest.burn_asset)
+    # async def burn(self, ual: UAL, token_ids: list[int]) -> dict[str, UAL | TxReceipt]:
+    #     knowledge_collection_token_id = parse_ual(ual)["knowledge_collection_token_id"]
 
-    def burn(self, ual: UAL) -> dict[str, UAL | TxReceipt]:
-        token_id = parse_ual(ual)["token_id"]
+    #     # TODO: Rename this in contracts to burnKnowledgeCollections
+    #     receipt: TxReceipt = await self.blockchain_service.burn_knowledge_assets_tokens(
+    #         knowledge_collection_token_id,
+    #         self.manager.blockchain_provider.account.address,
+    #         token_ids,
+    #     )
 
-        receipt: TxReceipt = self._burn_asset(token_id)
+    #     return {"UAL": ual, "operation": json.loads(Web3.to_json(receipt))}
 
-        return {"UAL": ual, "operation": json.loads(Web3.to_json(receipt))}
-
-    _get_latest_assertion_id = Method(BlockchainRequest.get_latest_assertion_id)
+    # _get_latest_assertion_id = Method(BlockchainRequest.get_latest_assertion_id)
 
     async def get(self, ual: UAL, options: dict = None) -> dict:
         if options is None:
@@ -652,17 +617,17 @@ class AsyncKnowledgeAsset(AsyncModule):
 
         formatted_metadata = None
         if output_format == OutputTypes.JSONLD.value:
-            formatted_assertion = self.to_jsonld(formatted_assertion)
+            formatted_assertion = kc_tools.to_jsonld(formatted_assertion)
 
             if include_metadata:
-                formatted_metadata = self.to_jsonld("\n".join(metadata))
+                formatted_metadata = kc_tools.to_jsonld("\n".join(metadata))
 
         if output_format == OutputTypes.NQUADS.value:
-            formatted_assertion = self.to_nquads(
+            formatted_assertion = kc_tools.to_nquads(
                 formatted_assertion, DEFAULT_RDF_FORMAT
             )
             if include_metadata:
-                formatted_metadata = self.to_nquads(
+                formatted_metadata = kc_tools.to_nquads(
                     "\n".join(metadata), DEFAULT_RDF_FORMAT
                 )
 
@@ -720,32 +685,4 @@ class AsyncKnowledgeAsset(AsyncModule):
     #         "operation": json.loads(Web3.to_json(receipt)),
     #     }
 
-    _get_block = Method(BlockchainRequest.get_block)
-
-    _get_assertion_size = Method(BlockchainRequest.get_assertion_size)
-
-    def to_jsonld(self, nquads: str):
-        options = {
-            "algorithm": "URDNA2015",
-            "format": "application/n-quads",
-        }
-
-        return jsonld.from_rdf(nquads, options)
-
-    def to_nquads(self, content, input_format):
-        options = {
-            "algorithm": "URDNA2015",
-            "format": "application/n-quads",
-        }
-
-        if input_format:
-            options["inputFormat"] = input_format
-        try:
-            jsonld_data = jsonld.from_rdf(content, options)
-            canonized = jsonld.to_rdf(jsonld_data, options)
-
-            if isinstance(canonized, str):
-                return [line for line in canonized.split("\n") if line.strip()]
-
-        except Exception as e:
-            raise ValueError(f"Error processing content: {e}")
+    # _get_assertion_size = Method(BlockchainRequest.get_assertion_size)

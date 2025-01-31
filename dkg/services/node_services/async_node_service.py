@@ -1,7 +1,7 @@
 from dkg.managers.async_manager import AsyncRequestManager
 from dkg.method import Method
 from dkg.constants import OperationStatuses, ErrorType, Status
-from dkg.utils.node_request import NodeRequest
+from dkg.request_managers.node_request import NodeRequest
 from dkg.modules.async_module import AsyncModule
 from typing import Dict, Any
 from dkg.types import UAL
@@ -17,7 +17,6 @@ class AsyncNodeService(AsyncModule):
     _get_operation_result = Method(NodeRequest.get_operation_result)
     _finality_status = Method(NodeRequest.finality_status)
     _ask = Method(NodeRequest.ask)
-    _get_bid_suggestion = Method(NodeRequest.bid_suggestion)
     _publish = Method(NodeRequest.publish)
     _get = Method(NodeRequest.get)
     _query = Method(NodeRequest.query)

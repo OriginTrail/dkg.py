@@ -86,11 +86,11 @@
       },
       {
         "internalType": "bytes32",
-        "name": "knowledgeAssetId",
+        "name": "knowledgeCollectionId",
         "type": "bytes32"
       }
     ],
-    "name": "addSubmittedKnowledgeAsset",
+    "name": "addSubmittedKnowledgeCollection",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -150,17 +150,17 @@
       },
       {
         "internalType": "address",
-        "name": "knowledgeAssetStorageContract",
+        "name": "knowledgeCollectionStorageContract",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "knowledgeCollectionId",
         "type": "uint256"
       },
       {
         "internalType": "bytes32",
-        "name": "assertionId",
+        "name": "merkleRoot",
         "type": "bytes32"
       },
       {
@@ -169,7 +169,7 @@
         "type": "uint96"
       }
     ],
-    "name": "addUpdatingKnowledgeAssetState",
+    "name": "addUpdatingKnowledgeCollectionState",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -188,7 +188,7 @@
       },
       {
         "internalType": "bytes32",
-        "name": "knowledgeAssetStateId",
+        "name": "knowledgeCollectionStateId",
         "type": "bytes32"
       },
       {
@@ -197,7 +197,7 @@
         "type": "uint96"
       }
     ],
-    "name": "addUpdatingKnowledgeAssetUpdateTokenAmount",
+    "name": "addUpdatingKnowledgeCollectionUpdateTokenAmount",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -210,7 +210,7 @@
         "type": "address"
       }
     ],
-    "name": "decrementTotalSubmittedKnowledgeAssetsCount",
+    "name": "decrementTotalSubmittedKnowledgeCollectionsCount",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -300,7 +300,7 @@
           },
           {
             "internalType": "uint256",
-            "name": "totalSubmittedKnowledgeAssetsCount",
+            "name": "totalSubmittedKnowledgeCollectionsCount",
             "type": "uint256"
           }
         ],
@@ -325,7 +325,7 @@
         "type": "bytes32"
       }
     ],
-    "name": "getSubmittedKnowledgeAssets",
+    "name": "getSubmittedKnowledgeCollections",
     "outputs": [
       {
         "internalType": "bytes32[]",
@@ -359,7 +359,7 @@
         "type": "uint256"
       }
     ],
-    "name": "getSubmittedKnowledgeAssets",
+    "name": "getSubmittedKnowledgeCollections",
     "outputs": [
       {
         "internalType": "bytes32[]",
@@ -378,7 +378,7 @@
         "type": "address"
       }
     ],
-    "name": "getTotalSubmittedKnowledgeAssetsCount",
+    "name": "getTotalSubmittedKnowledgeCollectionsCount",
     "outputs": [
       {
         "internalType": "uint256",
@@ -443,35 +443,25 @@
         "internalType": "bytes32",
         "name": "paranetId",
         "type": "bytes32"
-      },
-      {
-        "internalType": "uint256",
-        "name": "start",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint256",
-        "name": "end",
-        "type": "uint256"
       }
     ],
-    "name": "getUpdatingKnowledgeAssetStates",
+    "name": "getUpdatingKnowledgeCollectionStates",
     "outputs": [
       {
         "components": [
           {
             "internalType": "address",
-            "name": "knowledgeAssetStorageContract",
+            "name": "knowledgeCollectionStorageContract",
             "type": "address"
           },
           {
             "internalType": "uint256",
-            "name": "tokenId",
+            "name": "knowledgeCollectionId",
             "type": "uint256"
           },
           {
             "internalType": "bytes32",
-            "name": "assertionId",
+            "name": "merkleRoot",
             "type": "bytes32"
           },
           {
@@ -480,7 +470,7 @@
             "type": "uint96"
           }
         ],
-        "internalType": "struct ParanetLib.UpdatingKnowledgeAssetState[]",
+        "internalType": "struct ParanetLib.UpdatingKnowledgeCollectionState[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -499,25 +489,35 @@
         "internalType": "bytes32",
         "name": "paranetId",
         "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "start",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "end",
+        "type": "uint256"
       }
     ],
-    "name": "getUpdatingKnowledgeAssetStates",
+    "name": "getUpdatingKnowledgeCollectionStates",
     "outputs": [
       {
         "components": [
           {
             "internalType": "address",
-            "name": "knowledgeAssetStorageContract",
+            "name": "knowledgeCollectionStorageContract",
             "type": "address"
           },
           {
             "internalType": "uint256",
-            "name": "tokenId",
+            "name": "knowledgeCollectionId",
             "type": "uint256"
           },
           {
             "internalType": "bytes32",
-            "name": "assertionId",
+            "name": "merkleRoot",
             "type": "bytes32"
           },
           {
@@ -526,7 +526,7 @@
             "type": "uint96"
           }
         ],
-        "internalType": "struct ParanetLib.UpdatingKnowledgeAssetState[]",
+        "internalType": "struct ParanetLib.UpdatingKnowledgeCollectionState[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -555,7 +555,7 @@
         "type": "address"
       }
     ],
-    "name": "incrementTotalSubmittedKnowledgeAssetsCount",
+    "name": "incrementTotalSubmittedKnowledgeCollectionsCount",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -639,34 +639,11 @@
       },
       {
         "internalType": "bytes32",
-        "name": "knowledgeAssetId",
+        "name": "knowledgeCollectionId",
         "type": "bytes32"
       }
     ],
-    "name": "removeSubmittedKnowledgeAsset",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "miner",
-        "type": "address"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "paranetId",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "bytes32",
-        "name": "knowledgeAssetStateId",
-        "type": "bytes32"
-      }
-    ],
-    "name": "removeUpdatingKnowledgeAssetState",
+    "name": "removeSubmittedKnowledgeCollection",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -726,11 +703,11 @@
       },
       {
         "internalType": "uint256",
-        "name": "totalSubmittedKnowledgeAssetsCount",
+        "name": "totalSubmittedKnowledgeCollectionsCount",
         "type": "uint256"
       }
     ],
-    "name": "setTotalSubmittedKnowledgeAssetsCount",
+    "name": "setTotalSubmittedKnowledgeCollectionsCount",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -790,7 +767,7 @@
       },
       {
         "internalType": "bytes32",
-        "name": "knowledgeAssetStateId",
+        "name": "knowledgeCollectionStateId",
         "type": "bytes32"
       },
       {
@@ -799,7 +776,7 @@
         "type": "uint96"
       }
     ],
-    "name": "setUpdatingKnowledgeAssetUpdateTokenAmount",
+    "name": "setUpdatingKnowledgeCollectionUpdateTokenAmount",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -905,7 +882,7 @@
       },
       {
         "internalType": "bytes32",
-        "name": "knowledgeAssetStateId",
+        "name": "knowledgeCollectionStateId",
         "type": "bytes32"
       },
       {
@@ -914,7 +891,7 @@
         "type": "uint96"
       }
     ],
-    "name": "subUpdatingKnowledgeAssetUpdateTokenAmount",
+    "name": "subUpdatingKnowledgeCollectionUpdateTokenAmount",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

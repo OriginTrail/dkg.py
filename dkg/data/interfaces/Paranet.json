@@ -45,6 +45,27 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "paranetKnowledgeCollectionStorageAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKnowledgeCollectionTokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "paranetId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "KnowledgeCollectionIsAPartOfOtherParanet",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "paranetId",
         "type": "bytes32"
@@ -184,12 +205,17 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "knowledgeAssetStorageAddress",
+        "name": "knowledgeCollectionStorageAddress",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "knowledgeCollectionTokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "knowledgeAssetTokenId",
         "type": "uint256"
       }
     ],
@@ -200,12 +226,17 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "knowledgeAssetStorageAddress",
+        "name": "knowledgeCollectionStorageAddress",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "knowledgeCollectionTokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "knowledgeAssetTokenId",
         "type": "uint256"
       }
     ],
@@ -216,12 +247,17 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "knowledgeAssetStorageAddress",
+        "name": "knowledgeCollectionStorageAddress",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "knowledgeCollectionTokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "knowledgeAssetTokenId",
         "type": "uint256"
       }
     ],
@@ -248,12 +284,17 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "knowledgeAssetStorageAddress",
+        "name": "knowledgeCollectionStorageAddress",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "knowledgeCollectionTokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "knowledgeAssetTokenId",
         "type": "uint256"
       }
     ],
@@ -293,8 +334,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -303,19 +350,19 @@
         "type": "uint256"
       },
       {
-        "indexed": true,
+        "indexed": false,
         "internalType": "address",
-        "name": "knowledgeAssetStorageContract",
+        "name": "knowledgeCollectionStorageContract",
         "type": "address"
       },
       {
         "indexed": false,
         "internalType": "uint256",
-        "name": "knowledgeAssetTokenId",
+        "name": "knowledgeCollectionId",
         "type": "uint256"
       }
     ],
-    "name": "KnowledgeAssetSubmittedToParanet",
+    "name": "KnowledgeCollectionSubmittedToParanet",
     "type": "event"
   },
   {
@@ -324,8 +371,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -349,8 +402,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -374,8 +433,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -399,8 +464,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -424,8 +495,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -449,8 +526,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -474,8 +557,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -499,8 +588,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -524,8 +619,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -549,8 +650,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -574,8 +681,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -611,8 +724,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -642,13 +761,19 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
       },
       {
         "indexed": true,
         "internalType": "uint256",
-        "name": "paranetKATokenId",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "parnetKATokenId",
         "type": "uint256"
       },
       {
@@ -677,8 +802,8 @@
       },
       {
         "indexed": false,
-        "internalType": "enum ParanetLib.KnowledgeAssetsAccessPolicy",
-        "name": "knowledgeAssetsAccessPolicy",
+        "internalType": "enum ParanetLib.KnowledgeCollectionsAccessPolicy",
+        "name": "knowledgeCollectionsAccessPolicy",
         "type": "uint8"
       }
     ],
@@ -691,8 +816,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -701,10 +832,16 @@
         "type": "uint256"
       },
       {
-        "indexed": true,
+        "indexed": false,
         "internalType": "address",
-        "name": "paranetServiceKAStorageContract",
+        "name": "paranetServiceKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "paranetServiceKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": false,
@@ -722,8 +859,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetServiceKAStorageContract",
+        "name": "paranetServiceKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetServiceKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -759,8 +902,14 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "paranetServiceKAStorageContract",
+        "name": "paranetServiceKCStorageContract",
         "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "paranetServiceKCTokenId",
+        "type": "uint256"
       },
       {
         "indexed": true,
@@ -794,8 +943,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -817,8 +971,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -840,8 +999,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -852,12 +1016,17 @@
         "components": [
           {
             "internalType": "address",
-            "name": "knowledgeAssetStorageContract",
+            "name": "knowledgeCollectionStorageContract",
             "type": "address"
           },
           {
             "internalType": "uint256",
-            "name": "tokenId",
+            "name": "knowledgeCollectionTokenId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "knowledgeAssetTokenId",
             "type": "uint256"
           }
         ],
@@ -875,8 +1044,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -898,8 +1072,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -915,6 +1094,47 @@
     "name": "approveCuratedNode",
     "outputs": [],
     "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "paranetId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "uint256",
+        "name": "offset",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "limit",
+        "type": "uint256"
+      }
+    ],
+    "name": "getKnowledgeCollectionLocatorsWithPagination",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "address",
+            "name": "knowledgeCollectionStorageContract",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "knowledgeCollectionTokenId",
+            "type": "uint256"
+          }
+        ],
+        "internalType": "struct ParanetLib.UniversalCollectionLocator[]",
+        "name": "",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
     "type": "function"
   },
   {
@@ -965,10 +1185,10 @@
   },
   {
     "inputs": [],
-    "name": "paranetKnowledgeAssetsRegistry",
+    "name": "paranetKnowledgeCollectionsRegistry",
     "outputs": [
       {
-        "internalType": "contract ParanetKnowledgeAssetsRegistry",
+        "internalType": "contract ParanetKnowledgeCollectionsRegistry",
         "name": "",
         "type": "address"
       }
@@ -1032,8 +1252,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -1076,8 +1301,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetServiceKAStorageContract",
+        "name": "paranetServiceKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetServiceKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -1115,8 +1345,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -1138,8 +1373,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -1161,8 +1401,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -1184,8 +1429,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -1207,8 +1457,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -1225,8 +1480,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -1269,8 +1529,46 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetKAStorageContract",
+        "name": "paranetKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKnowledgeCollectionTokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKnowledgeAssetTokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "address",
+        "name": "knowledgeCollectionStorageContract",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "knowledgeCollectionTokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "submitKnowledgeCollection",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "paranetKCStorageContract",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -1297,8 +1595,13 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "paranetServiceKAStorageContract",
+        "name": "paranetServiceKCStorageContract",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "paranetServiceKCTokenId",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",

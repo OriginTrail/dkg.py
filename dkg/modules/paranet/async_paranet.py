@@ -25,19 +25,19 @@ from dkg.dataclasses import (
     BaseIncentivesPoolParams,
     ParanetIncentivizationType,
 )
-from dkg.managers.manager import DefaultRequestManager
-from dkg.method import Method
-from dkg.modules.module import Module
+from dkg.managers.async_manager import AsyncRequestManager
+from dkg.modules.async_module import AsyncModule
 from dkg.types import Address, UAL, HexStr
-from dkg.request_managers.blockchain_request import BlockchainRequest
 from dkg.utils.ual import parse_ual, get_paranet_id, get_paranet_ual_details
 from dkg.services.input_service import InputService
-from dkg.services.blockchain_services.blockchain_service import BlockchainService
+from dkg.services.blockchain_services.async_blockchain_service import (
+    AsyncBlockchainService,
+)
 from dkg.exceptions import ValidationError
 from dkg.constants import BlockchainIds
 
 
-class Paranet(Module):
+class AsyncParanet(AsyncModule):
     @dataclass
     class NeuroWebIncentivesPoolParams(BaseIncentivesPoolParams):
         neuro_emission_multiplier: float
@@ -64,9 +64,9 @@ class Paranet(Module):
 
     def __init__(
         self,
-        manager: DefaultRequestManager,
+        manager: AsyncRequestManager,
         input_service: InputService,
-        blockchain_service: BlockchainService,
+        blockchain_service: AsyncBlockchainService,
     ):
         self.manager = manager
         self.input_service = input_service
@@ -84,7 +84,7 @@ class Paranet(Module):
             else ParanetIncentivizationType.NEUROWEB_ERC20
         )
 
-    def create(
+    async def create(
         self,
         ual: UAL,
         options: dict = {},
@@ -101,7 +101,7 @@ class Paranet(Module):
             paranet_knowledge_asset_token_id,
         ) = get_paranet_ual_details(ual)
 
-        receipt: TxReceipt = self.blockchain_service.register_paranet(
+        receipt: TxReceipt = await self.blockchain_service.register_paranet(
             paranet_knowledge_collection_storage,
             paranet_knowledge_collection_token_id,
             paranet_knowledge_asset_token_id,
@@ -372,7 +372,7 @@ class Paranet(Module):
     #         "operation": json.loads(Web3.to_json(receipt)),
     #     }
 
-    _get_knowledge_miners = Method(BlockchainRequest.get_knowledge_miners)
+    # _get_knowledge_miners = Method(BlockchainRequest.get_knowledge_miners)
 
     def get_knowledge_miners(
         self, paranet_ual: UAL
@@ -381,7 +381,7 @@ class Paranet(Module):
 
         return self._get_knowledge_miners(paranet_id)
 
-    def deploy_incentives_contract(
+    async def deploy_incentives_contract(
         self,
         paranet_ual: UAL,
         incentives_pool_parameters: NeuroWebIncentivesPoolParams,
@@ -400,7 +400,7 @@ class Paranet(Module):
                 else False
             )
 
-            receipt: TxReceipt = self.blockchain_service.deploy_neuro_incentives_pool(
+            receipt: TxReceipt = await self.blockchain_service.deploy_neuro_incentives_pool(
                 is_native_reward=is_native_reward,
                 paranet_knowledge_collection_storage=paranet_knowledge_collection_storage,
                 paranet_knowledge_collection_token_id=paranet_knowledge_collection_token_id,
@@ -428,17 +428,17 @@ class Paranet(Module):
             f"Incentive Types: {incentive_types}"
         )
 
-    def get_incentives_pool_address(
+    async def get_incentives_pool_address(
         self,
         paranet_ual: UAL,
     ) -> Address:
         paranet_id = get_paranet_id(paranet_ual)
 
-        return self.blockchain_service.get_incentives_pool_address(
+        return await self.blockchain_service.get_incentives_pool_address(
             paranet_id, self.incentive_type
         )
 
-    def create_service(
+    async def create_service(
         self, ual: UAL, options: dict = {}
     ) -> dict[str, str | HexStr | TxReceipt]:
         arguments = self.input_service.get_paranet_create_service_arguments(options)
@@ -458,7 +458,7 @@ class Paranet(Module):
                 "Invalid paranet service UAL! Knowledge asset token id is required!"
             )
 
-        receipt: TxReceipt = self.blockchain_service.register_paranet_service(
+        receipt: TxReceipt = await self.blockchain_service.register_paranet_service(
             knowledge_collection_storage,
             knowledge_collection_token_id,
             knowledge_asset_token_id,
@@ -482,14 +482,14 @@ class Paranet(Module):
             "operation": json.loads(Web3.to_json(receipt)),
         }
 
-    def add_services(
-        self, ual: UAL, services_uals: list[UAL]
+    async def add_services(
+        self, paranet_ual: UAL, services_uals: list[UAL]
     ) -> dict[str, str | HexStr | TxReceipt]:
         (
             paranet_knowledge_collection_storage,
             paranet_knowledge_collection_token_id,
             paranet_knowledge_asset_token_id,
-        ) = get_paranet_ual_details(ual)
+        ) = get_paranet_ual_details(paranet_ual)
 
         parsed_service_uals = []
         for service_ual in services_uals:
@@ -517,7 +517,7 @@ class Paranet(Module):
                 ]
             )
 
-        receipt: TxReceipt = self.blockchain_service.add_paranet_services(
+        receipt: TxReceipt = await self.blockchain_service.add_paranet_services(
             paranet_knowledge_collection_storage,
             paranet_knowledge_collection_token_id,
             paranet_knowledge_asset_token_id,
@@ -525,45 +525,45 @@ class Paranet(Module):
         )
 
         return {
-            "paranetUAL": ual,
-            "paranetId": Web3.to_hex(get_paranet_id(ual)),
+            "paranetUAL": paranet_ual,
+            "paranetId": Web3.to_hex(get_paranet_id(paranet_ual)),
             "operation": json.loads(Web3.to_json(receipt)),
         }
 
-    def is_knowledge_miner(
+    async def is_knowledge_miner(
         self,
         paranet_ual: UAL,
         address: Address | None = None,
     ) -> bool:
         paranet_id = get_paranet_id(paranet_ual)
 
-        return self.blockchain_service.is_knowledge_miner_registered(
+        return await self.blockchain_service.is_knowledge_miner_registered(
             paranet_id, address or self.manager.blockchain_provider.account.address
         )
 
-    def is_operator(
+    async def is_operator(
         self,
         paranet_ual: UAL,
         address: Address | None = None,
     ) -> bool:
-        incentives_pool_address = self.get_incentives_pool_address(paranet_ual)
+        incentives_pool_address = await self.get_incentives_pool_address(paranet_ual)
 
         self.blockchain_service.set_incentives_pool(incentives_pool_address)
 
-        return self.blockchain_service.is_paranet_operator(
+        return await self.blockchain_service.is_paranet_operator(
             operator_address=address or self.manager.blockchain_provider.account.address
         )
 
-    def is_voter(
+    async def is_voter(
         self,
         paranet_ual: UAL,
         address: Address | None = None,
     ) -> bool:
-        incentives_pool_address = self.get_incentives_pool_address(paranet_ual)
+        incentives_pool_address = await self.get_incentives_pool_address(paranet_ual)
 
         self.blockchain_service.set_incentives_pool(incentives_pool_address)
 
-        return self.blockchain_service.is_proposal_voter(
+        return await self.blockchain_service.is_proposal_voter(
             address=address or self.manager.blockchain_provider.account.address,
         )
 

@@ -17,21 +17,29 @@
 
 import json
 
-from hexbytes import HexBytes
 
 from dkg import DKG
 from dkg.providers import BlockchainProvider, NodeHTTPProvider
-from dkg.dataclasses import ParanetNodesAccessPolicy, ParanetMinersAccessPolicy
+from dkg.dataclasses import (
+    ParanetNodesAccessPolicy,
+    ParanetMinersAccessPolicy,
+)
 from dkg.constants import Environments, BlockchainIds
 
 node_provider = NodeHTTPProvider("http://localhost:8900")
 
+# IMPORTANT: make sure that you have PRIVATE_KEY in .env so the blockchain provider can load it
 blockchain_provider = BlockchainProvider(
-        Environments.DEVELOPMENT.value,
-        BlockchainIds.HARDHAT_1.value,
-    )
+    Environments.DEVELOPMENT.value,
+    BlockchainIds.HARDHAT_1.value,
+)
 
-dkg = DKG(node_provider, blockchain_provider)
+# here you can create your own custom values that will be applied to all the functions
+config = {
+    "max_number_of_retries": 300,
+    "frequency": 2,
+}
+dkg = DKG(node_provider, blockchain_provider, config)
 
 
 def divider():
@@ -41,102 +49,70 @@ def divider():
 
 
 def print_json(json_dict: dict):
-    def convert_hexbytes(data):
-        if isinstance(data, dict):
-            return {k: convert_hexbytes(v) for k, v in data.items()}
-        elif isinstance(data, list):
-            return [convert_hexbytes(i) for i in data]
-        elif isinstance(data, HexBytes):
-            return data.to_0x_hex()
-        else:
-            return data
-
-    serializable_dict = convert_hexbytes(json_dict)
-    print(json.dumps(serializable_dict, indent=4))
+    print(json.dumps(json_dict, indent=4))
 
 
 divider()
 
-paranet_data = {
+info_result = dkg.node.info
+
+print("======================== NODE INFO RECEIVED")
+print_json(info_result)
+
+paranet_content = {
     "public": {
-        "@context": ["http://schema.org"],
-        "@id": "uuid:1",
-        "company": "OT",
-        "city": {"@id": "uuid:belgrade"},
-    }
+        "@context": "https://www.schema.org",
+        "@id": "urn:us-cities:info:new-york",
+        "@type": "City",
+        "name": "New York",
+        "state": "New York",
+        "population": "8,336,817",
+        "area": "468.9 sq mi",
+    },
+    "private": {
+        "@context": "https://www.schema.org",
+        "@id": "urn:us-cities:data:new-york",
+        "@type": "CityPrivateData",
+        "crimeRate": "Low",
+        "averageIncome": "$63,998",
+        "infrastructureScore": "8.5",
+        "relatedCities": [
+            {"@id": "urn:us-cities:info:los-angeles", "name": "Los Angeles"},
+            {"@id": "urn:us-cities:info:chicago", "name": "Chicago"},
+        ],
+    },
 }
 
-create_paranet_knowledge_collection_result = dkg.asset.create(paranet_data, 1)
+create_paranet_knowledge_collection_result = dkg.asset.create(
+    content=paranet_content, options={"epochs_num": 2}
+)
 
 print("======================== PARANET KNOWLEDGE COLLECTION CREATED")
 print_json(create_paranet_knowledge_collection_result)
 
 divider()
 
-paranet_ual = create_paranet_knowledge_collection_result["UAL"]
-create_paranet_result = dkg.paranet.create(
-    paranet_ual,
-    "TestParanet",
-    "TestParanetDescription",
-    ParanetNodesAccessPolicy.OPEN,
-    ParanetMinersAccessPolicy.OPEN,
-)
+# Paranet UAL is a Knowledge Asset UAL (combination of Knowledge Collection UAL and Knowledge Asset token id)
+paranet_ual = f"{create_paranet_knowledge_collection_result['UAL']}/1"
+paranet_options = {
+    "paranet_name": "FirstParanet",
+    "paranet_description": "First ever paranet on DKG!",
+    "trac_to_neuro_emission_multiplier": 5,
+    "incentivization_proposal_voters_reward_percentage": 12.0,
+    "operator_reward_percentage": 10.0,
+    "paranet_nodes_access_policy": ParanetNodesAccessPolicy.OPEN,
+    "paranet_miners_access_policy": ParanetMinersAccessPolicy.OPEN,
+}
 
-print("======================== PARANET CREATED")
+create_paranet_result = dkg.paranet.create(paranet_ual, paranet_options)
+
+print("======================== PARANET REGISTERED")
 print_json(create_paranet_result)
 
 divider()
 
-paranet_service_data = {
-    "public": {
-        "@context": ["http://schema.org"],
-        "@id": "uuid:2",
-        "service": "AI Agent Bob",
-        "model": {"@id": "uuid:gpt4"},
-    }
-}
-
-create_paranet_service_knowledge_collection_result = dkg.asset.create(
-    paranet_service_data, 1
-)
-
-print("======================== PARANET SERVICE KNOWLEDGE COLLECTION CREATED")
-print_json(create_paranet_service_knowledge_collection_result)
-
-divider()
-paranet_service_ual = create_paranet_service_knowledge_collection_result["UAL"]
-
-
-submit_to_paranet =  dkg.asset.submit_to_paranet(paranet_service_ual, paranet_ual)
-
-print("======================== SUBMITED TO PARANET")
-print_json(submit_to_paranet)
-
-divider()
-
-create_paranet_service_result = dkg.paranet.create_service(
-    paranet_service_ual,
-    "TestParanetService",
-    "TestParanetServiceDescription",
-    ["0x03C094044301E082468876634F0b209E11d98452"],
-)
-
-print("======================== PARANET SERVICE CREATED")
-print_json(create_paranet_service_result)
-
-divider()
-
-add_services_result = dkg.paranet.add_services(paranet_ual, [paranet_service_ual])
-
-print("======================== ADDED PARANET SERVICES")
-print_json(add_services_result)
-
-divider()
-
 incentives_pool_params = dkg.paranet.NeuroWebIncentivesPoolParams(
-    neuro_emission_multiplier=1.1,
-    operator_percentage=10.5,
-    voters_percentage=5.5,
+    neuro_emission_multiplier=1.1, operator_percentage=10.5, voters_percentage=5.5
 )
 deploy_incentives_contract_result = dkg.paranet.deploy_incentives_contract(
     paranet_ual, incentives_pool_params
@@ -146,6 +122,7 @@ print("======================== PARANET NEURO INCENTIVES POOL DEPLOYED")
 print_json(deploy_incentives_contract_result)
 
 divider()
+
 
 incentives_pool_address = dkg.paranet.get_incentives_pool_address(paranet_ual)
 
@@ -167,161 +144,260 @@ print(f"======================== SENT {incentives_amount} TO THE INCENTIVES POOL
 
 divider()
 
-is_knowledge_miner = dkg.paranet.is_knowledge_miner(paranet_ual)
-is_operator = dkg.paranet.is_operator(paranet_ual)
-is_voter = dkg.paranet.is_voter(paranet_ual)
+service_content = {
+    "public": {
+        "@context": "https://www.schema.org",
+        "@id": "urn:us-cities:info:miami",
+        "@type": "City",
+        "name": "Miami",
+        "state": "Florida",
+        "population": "2,000,000",
+        "area": "135.2 sq mi",
+    },
+    "private": {
+        "@context": "https://www.schema.org",
+        "@id": "urn:us-cities:data:miami",
+        "@type": "CityPrivateData",
+        "crimeRate": "Low",
+        "averageIncome": "$100,998",
+        "infrastructureScore": "7.5",
+        "relatedCities": [
+            {"@id": "urn:us-cities:info:austin", "name": "Austin"},
+            {"@id": "urn:us-cities:info:seattle", "name": "Seattle"},
+        ],
+    },
+}
 
+create_paranet_service_kc_result = dkg.asset.create(
+    content=service_content, options={"epochs_num": 2}
+)
+
+print("======================== PARANET SERVICE KNOWLEDGE COLLECTION CREATED")
+print_json(create_paranet_service_kc_result)
+
+divider()
+# Paranet service UAL is a Knowledge Asset UAL (combination of Knowledge Collection UAL and Knowledge Asset token id)
+paranet_service_ual = f"{create_paranet_service_kc_result['UAL']}/1"
+
+submit_to_paranet = dkg.asset.submit_to_paranet(paranet_service_ual, paranet_ual)
+
+print("======================== SUBMITED TO PARANET")
+print_json(submit_to_paranet)
+
+divider()
+
+create_paranet_service_result = dkg.paranet.create_service(
+    ual=paranet_service_ual,
+    options={
+        "paranet_service_name": "FKPS",
+        "paranet_service_description": "Fast Knowledge Processing Service",
+        "paranet_service_addresses": [],
+    },
+)
+
+print("======================== PARANET SERVICE CREATED")
+print_json(create_paranet_service_result)
+
+divider()
+
+add_services_result = dkg.paranet.add_services(paranet_ual, [paranet_service_ual])
+
+print("======================== ADDED PARANET SERVICES")
+print_json(add_services_result)
+
+divider()
+
+is_knowledge_miner = dkg.paranet.is_knowledge_miner(paranet_ual)
 print(f"Is Knowledge Miner? {str(is_knowledge_miner)}")
+
+is_operator = dkg.paranet.is_operator(paranet_ual)
 print(f"Is Operator? {str(is_operator)}")
+
+is_voter = dkg.paranet.is_voter(paranet_ual)
 print(f"Is Voter? {str(is_voter)}")
 
 divider()
 
+# def print_reward_stats(is_voter: bool = False):
+#     knowledge_miner_reward = dkg.paranet.calculate_claimable_miner_reward_amount(
+#         paranet_ual
+#     )
+#     operator_reward = dkg.paranet.calculate_claimable_operator_reward_amount(
+#         paranet_ual
+#     )
 
-def print_reward_stats(is_voter: bool = False):
-    knowledge_miner_reward = dkg.paranet.calculate_claimable_miner_reward_amount(
-        paranet_ual
-    )
-    operator_reward = dkg.paranet.calculate_claimable_operator_reward_amount(
-        paranet_ual
-    )
+#     print(
+#         f"Claimable Knowledge Miner Reward for the Current Wallet: {knowledge_miner_reward}"
+#     )
+#     print(
+#         f"Claimable Paranet Operator Reward for the Current Wallet: {operator_reward}"
+#     )
+#     if is_voter:
+#         voter_rewards = dkg.paranet.calculate_claimable_voter_reward_amount(paranet_ual)
+#         print(
+#             f"Claimable Proposal Voter Reward for the Current Wallet: {voter_rewards}"
+#         )
 
-    print(
-        f"Claimable Knowledge Miner Reward for the Current Wallet: {knowledge_miner_reward}"
-    )
-    print(
-        f"Claimable Paranet Operator Reward for the Current Wallet: {operator_reward}"
-    )
-    if is_voter:
-        voter_rewards = dkg.paranet.calculate_claimable_voter_reward_amount(paranet_ual)
-        print(
-            f"Claimable Proposal Voter Reward for the Current Wallet: {voter_rewards}"
-        )
+#     divider()
 
-    divider()
+#     all_knowledge_miners_reward = (
+#         dkg.paranet.calculate_all_claimable_miner_rewards_amount(paranet_ual)
+#     )
+#     all_voters_reward = dkg.paranet.calculate_all_claimable_voters_reward_amount(
+#         paranet_ual
+#     )
 
-    all_knowledge_miners_reward = (
-        dkg.paranet.calculate_all_claimable_miner_rewards_amount(paranet_ual)
-    )
-    all_voters_reward = dkg.paranet.calculate_all_claimable_voters_reward_amount(
-        paranet_ual
-    )
-
-    print(f"Claimable All Knowledge Miners Reward: {all_knowledge_miners_reward}")
-    print(f"Claimable Paranet Operator Reward: {operator_reward}")
-    print(f"Claimable All Proposal Voters Reward: {all_voters_reward}")
+#     print(f"Claimable All Knowledge Miners Reward: {all_knowledge_miners_reward}")
+#     print(f"Claimable Paranet Operator Reward: {operator_reward}")
+#     print(f"Claimable All Proposal Voters Reward: {all_voters_reward}")
 
 
-print_reward_stats(is_voter)
+# print_reward_stats(is_voter)
+
+# divider()
+
+# claim_miner_reward_result = dkg.paranet.claim_miner_reward(paranet_ual)
+
+# print("======================== KNOWLEDGE MINER REWARD CLAIMED")
+# print_json(claim_miner_reward_result)
+
+# divider()
+
+# claim_operator_reward_result = dkg.paranet.claim_operator_reward(paranet_ual)
+
+# print("======================== PARANET OPERATOR REWARD CLAIMED")
+# print(claim_operator_reward_result)
+
+# divider()
+
+# print_reward_stats()
 
 divider()
 
-kc1 = {
+denver_content = {
     "public": {
-        "@context": ["http://schema.org"],
-        "@id": "uuid:3",
-        "company": "KA1-Company",
-        "user": {"@id": "uuid:user:1"},
-        "city": {"@id": "uuid:belgrade"},
-    }
+        "@context": "https://www.schema.org",
+        "@id": "urn:us-cities:info:denver",
+        "@type": "City",
+        "name": "Denver",
+        "state": "Colorado",
+        "population": "700,000",
+        "area": "153.3 sq mi",
+    },
+    "private": {
+        "@context": "https://www.schema.org",
+        "@id": "urn:us-cities:data:denver",
+        "@type": "CityPrivateData",
+        "crimeRate": "Low",
+        "averageIncome": "$50,998",
+        "infrastructureScore": "6.5",
+        "relatedCities": [
+            {"@id": "urn:us-cities:info:boston", "name": "Boston"},
+            {"@id": "urn:us-cities:info:chicago", "name": "Chicago"},
+        ],
+    },
 }
 
-create_submit_kc1_result = dkg.asset.create(
-    kc1,
-    1,
-    100000000000000000000,
-    paranet_ual=paranet_ual,
+create_collection_result = dkg.asset.create(
+    content=denver_content, options={"epochs_num": 2}
 )
 
-print(
-    "======================== KNOWLEDGE ASSET #1 CREATED AND SUBMITTED TO THE PARANET"
-)
-print_json(create_submit_kc1_result)
+print("======================== KNOWLEDGE COLLECTION #1 CREATED")
+print_json(create_collection_result)
 
 divider()
 
-submit_to_paranet_result2 =  dkg.asset.submit_to_paranet(create_submit_kc1_result["UAL"], paranet_ual)
+submit_to_paranet_result = dkg.asset.submit_to_paranet(
+    create_collection_result["UAL"], paranet_ual
+)
 
-print("======================== SUBMITED TO PARANET")
+print("======================== KNOWLEDGE COLLECTION #1 SUBMITED TO THE PARANET")
+print_json(submit_to_paranet_result)
+
+divider()
+
+dallas_content = {
+    "public": {
+        "@context": "https://www.schema.org",
+        "@id": "urn:us-cities:info:dallas",
+        "@type": "City",
+        "name": "Dallas",
+        "state": "Texas",
+        "population": "1,343,573",
+        "area": "386.5 sq mi",
+    },
+    "private": {
+        "@context": "https://www.schema.org",
+        "@id": "urn:us-cities:data:dallas",
+        "@type": "CityPrivateData",
+        "crimeRate": "Low",
+        "averageIncome": "$80,998",
+        "infrastructureScore": "7.5",
+        "relatedCities": [
+            {"@id": "urn:us-cities:info:austin", "name": "Austin"},
+            {"@id": "urn:us-cities:info:houston", "name": "Houston"},
+        ],
+    },
+}
+
+create_collection_result2 = dkg.asset.create(
+    content=dallas_content, options={"epochs_num": 2}
+)
+print("======================== KNOWLEDGE COLLECTION #2 CREATED")
+print_json(create_collection_result2)
+
+submit_to_paranet_result2 = dkg.asset.submit_to_paranet(
+    create_collection_result2["UAL"], paranet_ual
+)
+
+print("======================== KNOWLEDGE COLLECTION #2 SUBMITTED TO THE PARANET")
 print_json(submit_to_paranet_result2)
 
 divider()
 
-kc2 = {
-    "public": {
-        "@context": ["http://schema.org"],
-        "@id": "uuid:4",
-        "company": "KA2-Company",
-        "user": {"@id": "uuid:user:2"},
-        "city": {"@id": "uuid:madrid"},
+# IMPORTANT: For queries to work, you need to add assetSync to your node's .origintrail_noderc file.
+# How to: https://docs.origintrail.io/dkg-v6-previous-version/node-setup-instructions/sync-a-dkg-paranet
+query_where_denver = """
+PREFIX schema: <http://schema.org/>
+SELECT DISTINCT ?graphName
+WHERE {
+    GRAPH ?graphName {
+    ?s schema:name "Denver" .
     }
 }
+"""
+query_result = dkg.graph.query(
+    query=query_where_denver, options={"paranet_ual": paranet_ual}
+)
 
-create_kc2_result = dkg.asset.create(kc2, 1, 20000000000000000000)
-
-print("======================== KNOWLEDGE ASSET #2 CREATED")
-print_json(create_kc2_result)
-
-kc2_ual = create_kc2_result["UAL"]
-submit_kc2_result = dkg.asset.submit_to_paranet(kc2_ual, paranet_ual)
-
-print("======================== KNOWLEDGE ASSET #2 SUBMITTED TO THE PARANET")
-print_json(submit_kc2_result)
-
-# divider()
-
-# federated_query = """
-# PREFIX schema: <http://schema.org/>
-# SELECT DISTINCT ?s ?city1 ?user1 ?s2 ?city2 ?user2 ?company1
-# WHERE {{
-#     ?s schema:city ?city1 .
-#     ?s schema:company ?company1 .
-#     ?s schema:user ?user1;
-
-#     SERVICE <{ual}> {{
-#         ?s2 schema:city ?city2 .
-#         ?s2 schema:user ?user2;
-#     }}
-
-#     filter(contains(str(?city2), "belgrade"))
-# }}
-# """
-# query_result = dkg.graph.query(
-#     federated_query.format(ual=kc2_ual),
-#     paranet_ual,
-# )
-
-# print("======================== GOT FEDERATED QUERY RESULT")
-# print(query_result)
+print("======================== QUERY PARANET REPOSITORY RESULT")
+print_json(query_result)
 
 divider()
 
-is_knowledge_miner = dkg.paranet.is_knowledge_miner(paranet_ual)
-is_operator = dkg.paranet.is_operator(paranet_ual)
-is_voter = dkg.paranet.is_voter(paranet_ual)
+federated_query = f"""
+PREFIX schema: <http://schema.org/>
+SELECT DISTINCT ?s ?state1 ?name1 ?s2 ?state2 ?name2 ?population1
+WHERE {{
+    ?s schema:state ?state1 .
+    ?s schema:name ?name1 .
+    ?s schema:population ?population1 .
 
-print(f"Is Knowledge Miner? {str(is_knowledge_miner)}")
-print(f"Is Operator? {str(is_operator)}")
-print(f"Is Voter? {str(is_voter)}")
+    SERVICE <{paranet_ual}> {{
+        ?s2 schema:state "Colorado" .
+        ?s2 schema:name "Denver" .
+        ?s2 schema:state ?state2 .
+        ?s2 schema:name ?name2 .
+    }}
+
+    filter(contains(str(?name2), "Denver"))
+}}
+"""
+query_result = dkg.graph.query(
+    query=federated_query, options={"paranet_ual": paranet_ual}
+)
+
+print("======================== FEDERATED QUERY RESULT")
+print_json(query_result)
 
 divider()
-
-print_reward_stats(is_voter)
-
-divider()
-
-claim_miner_reward_result = dkg.paranet.claim_miner_reward(paranet_ual)
-
-print("======================== KNOWLEDGE MINER REWARD CLAIMED")
-print_json(claim_miner_reward_result)
-
-divider()
-
-claim_operator_reward_result = dkg.paranet.claim_operator_reward(paranet_ual)
-
-print("======================== PARANET OPERATOR REWARD CLAIMED")
-print(claim_operator_reward_result)
-
-divider()
-
-print_reward_stats()

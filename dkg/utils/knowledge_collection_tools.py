@@ -246,3 +246,39 @@ def solidity_packed_sha256(types: list[str], values: list) -> str:
     sha256_hash = hashlib.sha256(packed_data).hexdigest()
 
     return f"0x{sha256_hash}"
+
+
+def generate_named_node():
+    return f"uuid:{uuid4()}"
+
+
+def process_content(content: str) -> list:
+    return [line.strip() for line in content.split("\n") if line.strip() != ""]
+
+
+def to_jsonld(nquads: str):
+    options = {
+        "algorithm": "URDNA2015",
+        "format": "application/n-quads",
+    }
+
+    return jsonld.from_rdf(nquads, options)
+
+
+def to_nquads(content, input_format):
+    options = {
+        "algorithm": "URDNA2015",
+        "format": "application/n-quads",
+    }
+
+    if input_format:
+        options["inputFormat"] = input_format
+    try:
+        jsonld_data = jsonld.from_rdf(content, options)
+        canonized = jsonld.to_rdf(jsonld_data, options)
+
+        if isinstance(canonized, str):
+            return [line for line in canonized.split("\n") if line.strip()]
+
+    except Exception as e:
+        raise ValueError(f"Error processing content: {e}")

@@ -19,9 +19,9 @@ from dataclasses import dataclass, field
 from enum import auto, Enum
 from typing import Any, Type, Dict
 
-from dkg.dataclasses import BidSuggestionRange, HTTPRequestMethod
+from dkg.dataclasses import HTTPRequestMethod
 from dkg.exceptions import OperationFailed, OperationNotFinished
-from dkg.types import AutoStrEnumUpperCase, UAL, Address, DataHexStr
+from dkg.types import AutoStrEnumUpperCase, UAL
 
 
 @dataclass
@@ -34,19 +34,7 @@ class NodeCall:
 
 class NodeRequest:
     info = NodeCall(method=HTTPRequestMethod.GET, path="info")
-    bid_suggestion = NodeCall(
-        method=HTTPRequestMethod.GET,
-        path="bid-suggestion",
-        params={
-            "blockchain": str,
-            "epochsNumber": int,
-            "assertionSize": int,
-            "contentAssetStorageAddress": Address,
-            "firstAssertionId": DataHexStr,
-            "hashFunctionId": int,
-            "bidSuggestionRange": BidSuggestionRange,
-        },
-    )
+
     get_operation_result = NodeCall(
         method=HTTPRequestMethod.GET,
         path="{operation}/{operation_id}",
@@ -99,7 +87,7 @@ class NodeRequest:
             "query": str,
             "type": str,
             "repository": str | None,
-            "paranet_ual": str | None,
+            "paranetUAL": str | None,
         },
     )
 

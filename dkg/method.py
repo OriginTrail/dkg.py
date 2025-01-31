@@ -21,13 +21,13 @@ from typing import TYPE_CHECKING, Any, Generic, Type
 
 from dkg.exceptions import ValidationError
 from dkg.types import TFunc
-from dkg.utils.blockchain_request import (
+from dkg.request_managers.blockchain_request import (
     ContractInteraction,
     ContractTransaction,
     JSONRPCRequest,
 )
-from dkg.utils.node_request import NodeCall
-from dkg.utils.string_transformations import snake_to_camel
+from dkg.request_managers.node_request import NodeCall
+from dkg.utils.common import snake_to_camel
 
 if TYPE_CHECKING:
     from dkg.modules.module import Module

@@ -130,11 +130,11 @@
       },
       {
         "internalType": "bytes32",
-        "name": "knowledgeAssetId",
+        "name": "knowledgeCollectionId",
         "type": "bytes32"
       }
     ],
-    "name": "addKnowledgeAsset",
+    "name": "addKnowledgeCollecton",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -266,6 +266,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getAllParanetIds",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "bytes32",
@@ -385,7 +398,7 @@
         "type": "bytes32"
       }
     ],
-    "name": "getKnowledgeAssets",
+    "name": "getKnowledgeCollections",
     "outputs": [
       {
         "internalType": "bytes32[]",
@@ -404,10 +417,10 @@
         "type": "bytes32"
       }
     ],
-    "name": "getKnowledgeAssetsAccessPolicy",
+    "name": "getKnowledgeCollectionsAccessPolicy",
     "outputs": [
       {
-        "internalType": "enum ParanetLib.KnowledgeAssetsAccessPolicy",
+        "internalType": "enum ParanetLib.KnowledgeCollectionsAccessPolicy",
         "name": "",
         "type": "uint8"
       }
@@ -423,7 +436,7 @@
         "type": "bytes32"
       }
     ],
-    "name": "getKnowledgeAssetsCount",
+    "name": "getKnowledgeCollectionsCount",
     "outputs": [
       {
         "internalType": "uint256",
@@ -443,7 +456,7 @@
       },
       {
         "internalType": "bytes32",
-        "name": "knowledgeAssetId",
+        "name": "knowledgeCollectionId",
         "type": "bytes32"
       },
       {
@@ -452,7 +465,7 @@
         "type": "uint256"
       }
     ],
-    "name": "getKnowledgeAssetsStartingFromKnowledgeAssetId",
+    "name": "getKnowledgeCollectionsStartingFromKnowlCollectionId",
     "outputs": [
       {
         "internalType": "bytes32[]",
@@ -481,7 +494,7 @@
         "type": "uint256"
       }
     ],
-    "name": "getKnowledgeAssetsWithPagination",
+    "name": "getKnowledgeCollectionsWithPagination",
     "outputs": [
       {
         "internalType": "bytes32[]",
@@ -924,6 +937,68 @@
   {
     "inputs": [
       {
+        "internalType": "uint256",
+        "name": "index",
+        "type": "uint256"
+      }
+    ],
+    "name": "getParanetIdAtIndex",
+    "outputs": [
+      {
+        "internalType": "bytes32",
+        "name": "",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "offset",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "limit",
+        "type": "uint256"
+      }
+    ],
+    "name": "getParanetIds",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "paranetId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getParanetIdsMapping",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes32",
         "name": "paranetId",
         "type": "bytes32"
@@ -935,6 +1010,11 @@
         "internalType": "address",
         "name": "",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       },
       {
         "internalType": "uint256",
@@ -959,8 +1039,13 @@
         "components": [
           {
             "internalType": "address",
-            "name": "paranetKAStorageContract",
+            "name": "paranetKCStorageContract",
             "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "paranetKCTokenId",
+            "type": "uint256"
           },
           {
             "internalType": "uint256",
@@ -988,8 +1073,8 @@
             "type": "uint8"
           },
           {
-            "internalType": "enum ParanetLib.KnowledgeAssetsAccessPolicy",
-            "name": "knowledgeAssetsAccessPolicy",
+            "internalType": "enum ParanetLib.KnowledgeCollectionsAccessPolicy",
+            "name": "knowledgeCollectionsAccessPolicy",
             "type": "uint8"
           },
           {
@@ -1001,6 +1086,19 @@
         "internalType": "struct ParanetLib.ParanetMetadata",
         "name": "",
         "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getParanetsCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -1138,11 +1236,11 @@
       },
       {
         "internalType": "bytes32",
-        "name": "knowledgeAssetId",
+        "name": "knowledgeCollectionId",
         "type": "bytes32"
       }
     ],
-    "name": "isKnowledgeAssetRegistered",
+    "name": "isKnowledgeCollectionRegistered",
     "outputs": [
       {
         "internalType": "bool",
@@ -1237,12 +1335,17 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "knowledgeAssetStorageContract",
+        "name": "knowledgeCollectionStorageContract",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "tokenId",
+        "name": "knowledgeCollectionTokenId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "knowledgeAssetTokenId",
         "type": "uint256"
       },
       {
@@ -1266,8 +1369,8 @@
         "type": "uint8"
       },
       {
-        "internalType": "enum ParanetLib.KnowledgeAssetsAccessPolicy",
-        "name": "knowledgeAssetsAccessPolicy",
+        "internalType": "enum ParanetLib.KnowledgeCollectionsAccessPolicy",
+        "name": "knowledgeColletionsAccessPolicy",
         "type": "uint8"
       }
     ],
@@ -1345,11 +1448,11 @@
       },
       {
         "internalType": "bytes32",
-        "name": "knowledgeAssetId",
+        "name": "knowledgeCollectionId",
         "type": "bytes32"
       }
     ],
-    "name": "removeKnowledgeAsset",
+    "name": "removeKnowledgeCollection",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -1503,12 +1606,12 @@
         "type": "bytes32"
       },
       {
-        "internalType": "enum ParanetLib.KnowledgeAssetsAccessPolicy",
-        "name": "knowledgeAssetsAccessPolicy",
+        "internalType": "enum ParanetLib.KnowledgeCollectionsAccessPolicy",
+        "name": "knowledgeCollectionsAccessPolicy",
         "type": "uint8"
       }
     ],
-    "name": "setKnowledgeAssetsAccessPolicy",
+    "name": "setKnowledgeCollectionsAccessPolicy",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

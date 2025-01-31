@@ -6,7 +6,7 @@ from dkg.utils.decorators import retry
 from dkg.exceptions import (
     OperationNotFinished,
 )
-from dkg.utils.node_request import (
+from dkg.request_managers.node_request import (
     NodeRequest,
     validate_operation_status,
 )

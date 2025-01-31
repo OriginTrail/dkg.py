@@ -1,34 +1,22 @@
 from dkg.modules.async_module import AsyncModule
 from dkg.managers.async_manager import AsyncRequestManager
-from dkg.utils.blockchain_request import BlockchainRequest
-from dkg.method import Method
 from dkg.constants import ZERO_ADDRESS
 from web3 import Web3
 from typing import Optional
-from dkg.types import Address, UAL
-from dkg.utils.blockchain_request import KnowledgeCollectionResult, AllowanceResult
-from dkg.utils.ual import parse_ual
+from dkg.types import Address, HexStr
+from dkg.request_managers.blockchain_request import (
+    KnowledgeCollectionResult,
+    AllowanceResult,
+)
+from dkg.dataclasses import ParanetIncentivizationType
+from dkg.services.blockchain_services.base_blockchain_service import (
+    BaseBlockchainService,
+)
 
 
-class AsyncBlockchainService(AsyncModule):
+class AsyncBlockchainService(AsyncModule, BaseBlockchainService):
     def __init__(self, manager: AsyncRequestManager):
         self.manager = manager
-
-    _owner = Method(BlockchainRequest.owner_of)
-    _get_contract_address = Method(BlockchainRequest.get_contract_address)
-    _get_current_allowance = Method(BlockchainRequest.allowance)
-    _increase_allowance = Method(BlockchainRequest.increase_allowance)
-    _decrease_allowance = Method(BlockchainRequest.decrease_allowance)
-    _create_knowledge_collection = Method(BlockchainRequest.create_knowledge_collection)
-    _mint_knowledge_collection = Method(BlockchainRequest.mint_knowledge_collection)
-    _get_asset_storage_address = Method(BlockchainRequest.get_asset_storage_address)
-    _key_is_operational_wallet = Method(BlockchainRequest.key_is_operational_wallet)
-    _time_until_next_epoch = Method(BlockchainRequest.time_until_next_epoch)
-    _epoch_length = Method(BlockchainRequest.epoch_length)
-    _get_stake_weighted_average_ask = Method(
-        BlockchainRequest.get_stake_weighted_average_ask
-    )
-    _get_block = Method(BlockchainRequest.get_block)
 
     async def decrease_knowledge_collection_allowance(
         self,
@@ -153,12 +141,6 @@ class AsyncBlockchainService(AsyncModule):
                 await self.decrease_knowledge_collection_allowance(allowance_gap)
             raise e
 
-    # TODO: change self._owner to v8 compatible function
-    async def get_owner(self, ual: UAL) -> Address:
-        token_id = parse_ual(ual)["token_id"]
-
-        return await self._owner(token_id)
-
     async def get_asset_storage_address(self, asset_storage_name: str) -> Address:
         return await self._get_asset_storage_address(asset_storage_name)
 
@@ -178,3 +160,121 @@ class AsyncBlockchainService(AsyncModule):
 
     async def get_block(self, block_identifier: str | int):
         return await self._get_block(block_identifier)
+
+    async def register_paranet(
+        self,
+        knowledge_collection_storage: str | Address,
+        knowledge_collection_token_id: int,
+        knowledge_asset_token_id: int,
+        name: str,
+        description: str,
+        paranet_nodes_access_policy: int,
+        paranet_miners_access_policy: int,
+    ):
+        return await self._register_paranet(
+            knowledge_collection_storage,
+            knowledge_collection_token_id,
+            knowledge_asset_token_id,
+            name,
+            description,
+            paranet_nodes_access_policy,
+            paranet_miners_access_policy,
+        )
+
+    async def submit_knowledge_collection(
+        self,
+        paranet_knowledge_collection_storage: str | Address,
+        paranet_knowledge_collection_token_id: int,
+        paranet_knowledge_asset_token_id: int,
+        knowledge_collection_storage: str | Address,
+        knowledge_collection_token_id: int,
+    ):
+        return await self._submit_knowledge_collection(
+            paranet_knowledge_collection_storage,
+            paranet_knowledge_collection_token_id,
+            paranet_knowledge_asset_token_id,
+            knowledge_collection_storage,
+            knowledge_collection_token_id,
+        )
+
+    async def register_paranet_service(
+        self,
+        knowledge_collection_storage: str | Address,
+        knowledge_collection_token_id: int,
+        knowledge_asset_token_id: int,
+        paranet_service_name: str,
+        paranet_service_description: str,
+        paranet_service_addresses: list[Address],
+    ):
+        return await self._register_paranet_service(
+            knowledge_collection_storage,
+            knowledge_collection_token_id,
+            knowledge_asset_token_id,
+            paranet_service_name,
+            paranet_service_description,
+            paranet_service_addresses,
+        )
+
+    async def add_paranet_services(
+        self,
+        paranet_knowledge_collection_storage: str | Address,
+        paranet_knowledge_collection_token_id: int,
+        paranet_knowledge_asset_token_id: int,
+        services: list,
+    ):
+        return await self._add_paranet_services(
+            paranet_knowledge_collection_storage,
+            paranet_knowledge_collection_token_id,
+            paranet_knowledge_asset_token_id,
+            services,
+        )
+
+    async def deploy_neuro_incentives_pool(
+        self,
+        is_native_reward: bool,
+        paranet_knowledge_collection_storage: str | Address,
+        paranet_knowledge_collection_token_id: int,
+        paranet_knowledge_asset_token_id: int,
+        trac_to_neuro_emission_multiplier: float,
+        paranet_operator_reward_percentage: float,
+        paranet_incentivization_proposal_voters_reward_percentage: float,
+    ):
+        return await self._deploy_neuro_incentives_pool(
+            is_native_reward,
+            paranet_knowledge_collection_storage,
+            paranet_knowledge_collection_token_id,
+            paranet_knowledge_asset_token_id,
+            trac_to_neuro_emission_multiplier,
+            paranet_operator_reward_percentage,
+            paranet_incentivization_proposal_voters_reward_percentage,
+        )
+
+    async def get_incentives_pool_address(
+        self, paranet_id: HexStr, incentives_pool_type: ParanetIncentivizationType
+    ):
+        return await self._get_incentives_pool_address(paranet_id, incentives_pool_type)
+
+    async def is_knowledge_miner_registered(self, paranet_id: HexStr, address: Address):
+        return await self._is_knowledge_miner_registered(paranet_id, address)
+
+    async def is_knowledge_collection_owner(self, owner: Address, id: int):
+        return await self._is_knowledge_collection_owner(owner, id)
+
+    async def is_paranet_operator(self, operator_address: Address):
+        return await self._is_paranet_operator(operator_address)
+
+    def set_incentives_pool(self, incentives_pool_address: Address):
+        self.manager.blockchain_provider.set_incentives_pool(incentives_pool_address)
+
+    async def is_proposal_voter(self, address: Address):
+        return await self._is_proposal_voter(address)
+
+    async def burn_knowledge_assets_tokens(
+        self, id: int, from_: Address, token_ids: list[int]
+    ):
+        return await self._burn_knowledge_assets_tokens(id, from_, token_ids)
+
+    async def transfer_asset(self, from_: Address, to: Address, token_id: int):
+        return await self._transfer_asset(
+            from_, to, token_id, 1, Web3.to_bytes(hexstr="0x")
+        )

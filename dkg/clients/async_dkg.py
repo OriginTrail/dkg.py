@@ -29,6 +29,7 @@ from dkg.services.input_service import InputService
 from dkg.providers.blockchain.async_blockchain import AsyncBlockchainProvider
 from dkg.providers.node.async_node_http import AsyncNodeHTTPProvider
 from dkg.services.node_services.async_node_service import AsyncNodeService
+from dkg.modules.paranet.async_paranet import AsyncParanet
 from dkg.services.blockchain_services.async_blockchain_service import (
     AsyncBlockchainService,
 )
@@ -38,6 +39,7 @@ class AsyncDKG(AsyncModule):
     asset: AsyncKnowledgeAsset
     node: AsyncNode
     graph: AsyncGraph
+    paranet: AsyncParanet
 
     def __init__(
         self,
@@ -58,6 +60,9 @@ class AsyncDKG(AsyncModule):
             ),
             "node": AsyncNode(self.manager, self.node_service),
             "graph": AsyncGraph(self.manager, self.input_service, self.node_service),
+            "paranet": AsyncParanet(
+                self.manager, self.input_service, self.blockchain_service
+            ),
         }
         self._attach_modules(modules)
 

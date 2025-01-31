@@ -40,8 +40,11 @@ class Graph(Module):
     def query(
         self,
         query: str,
-        options: dict = {},
+        options: dict = None,
     ) -> NQuads:
+        if options is None:
+            options = {}
+
         arguments = self.input_service.get_query_arguments(options)
 
         max_number_of_retries = arguments.get("max_number_of_retries")

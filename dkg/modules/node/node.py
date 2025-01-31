@@ -19,8 +19,8 @@ from dkg.dataclasses import NodeResponseDict
 from dkg.managers.manager import DefaultRequestManager
 from dkg.method import Method
 from dkg.modules.module import Module
-from dkg.utils.node_request import NodeRequest
-from dkg.utils.blockchain_request import BlockchainRequest
+from dkg.request_managers.node_request import NodeRequest
+from dkg.request_managers.blockchain_request import BlockchainRequest
 from dkg.types import Address
 
 

@@ -226,3 +226,17 @@ class BlockchainProvider(BaseBlockchainProvider):
             return self.call_function(contract, "status")
         except Exception:
             return False
+
+    def set_incentives_pool(self, incentives_pool_address: Address):
+        # Update contract address if different
+        if (
+            self.contracts.get("ParanetNeuroIncentivesPool") is None
+            or self.contracts["ParanetNeuroIncentivesPool"].address
+            != incentives_pool_address
+        ):
+            # Create new contract instance
+            self.contracts["ParanetNeuroIncentivesPool"] = self.w3.eth.contract(
+                address=incentives_pool_address,
+                abi=self.abi["ParanetNeuroIncentivesPool"],
+                decode_tuples=True,
+            )

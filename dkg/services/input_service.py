@@ -3,6 +3,7 @@ from dkg.constants import (
     ZERO_ADDRESS,
     DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS,
 )
+from dkg.dataclasses import ParanetNodesAccessPolicy, ParanetMinersAccessPolicy
 
 
 class InputService:
@@ -57,6 +58,27 @@ class InputService:
             "minimum_number_of_finalization_confirmations": self.get_minimum_number_of_finalization_confirmations(
                 options
             ),
+        }
+
+    def get_paranet_create_arguments(self, options):
+        return {
+            "paranet_name": self.get_paranet_name(options),
+            "paranet_description": self.get_paranet_description(options),
+            "paranet_nodes_access_policy": self.get_paranet_nodes_access_policy(
+                options
+            ),
+            "paranet_miners_access_policy": self.get_paranet_miners_access_policy(
+                options
+            ),
+        }
+
+    def get_paranet_create_service_arguments(self, options):
+        return {
+            "paranet_service_name": self.get_paranet_service_name(options),
+            "paranet_service_description": self.get_paranet_service_description(
+                options
+            ),
+            "paranet_service_addresses": self.get_paranet_service_addresses(options),
         }
 
     def get_max_number_of_retries(self, options):
@@ -176,8 +198,30 @@ class InputService:
         return DEFAULT_PROXIMITY_SCORE_FUNCTIONS_PAIR_IDS[environment][blockchain_name]
 
     def get_repository(self, options):
+        return options.get("repository") or self.config.get("repository") or None
+
+    def get_paranet_name(self, options):
+        return options.get("paranet_name") or None
+
+    def get_paranet_description(self, options):
+        return options.get("paranet_description") or None
+
+    def get_paranet_nodes_access_policy(self, options):
         return (
-            options.get("repository")
-            or self.config.get("repository")
-            or DefaultParameters.REPOSITORY.value
+            options.get("paranet_nodes_access_policy") or ParanetNodesAccessPolicy.OPEN
         )
+
+    def get_paranet_miners_access_policy(self, options):
+        return (
+            options.get("paranet_miners_access_policy")
+            or ParanetMinersAccessPolicy.OPEN
+        )
+
+    def get_paranet_service_name(self, options):
+        return options.get("paranet_service_name") or None
+
+    def get_paranet_service_description(self, options):
+        return options.get("paranet_service_description") or None
+
+    def get_paranet_service_addresses(self, options):
+        return options.get("paranet_service_addresses") or []

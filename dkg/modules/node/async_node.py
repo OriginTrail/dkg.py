@@ -19,7 +19,7 @@ from dkg.dataclasses import NodeResponseDict
 from dkg.managers.async_manager import AsyncRequestManager
 from dkg.method import Method
 from dkg.modules.async_module import AsyncModule
-from dkg.utils.blockchain_request import BlockchainRequest
+from dkg.request_managers.blockchain_request import BlockchainRequest
 from dkg.types import Address
 from dkg.services.node_services.async_node_service import AsyncNodeService
 

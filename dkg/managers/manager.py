@@ -20,8 +20,8 @@ from typing import Any, Type
 from dkg.dataclasses import BlockchainResponseDict, NodeResponseDict
 from dkg.exceptions import InvalidRequest
 from dkg.providers import BlockchainProvider, NodeHTTPProvider
-from dkg.utils.blockchain_request import ContractInteraction, JSONRPCRequest
-from dkg.utils.node_request import NodeCall
+from dkg.request_managers.blockchain_request import ContractInteraction, JSONRPCRequest
+from dkg.request_managers.node_request import NodeCall
 
 
 class DefaultRequestManager:

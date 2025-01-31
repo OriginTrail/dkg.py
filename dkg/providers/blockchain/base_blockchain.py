@@ -100,3 +100,6 @@ class BaseBlockchainProvider:
             layer=0,
         )
         self.w3.eth.default_account = self.account.address
+
+    def set_incentives_pool(self):
+        raise NotImplementedError("This method has to be implemented in the subclass")
