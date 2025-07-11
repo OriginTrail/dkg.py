@@ -70,7 +70,14 @@ def get_error_breakdown(node_name):
     if os.path.exists(node_file):
         try:
             with open(node_file, 'r') as f:
-                node_errors = json.load(f)
+                node_data = json.load(f)
+                # Handle both old and new format
+                if isinstance(node_data, dict) and 'errors' in node_data:
+                    # New format with blockchain information
+                    node_errors = node_data.get('errors', {})
+                else:
+                    # Old format - direct error data
+                    node_errors = node_data
                 all_errors.update(node_errors)
         except Exception:
             pass

@@ -7,14 +7,20 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-network_config = {
-    'base:mainnet':     {'blockchain_id': 'base:8453',      'table': 'error_messages_mainnet_py', 'host': os.getenv('DB_HOST_PUBLISH_MAINNET')},
-    'base:testnet':     {'blockchain_id': 'base:84531',     'table': 'error_messages_testnet_py', 'host': os.getenv('DB_HOST_PUBLISH_TESTNET')},
-    'gnosis:mainnet':   {'blockchain_id': 'gnosis:100',     'table': 'error_messages_mainnet_py', 'host': os.getenv('DB_HOST_PUBLISH_MAINNET')},
-    'gnosis:testnet':   {'blockchain_id': 'gnosis:10200',   'table': 'error_messages_testnet_py', 'host': os.getenv('DB_HOST_PUBLISH_TESTNET')},
-    'neuroweb:mainnet': {'blockchain_id': 'neuroweb:2043',  'table': 'error_messages_mainnet_py', 'host': os.getenv('DB_HOST_PUBLISH_MAINNET')},
-    'neuroweb:testnet': {'blockchain_id': 'neuroweb:20432', 'table': 'error_messages_testnet_py', 'host': os.getenv('DB_HOST_PUBLISH_TESTNET')},
-}
+MAINNET_PORTS = [':8453', ':100', ':2043']
+
+def is_mainnet(blockchain_name):
+    return any(blockchain_name.endswith(port) for port in MAINNET_PORTS)
+
+def get_db_connection(mainnet=False):
+    host = os.getenv('DB_HOST_PUBLISH_MAINNET') if mainnet else os.getenv('DB_HOST_PUBLISH_TESTNET')
+    return psycopg2.connect(
+        host=host,
+        user=os.getenv('DB_USER_PUBLISH'),
+        password=os.getenv('DB_PASSWORD_PUBLISH'),
+        dbname=os.getenv('DB_NAME_PUBLISH'),
+        port=5432
+    )
 
 files = sys.argv[1:]
 
@@ -22,43 +28,30 @@ for file in files:
     print(f"📁 Processing error file: {file}")
     try:
         with open(file, 'r') as f:
-            errors = json.load(f)
+            error_data = json.load(f)
     except Exception as e:
         print(f"❌ Failed to read or parse {file}: {e}")
         continue
 
-    match = file.lower().split('errors_')
-    if len(match) < 2:
-        print(f"❌ Filename format incorrect for {file}. Expected: errors_Node_XX.json")
-        continue
+    # Handle both old and new format
+    if isinstance(error_data, dict) and 'blockchain_name' in error_data:
+        # New format with blockchain information
+        blockchain_name = error_data.get('blockchain_name', '')
+        node_name = error_data.get('node_name', '')
+        errors = error_data.get('errors', {})
+    else:
+        # Old format - try to determine from filename
+        errors = error_data
+        node_name = file.split('errors_')[1].replace('_', ' ').replace('.json', '').strip()
+        blockchain_name = ''  # Will be determined by network config
 
-    node_name = match[1].replace('_', ' ').replace('.json', '').strip()
-    is_mainnet = 'mainnet' in file.lower()
-
-    matched_key = next(
-        (key for key in network_config if key.startswith(tuple(file.lower().split('_'))) and key.endswith('mainnet') == is_mainnet),
-        None
-    )
-
-    if not matched_key:
-        print(f"❌ Could not determine network config for file: {file}")
-        continue
-
-    config = network_config[matched_key]
-    blockchain_id = config['blockchain_id']
-    table_name = config['table']
-    db_host = config['host']
+    mainnet = is_mainnet(blockchain_name)
+    table_name = 'error_messages_mainnet_py' if mainnet else 'error_messages_testnet_py'
 
     try:
-        conn = psycopg2.connect(
-            host=db_host,
-            user=os.getenv('DB_USER_PUBLISH'),
-            password=os.getenv('DB_PASSWORD_PUBLISH'),
-            dbname=os.getenv('DB_NAME_PUBLISH'),
-            port=5432
-        )
+        conn = get_db_connection(mainnet)
         cursor = conn.cursor()
-        print(f"✅ Connected to DB ({table_name})")
+        print(f"✅ Connected to DB ({'mainnet' if mainnet else 'testnet'})")
     except Exception as e:
         print(f"❌ Failed to connect to DB: {e}")
         continue
@@ -66,13 +59,13 @@ for file in files:
     for ka_label in errors:
         row = {
             'node_name': node_name,
-            'blockchain_id': blockchain_id,
+            'blockchain_id': blockchain_name,
             'ka_label': ka_label,
             'publish_error': None,
             'query_error': None,
             'publisher_get_error': None,
             'non_publisher_get_error': None,
-            'time_stamp': errors[ka_label].get('time_stamp') or None,
+            'time_stamp': errors[ka_label].get('time_stamp') if isinstance(errors[ka_label], dict) else None,
         }
 
         label = ka_label.lower()

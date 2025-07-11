@@ -129,9 +129,16 @@ def log_error(error, node_name, step='unknown', remote_node=None):
     # This ensures we only track errors from the current test run
     node_errors = error_stats.get(node_name, {}).copy()
     
+    # Add blockchain information to the error file for database processing
+    error_data = {
+        "blockchain_name": BLOCKCHAIN,
+        "node_name": node_name,
+        "errors": node_errors
+    }
+    
     # Save current state to individual node file
     with open(node_error_file, 'w') as f:
-        json.dump(node_errors, f, indent=2)
+        json.dump(error_data, f, indent=2)
 
 def safe_rate(success, fail):
     total = success + fail
