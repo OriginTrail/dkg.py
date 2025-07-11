@@ -56,47 +56,96 @@ for file in files:
         print(f"❌ Failed to connect to DB: {e}")
         continue
 
-    for ka_label in errors:
-        row = {
-            'node_name': node_name,
-            'blockchain_id': blockchain_name,
-            'ka_label': ka_label,
-            'publish_error': None,
-            'query_error': None,
-            'publisher_get_error': None,
-            'non_publisher_get_error': None,
-            'time_stamp': errors[ka_label].get('time_stamp') if isinstance(errors[ka_label], dict) else None,
-        }
+    for attempt_key, attempt_data in errors.items():
+        # Handle both old and new error formats
+        if isinstance(attempt_data, dict) and 'ka_label' in attempt_data:
+            # New format with structured error data per attempt
+            ka_label = attempt_data.get('ka_label', 'Unknown KA')
+            attempt_number = attempt_data.get('attempt', 1)
+            publish_error = attempt_data.get('publish_error')
+            query_error = attempt_data.get('query_error')
+            publisher_get_error = attempt_data.get('publisher_get_error')
+            non_publisher_get_error = attempt_data.get('non_publisher_get_error')
+            time_stamp = attempt_data.get('time_stamp')
+            
+            # Only insert if there's at least one error
+            if any([publish_error, query_error, publisher_get_error, non_publisher_get_error]):
+                row = {
+                    'node_name': node_name,
+                    'blockchain_id': blockchain_name,
+                    'ka_label': ka_label,
+                    'publish_error': publish_error,
+                    'query_error': query_error,
+                    'publisher_get_error': publisher_get_error,
+                    'non_publisher_get_error': non_publisher_get_error,
+                    'time_stamp': time_stamp,
+                }
 
-        label = ka_label.lower()
-        if 'publish' in label:
-            row['publish_error'] = ka_label
-        elif 'query' in label:
-            row['query_error'] = ka_label
-        elif 'local get' in label:
-            row['publisher_get_error'] = ka_label
-        elif 'get' in label:
-            row['non_publisher_get_error'] = ka_label
+                insert_query = sql.SQL(f"""
+                    INSERT INTO {sql.Identifier(table_name).string} (
+                        node_name, blockchain_id, ka_label,
+                        publish_error, query_error,
+                        publisher_get_error, non_publisher_get_error,
+                        time_stamp
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """)
 
-        insert_query = sql.SQL(f"""
-            INSERT INTO {sql.Identifier(table_name).string} (
-                node_name, blockchain_id, ka_label,
-                publish_error, query_error,
-                publisher_get_error, non_publisher_get_error,
-                time_stamp
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """)
+                try:
+                    cursor.execute(insert_query, (
+                        row['node_name'], row['blockchain_id'], row['ka_label'],
+                        row['publish_error'], row['query_error'],
+                        row['publisher_get_error'], row['non_publisher_get_error'],
+                        row['time_stamp']
+                    ))
+                    print(f"✅ Inserted {ka_label} (attempt {attempt_number}) for {node_name}")
+                except Exception as e:
+                    print(f"❌ Failed to insert {ka_label} (attempt {attempt_number}): {e}")
+        else:
+            # Old format - simple count (backward compatibility)
+            ka_label = attempt_key
+            error_message = attempt_data if isinstance(attempt_data, str) else str(attempt_data)
+            
+            row = {
+                'node_name': node_name,
+                'blockchain_id': blockchain_name,
+                'ka_label': ka_label,
+                'publish_error': None,
+                'query_error': None,
+                'publisher_get_error': None,
+                'non_publisher_get_error': None,
+                'time_stamp': None,
+            }
 
-        try:
-            cursor.execute(insert_query, (
-                row['node_name'], row['blockchain_id'], row['ka_label'],
-                row['publish_error'], row['query_error'],
-                row['publisher_get_error'], row['non_publisher_get_error'],
-                row['time_stamp']
-            ))
-            print(f"✅ Inserted KA {ka_label} for {node_name}")
-        except Exception as e:
-            print(f"❌ Failed to insert KA {ka_label}: {e}")
+            # Try to determine error type from the key or message
+            label = attempt_key.lower()
+            if 'publish' in label:
+                row['publish_error'] = error_message
+            elif 'query' in label:
+                row['query_error'] = error_message
+            elif 'local get' in label:
+                row['publisher_get_error'] = error_message
+            elif 'get' in label:
+                row['non_publisher_get_error'] = error_message
+
+            insert_query = sql.SQL(f"""
+                INSERT INTO {sql.Identifier(table_name).string} (
+                    node_name, blockchain_id, ka_label,
+                    publish_error, query_error,
+                    publisher_get_error, non_publisher_get_error,
+                    time_stamp
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """)
+
+            try:
+                cursor.execute(insert_query, (
+                    row['node_name'], row['blockchain_id'], row['ka_label'],
+                    row['publish_error'], row['query_error'],
+                    row['publisher_get_error'], row['non_publisher_get_error'],
+                    row['time_stamp']
+                ))
+                print(f"✅ Inserted {ka_label} for {node_name} (old format)")
+            except Exception as e:
+                print(f"❌ Failed to insert {ka_label}: {e}")
 
     try:
         conn.commit()

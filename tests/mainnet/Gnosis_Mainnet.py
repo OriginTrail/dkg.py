@@ -75,17 +75,21 @@ def get_random_content(node_name):
         }
     }
 
-def log_error(error, node_name, step='unknown', remote_node=None):
-    print(f"\n❌ Error on {node_name} during {step}")
-    print(f"🔺 Type: {type(error).__name__}")
-    print(f"🧵 Message: {str(error)}")
-    tb = traceback.extract_tb(sys.exc_info()[2])
-    user_tb = [entry for entry in tb if "site-packages" not in entry.filename]
-    if user_tb:
-        last = user_tb[-1]
-        print(f"📍 Location: {last.filename}, line {last.lineno}, in {last.name}")
-
-    # Create a cleaner error message for grouping
+def log_error(error, node_name, step='unknown', remote_node=None, ka_number=None, attempt_number=None):
+    attempt_key = f"KA #{ka_number} - attempt {attempt_number}" if ka_number and attempt_number else f"KA #{ka_number}"
+    if node_name not in error_stats:
+        error_stats[node_name] = {}
+    if attempt_key not in error_stats[node_name]:
+        error_stats[node_name][attempt_key] = {
+            "ka_label": f"KA #{ka_number}" if ka_number else "Unknown KA",
+            "attempt": attempt_number,
+            "publish_error": None,
+            "query_error": None,
+            "publisher_get_error": None,
+            "non_publisher_get_error": None,
+            "time_stamp": datetime.utcnow().isoformat()
+        }
+    error_message = str(error)
     if isinstance(error, TimeoutError) or isinstance(error, concurrent.futures.TimeoutError):
         error_message = f"Timeout after 3 minutes during {step}"
     else:
@@ -98,40 +102,25 @@ def log_error(error, node_name, step='unknown', remote_node=None):
                 error_message = str(error)
         except Exception:
             error_message = str(error)
-
     error_message = error_message.splitlines()[0][:100]
-
-    # Create a generic key that groups similar errors
-    if remote_node:
-        key = f"{step} — {type(error).__name__}: {error_message} on {remote_node}"
-    else:
-        key = f"{step} — {type(error).__name__}: {error_message}"
-    
-    # Store errors in the global error_stats for this node
-    if node_name not in error_stats:
-        error_stats[node_name] = {}
-    
-    if key in error_stats[node_name]:
-        error_stats[node_name][key] += 1
-    else:
-        error_stats[node_name][key] = 1
-    
-    # Write to individual node error file (parallel-safe)
+    if step == "publishing":
+        error_stats[node_name][attempt_key]["publish_error"] = error_message
+    elif step == "querying":
+        error_stats[node_name][attempt_key]["query_error"] = error_message
+    elif step == "local get":
+        error_stats[node_name][attempt_key]["publisher_get_error"] = error_message
+    elif step == "get":
+        error_stats[node_name][attempt_key]["non_publisher_get_error"] = error_message
+    if not error_stats[node_name][attempt_key]["time_stamp"]:
+        error_stats[node_name][attempt_key]["time_stamp"] = datetime.utcnow().isoformat()
     node_error_file = f"test_output/errors_{node_name.replace(' ', '_')}.json"
     os.makedirs("test_output", exist_ok=True)
-    
-    # Use the in-memory error_stats as the source of truth for this node
-    # This ensures we only track errors from the current test run
     node_errors = error_stats.get(node_name, {}).copy()
-    
-    # Add blockchain information to the error file for database processing
     error_data = {
         "blockchain_name": BLOCKCHAIN,
         "node_name": node_name,
         "errors": node_errors
     }
-    
-    # Save current state to individual node file
     with open(node_error_file, 'w') as f:
         json.dump(error_data, f, indent=2)
 
@@ -181,8 +170,8 @@ def run_test_for_node(node, index):
             publish_success += 1
             publish_times.append(end - start)
         except Exception as e:
-            log_error(e, name, "publishing")
-            ual = "did:dkg:gnosis:100/0x3cb124e1cdceecf6e464bb185325608dbe635f5d/2569246"
+            log_error(e, name, "publishing", ka_number=i + 1, attempt_number=i + 1)
+            ual = "did:dkg:gnosis:100/0xc28f310a87f7621a087a603e2ce41c22523f11d7/120278"
             print(f"⚠️ Using fallback UAL: {ual}")
             failed_assets.append(f"KA #{i + 1} (Publish failed — No UAL)")
             publish_fail += 1
@@ -203,7 +192,7 @@ def run_test_for_node(node, index):
             query_success += 1
             query_times.append(end - start)
         except Exception as e:
-            log_error(e, name, "querying")
+            log_error(e, name, "querying", ka_number=i + 1, attempt_number=i + 1)
             query_fail += 1
             failed_assets.append(f"KA #{i + 1} (Query failed — UAL: {ual})")
 
@@ -216,7 +205,7 @@ def run_test_for_node(node, index):
             local_get_success += 1
             local_get_times.append(end - start)
         except Exception as e:
-            log_error(e, name, "local get")
+            log_error(e, name, "local get", ka_number=i + 1, attempt_number=i + 1)
             local_get_fail += 1
             failed_assets.append(f"KA #{i + 1} (Local Get failed — UAL: {ual})")
 
@@ -235,7 +224,7 @@ def run_test_for_node(node, index):
 
         try:
             remote_dkg = DKG(
-                NodeHTTPProvider(f"{remote_node['hostname']}:{OT_NODE_PORT}", "v1"),
+                NodeHTTPProvider(f"{remote_node['hostname']}:{OT_NODE_PORT}", "v1", timeout=(120, 180)),
                 BlockchainProvider(BLOCKCHAIN),
                 {"max_number_of_retries": 90, "frequency": 2}
             )
@@ -247,7 +236,7 @@ def run_test_for_node(node, index):
             remote_get_success += 1
             remote_get_times.append(end - start)
         except Exception as e:
-            log_error(e, name, "get", remote_name)
+            log_error(e, name, "get", remote_name, ka_number=i + 1, attempt_number=i + 1)
             remote_get_fail += 1
             failed_assets.append(f"KA #{i + 1} (Get failed — UAL: {ual})")
 

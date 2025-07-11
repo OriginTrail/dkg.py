@@ -177,8 +177,36 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         errors = get_error_breakdown(node_name)
         
         if errors:
-            for error_key, count in errors.items():
-                print(f"  • {count}x {error_key}")
+            for attempt_key, attempt_data in errors.items():
+                # Handle both old and new error formats
+                if isinstance(attempt_data, dict) and 'ka_label' in attempt_data:
+                    # New format with structured error data per attempt
+                    ka_label = attempt_data.get('ka_label', 'Unknown KA')
+                    attempt_number = attempt_data.get('attempt', 1)
+                    publish_error = attempt_data.get('publish_error')
+                    query_error = attempt_data.get('query_error')
+                    publisher_get_error = attempt_data.get('publisher_get_error')
+                    non_publisher_get_error = attempt_data.get('non_publisher_get_error')
+                    
+                    # Show which errors occurred for this attempt
+                    error_types = []
+                    if publish_error:
+                        error_types.append("publish")
+                    if query_error:
+                        error_types.append("query")
+                    if publisher_get_error:
+                        error_types.append("local get")
+                    if non_publisher_get_error:
+                        error_types.append("remote get")
+                    
+                    if error_types:
+                        print(f"  • {ka_label} (attempt {attempt_number}): {', '.join(error_types)} errors")
+                    else:
+                        print(f"  • {ka_label} (attempt {attempt_number}): no errors")
+                else:
+                    # Old format - simple count
+                    count = attempt_data if isinstance(attempt_data, int) else 1
+                    print(f"  • {count}x {attempt_key}")
         else:
             print("  • No errors")
     
