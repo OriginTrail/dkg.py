@@ -187,19 +187,21 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
                     publisher_get_error = attempt_data.get('publisher_get_error')
                     non_publisher_get_error = attempt_data.get('non_publisher_get_error')
                     
-                    # Show which errors occurred for this attempt
-                    error_types = []
+                    # Show actual error messages for each error type
+                    error_lines = []
                     if publish_error:
-                        error_types.append("publish")
+                        error_lines.append(f"    • publishing — {publish_error}")
                     if query_error:
-                        error_types.append("query")
+                        error_lines.append(f"    • querying — {query_error}")
                     if publisher_get_error:
-                        error_types.append("local get")
+                        error_lines.append(f"    • local get — {publisher_get_error}")
                     if non_publisher_get_error:
-                        error_types.append("remote get")
+                        error_lines.append(f"    • remote get — {non_publisher_get_error}")
                     
-                    if error_types:
-                        print(f"  • {ka_label} (attempt {attempt_number}): {', '.join(error_types)} errors")
+                    if error_lines:
+                        print(f"  • {ka_label} (attempt {attempt_number}):")
+                        for line in error_lines:
+                            print(line)
                     else:
                         print(f"  • {ka_label} (attempt {attempt_number}): no errors")
                 else:
