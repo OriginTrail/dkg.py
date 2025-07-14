@@ -180,7 +180,7 @@ def run_test_for_node(node, index):
             print(f"🔺 Type: {type(e).__name__}")
             print(f"🧵 Message: {str(e)}")
             print(f"📍 Location: {traceback.format_exc().splitlines()[-1]}")
-            ual = "did:dkg:base:8453/0xc28f310a87f7621a087a603e2ce41c22523f11d7/120278"
+            ual = "did:dkg:base:84532/0xd5550173b0f7b8766ab2770e4ba86caf714a5af5/232737"
             print(f"⚠️ Using fallback UAL: {ual}")
             failed_assets.append(f"KA #{i + 1} (Publish failed — No UAL)")
             publish_fail += 1
@@ -241,7 +241,7 @@ def run_test_for_node(node, index):
 
         try:
             remote_dkg = DKG(
-                NodeHTTPProvider(f"{remote_node['hostname']}:{OT_NODE_PORT}", "v1", timeout=(120, 180)),
+                NodeHTTPProvider(f"{remote_node['hostname']}:{OT_NODE_PORT}", "v1"),
                 BlockchainProvider(BLOCKCHAIN),
                 {"max_number_of_retries": 90, "frequency": 2}
             )

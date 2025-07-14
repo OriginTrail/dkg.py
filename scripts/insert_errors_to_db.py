@@ -25,7 +25,6 @@ def get_db_connection(mainnet=False):
 files = sys.argv[1:]
 
 for file in files:
-    print(f"📁 Processing error file: {file}")
     try:
         with open(file, 'r') as f:
             error_data = json.load(f)
