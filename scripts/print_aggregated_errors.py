@@ -151,6 +151,13 @@ def print_all_errors():
     # Get nodes that have errors
     nodes_with_errors = list(aggregated_errors.keys())
     
+    # Get nodes that were actually tested (have error files, even if empty)
+    nodes_actually_tested = []
+    for node_name in nodes_to_show:
+        node_file = os.path.join(ERROR_DIR, f"errors_{node_name.replace(' ', '_')}.json")
+        if os.path.exists(node_file):
+            nodes_actually_tested.append(node_name)
+    
     # If no aggregated errors, check individual files
     if not nodes_with_errors:
         for node_name in nodes_to_show:
@@ -172,12 +179,11 @@ def print_all_errors():
                 except Exception:
                     pass
     
-    # If still no nodes with errors, check all nodes anyway
-    if not nodes_with_errors:
-        nodes_with_errors = nodes_to_show
+    # Use only the nodes that were actually tested
+    nodes_to_display = nodes_actually_tested if nodes_actually_tested else nodes_with_errors
     
     # Process each node
-    for node_name in nodes_to_show:
+    for node_name in nodes_to_display:
         errors = get_all_errors_for_node(node_name)
         
         if errors:
