@@ -595,7 +595,7 @@ class KnowledgeAsset(Module):
                     ),
                 },
             }
-        metadata = get_public_operation_result.get("data")
+        metadata = get_public_operation_result.get("data", {}).get("metadata", None)
         assertion = get_public_operation_result.get("data", {}).get("assertion", None)
 
         if not assertion:

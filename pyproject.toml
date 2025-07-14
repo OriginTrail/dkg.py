@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dkg"
-version = "8.1.1rc1"
+version = "8.1.1rc2"
 description = "Python library for interacting with the OriginTrail Decentralized Knowledge Graph"
 authors = ["Uladzislau Hubar <hubar.uladzislau@gmail.com>, Zvonimir Sculac <zvonimir.sculac@origin-trail.com>"]
 license = "Apache-2.0"
