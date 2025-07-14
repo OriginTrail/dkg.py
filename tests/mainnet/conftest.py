@@ -176,38 +176,39 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
         errors = get_error_breakdown(node_name)
         
         if errors:
+            # Group errors by type and count them
+            error_counts = {}
+            
             for attempt_key, attempt_data in errors.items():
                 # Handle both old and new error formats
                 if isinstance(attempt_data, dict) and 'ka_label' in attempt_data:
                     # New format with structured error data per attempt
-                    ka_label = attempt_data.get('ka_label', 'Unknown KA')
-                    attempt_number = attempt_data.get('attempt', 1)
                     publish_error = attempt_data.get('publish_error')
                     query_error = attempt_data.get('query_error')
                     publisher_get_error = attempt_data.get('publisher_get_error')
                     non_publisher_get_error = attempt_data.get('non_publisher_get_error')
                     
-                    # Show actual error messages for each error type
-                    error_lines = []
+                    # Count each error type
                     if publish_error:
-                        error_lines.append(f"    • publishing — {publish_error}")
+                        error_key = f"publishing — {publish_error}"
+                        error_counts[error_key] = error_counts.get(error_key, 0) + 1
                     if query_error:
-                        error_lines.append(f"    • querying — {query_error}")
+                        error_key = f"querying — {query_error}"
+                        error_counts[error_key] = error_counts.get(error_key, 0) + 1
                     if publisher_get_error:
-                        error_lines.append(f"    • local get — {publisher_get_error}")
+                        error_key = f"local get — {publisher_get_error}"
+                        error_counts[error_key] = error_counts.get(error_key, 0) + 1
                     if non_publisher_get_error:
-                        error_lines.append(f"    • remote get — {non_publisher_get_error}")
-                    
-                    if error_lines:
-                        print(f"  • {ka_label} (attempt {attempt_number}):")
-                        for line in error_lines:
-                            print(line)
-                    else:
-                        print(f"  • {ka_label} (attempt {attempt_number}): no errors")
+                        error_key = f"remote get — {non_publisher_get_error}"
+                        error_counts[error_key] = error_counts.get(error_key, 0) + 1
                 else:
                     # Old format - simple count
                     count = attempt_data if isinstance(attempt_data, int) else 1
                     print(f"  • {count}x {attempt_key}")
+            
+            # Print summed up errors
+            for error_type, count in error_counts.items():
+                print(f"  • {count}x {error_type}")
         else:
             print("  • No errors")
     

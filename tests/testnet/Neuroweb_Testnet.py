@@ -176,6 +176,10 @@ def run_test_for_node(node, index):
             publish_times.append(end - start)
         except Exception as e:
             log_error(e, name, "publishing", ka_number=i + 1, attempt_number=i + 1)
+            print(f"\n❌ Error on {name} during publishing")
+            print(f"🔺 Type: {type(e).__name__}")
+            print(f"🧵 Message: {str(e)}")
+            print(f"📍 Location: {traceback.format_exc().splitlines()[-1]}")
             ual = "did:dkg:neuroweb:2043/0xc28f310a87f7621a087a603e2ce41c22523f11d7/120278"
             print(f"⚠️ Using fallback UAL: {ual}")
             failed_assets.append(f"KA #{i + 1} (Publish failed — No UAL)")
@@ -198,6 +202,10 @@ def run_test_for_node(node, index):
             query_times.append(end - start)
         except Exception as e:
             log_error(e, name, "querying", ka_number=i + 1, attempt_number=i + 1)
+            print(f"\n❌ Error on {name} during querying")
+            print(f"🔺 Type: {type(e).__name__}")
+            print(f"🧵 Message: {str(e)}")
+            print(f"📍 Location: {traceback.format_exc().splitlines()[-1]}")
             query_fail += 1
             failed_assets.append(f"KA #{i + 1} (Query failed — UAL: {ual})")
 
@@ -211,6 +219,10 @@ def run_test_for_node(node, index):
             local_get_times.append(end - start)
         except Exception as e:
             log_error(e, name, "local get", ka_number=i + 1, attempt_number=i + 1)
+            print(f"\n❌ Error on {name} during local get")
+            print(f"🔺 Type: {type(e).__name__}")
+            print(f"🧵 Message: {str(e)}")
+            print(f"📍 Location: {traceback.format_exc().splitlines()[-1]}")
             local_get_fail += 1
             failed_assets.append(f"KA #{i + 1} (Local Get failed — UAL: {ual})")
 
@@ -242,6 +254,10 @@ def run_test_for_node(node, index):
             remote_get_times.append(end - start)
         except Exception as e:
             log_error(e, name, "get", remote_name, ka_number=i + 1, attempt_number=i + 1)
+            print(f"\n❌ Error on {name} during get on {remote_name}")
+            print(f"🔺 Type: {type(e).__name__}")
+            print(f"🧵 Message: {str(e)}")
+            print(f"📍 Location: {traceback.format_exc().splitlines()[-1]}")
             remote_get_fail += 1
             failed_assets.append(f"KA #{i + 1} (Get failed — UAL: {ual})")
 
