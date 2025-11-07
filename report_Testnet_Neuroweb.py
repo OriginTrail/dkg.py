@@ -133,7 +133,7 @@ if failed > 0:
     """
     
     # Use the remote report URL
-    report_url = "https://titan.dplcenter.xyz/view/Tests/job/dkg.py-Testnet-Publish-Query-Get-Knowledge-Asset/Neuroweb_20Testnet/*zip*/Neuroweb_20Testnet.zip"
+    report_url =""
 
     print("\nSending direct message...")
     send_message_to_ms_teams(TEAMS_HOOK_URL, message_body, report_url)
